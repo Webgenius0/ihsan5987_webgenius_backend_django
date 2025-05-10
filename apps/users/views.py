@@ -41,7 +41,7 @@ class SignupView(APIView):
             response_data = {
                 "status": status.HTTP_201_CREATED,
                 "success": "true",
-                "message": "User created. OTP sent to email.",
+                "message": "User created. OTP sent to email for verification.",
             }
             return Response(response_data, status=status.HTTP_201_CREATED)
         
@@ -194,18 +194,24 @@ class ResendOTPView(APIView):
             return Response({
                 "status": status.HTTP_400_BAD_REQUEST,
                 "success": "false",
-                "message": "Email is required."
+                "message": "Invalid credentials.",
+                "errors": "Email is required."
             }, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            user = User.objects.get(email=email, is_active=False)
+            user = User.objects.get(email=email)
+            if user.is_active:
+                return Response({
+                    "status": status.HTTP_400_BAD_REQUEST,
+                    "message": "Invalid credentials.",
+                    "errors": "User is already verified."
+                }, status=status.HTTP_400_BAD_REQUEST)
         except User.DoesNotExist:
-            response_data = {
+            return Response({
                 "status": status.HTTP_400_BAD_REQUEST,
-                "success": "false",
-                "message": "User does not exist or is already verified.",
-            }
-            return Response(response_data, status=status.HTTP_400_BAD_REQUEST)
+                "message": "Invalid credentials.",
+                "errors": "User does not exist."
+            }, status=status.HTTP_400_BAD_REQUEST)
 
         # Reset OTP attempts if user is eligible
         try:
@@ -363,12 +369,17 @@ class LoginView(APIView):
                     },
                 }
             return Response(response_data, status=status.HTTP_200_OK)
+        
+        error_message = None
+        if 'errors' in serializer.errors:
+            error_value = serializer.errors['errors']
+            error_message = error_value[0] if isinstance(error_value, list) else error_value
 
         response_error = {
             "status": status.HTTP_400_BAD_REQUEST,
             "success": "false",
             "message": "Invalid login credentials",
-            "errors": serializer.errors,
+            "errors": error_message,
         }
         return Response(response_error, status=status.HTTP_400_BAD_REQUEST)
 
