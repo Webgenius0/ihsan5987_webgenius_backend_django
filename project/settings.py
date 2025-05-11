@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'rest_framework',
-    'apps.cms',
+    'apps.home',
     'apps.users',
 ]
 
@@ -160,3 +160,6 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
 ]
+
+#GNEWS_API_KEY
+GNEWS_API_KEY = '5080b16455618a15457b60bb9e94d8c9'
