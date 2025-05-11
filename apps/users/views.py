@@ -193,7 +193,7 @@ class ResendOTPView(APIView):
         if not email:
             return Response({
                 "status": status.HTTP_400_BAD_REQUEST,
-                "success": "false",
+                "success": False,
                 "message": "Invalid credentials.",
                 "errors": "Email is required."
             }, status=status.HTTP_400_BAD_REQUEST)
@@ -203,12 +203,14 @@ class ResendOTPView(APIView):
             if user.is_active:
                 return Response({
                     "status": status.HTTP_400_BAD_REQUEST,
+                    "success": False,
                     "message": "Invalid credentials.",
                     "errors": "User is already verified."
                 }, status=status.HTTP_400_BAD_REQUEST)
         except User.DoesNotExist:
             return Response({
                 "status": status.HTTP_400_BAD_REQUEST,
+                "success": False,
                 "message": "Invalid credentials.",
                 "errors": "User does not exist."
             }, status=status.HTTP_400_BAD_REQUEST)
@@ -241,7 +243,7 @@ class ResendOTPView(APIView):
 
         response_data = {
             "status": status.HTTP_200_OK,
-            "success": "true",
+            "success": True,
             "message": "OTP resent successfully.",
         }   
         return Response(response_data, status=status.HTTP_200_OK)
@@ -255,17 +257,17 @@ class ForgotPasswordView(APIView):
 
         if not email:
             return Response({
-                "status": 400,
-                "success": "false",
+                "status": status.HTTP_400_BAD_REQUEST,
+                "success": False,
                 "message": "Email is required."
-            }, status=400)
+            }, status = status.HTTP_400_BAD_REQUEST)
 
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
             response_data = {
                 "status": status.HTTP_404_NOT_FOUND,
-                "success": "false",
+                "success": False,
                 "message": "User with this email does not exist."
             }
             return Response(response_data, status=status.HTTP_404_NOT_FOUND)
@@ -288,7 +290,7 @@ class ForgotPasswordView(APIView):
 
         return Response({
             "status": status.HTTP_200_OK,
-            "success": "true",
+            "success": True,
             "message": "OTP sent to your email."
         }, status = status.HTTP_200_OK)
 
@@ -304,27 +306,27 @@ class ResetPasswordView(APIView):
 
         if not email or not otp or not new_password or not confirm_password:
             return Response({
-                "status": 400,
-                "success": "false",
-                "message": "Email, new password, and confirm password are required."
-            }, status=400)
+                "status": status.HTTP_400_BAD_REQUEST,
+                "success": False,
+                "message": "Email, OTP, new password, and confirm password are required."
+            }, status = status.HTTP_400_BAD_REQUEST)
 
         if new_password != confirm_password:
             return Response({
-                "status": 400,
-                "success": "false",
+                "status": status.HTTP_400_BAD_REQUEST,
+                "success": False,
                 "message": "Passwords do not match."
-            }, status=400)
+            }, status = status.HTTP_400_BAD_REQUEST)
 
         try:
             user = User.objects.get(email=email)
             otp_obj = EmailOTP.objects.filter(user=user, otp=otp, is_verified=True).latest('created_at')
         except (User.DoesNotExist, EmailOTP.DoesNotExist):
             return Response({
-                "status": 400,
-                "success": "false",
+                "status": status.HTTP_400_BAD_REQUEST,
+                "success": False,
                 "message": "OTP not verified or user not found."
-            }, status=400)
+            }, status = status.HTTP_400_BAD_REQUEST)
 
         if otp_obj:
             user.set_password(new_password)
@@ -333,8 +335,8 @@ class ResetPasswordView(APIView):
         EmailOTP.objects.filter(user=user).delete()  # Clean up OTPs
 
         return Response({
-            "status": 200,
-            "success": "true",
+            "status": status.HTTP_200_OK,
+            "success": True,
             "message": "Password reset successfully."
         }, status=200)
 
@@ -359,15 +361,19 @@ class LoginView(APIView):
             refresh = RefreshToken.for_user(user)
             access_token = str(refresh.access_token)
 
+            # response_data = {
+            #         "status": status.HTTP_200_OK,
+            #         "success": "true",
+            #         "message": "Login Successful",
+            #         "data": {
+            #             "access_token": access_token,
+            #             "refresh_token": str(refresh)
+            #         },
+            #     }
             response_data = {
-                    "status": status.HTTP_200_OK,
-                    "success": "true",
-                    "message": "Login Successful",
-                    "data": {
-                        "access_token": access_token,
-                        "refresh_token": str(refresh)
-                    },
-                }
+                "access_token": access_token,
+                "refresh_token": str(refresh)
+            }
             return Response(response_data, status=status.HTTP_200_OK)
         
         error_message = None
