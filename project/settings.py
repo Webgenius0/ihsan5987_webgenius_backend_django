@@ -43,6 +43,10 @@ INSTALLED_APPS = [
     'rest_framework',
     'apps.home',
     'apps.users',
+
+    # my apps
+    'apps.profiles',
+    'apps.community_hubs',
 ]
 
 MIDDLEWARE = [
@@ -125,7 +129,9 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # collectstatic target
-STATICFILES_DIRS = [BASE_DIR / "static"]
+STATICFILES_DIRS = [
+    BASE_DIR / "static"
+]
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
