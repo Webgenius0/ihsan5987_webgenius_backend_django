@@ -30,3 +30,14 @@ class ProfileSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
+    
+class MyPostSerializer(serializers.ModelSerializer):
+    user = ProfileSerializer(source='user.profile', read_only=True)
+    comment_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Post
+        fields = ['id', 'title', 'category', 'content', 'created_at', 'comment_count', 'user']
+
+    def get_comment_count(self, obj):
+        return obj.comment_count()

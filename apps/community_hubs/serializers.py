@@ -36,6 +36,11 @@ class LikeSerializer(serializers.ModelSerializer):
         model = Like
         fields = ['user', 'created_at']
 
+class CommentUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'name', 'profile_image']
+
 class CommentSerializer(serializers.ModelSerializer):
     user = UserSerializer(source='user.profile', read_only=True)
     like_count = serializers.SerializerMethodField()
