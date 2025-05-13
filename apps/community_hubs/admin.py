@@ -4,9 +4,8 @@ from .models import Post, Comment, Like
 
 @admin.register(Post)
 class PostAdmin(ModelAdmin):
-    list_display = ("user", "title", "category", "image", "comment_count", "created_at")
-    list_filter = ("category",)
-    search_fields = ["user__email", "title"]
+    list_display = ("id", "title", "user", "category", "created_at")
+    search_fields = ["title", "user__email"]
     ordering = ["-created_at"]
 
 @admin.register(Comment)
