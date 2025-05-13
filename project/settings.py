@@ -159,12 +159,14 @@ EMAIL_HOST_PASSWORD = 'bdui nxzn dogt fqxl'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
+    "https://ihsan5987-django.onrender.com",
 ]
 
 #csrf setup
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
+    "https://ihsan5987-django.onrender.com",
 ]
 
 #GNEWS_API_KEY
