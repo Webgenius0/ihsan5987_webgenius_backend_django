@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status, permissions
 from django.db.models import Q, Count
 from .models import Post
-from .serializers import PostlistSerializer,CreatePostSerializer, PostSerializer
+from .serializers import PostlistSerializer,CreatePostSerializer, PostDetailSerializer
 
 
 class PostList(APIView):
@@ -46,7 +46,7 @@ class CreatePost(APIView):
                 "status": status.HTTP_201_CREATED,
                 "success": True,
                 "message": "Post created successfully",
-                "data": serializer.data
+                "post_id": serializer.data['id']
             })
         return Response({
             "status": status.HTTP_400_BAD_REQUEST,
@@ -68,7 +68,7 @@ class PostDetail(APIView):
                 "message": "Post not found"
             }, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = PostSerializer(post)
+        serializer = PostDetailSerializer(post)
         return Response({
             "status": status.HTTP_200_OK,
             "success": True,
