@@ -7,7 +7,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ['image', 'name']  # name is now part of the serializer
+        fields = ['image_url', 'name']  # name is now part of the serializer
 
     def to_representation(self, instance):
         data = super().to_representation(instance)

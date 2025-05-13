@@ -4,6 +4,7 @@ from apps.users.models import User
 from django.utils.timesince import timesince
 from django.utils.timezone import now
 from datetime import timedelta
+from apps.profiles.models import Profile
 
 class PostlistSerializer(serializers.ModelSerializer):
     comment_count = serializers.SerializerMethodField()
@@ -19,18 +20,14 @@ class PostlistSerializer(serializers.ModelSerializer):
 class CreatePostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
-        fields = ['id', 'title', 'category', 'content', 'created_at']
+        fields = ['id', 'image', 'title', 'category', 'content', 'created_at']
 
 class UserSerializer(serializers.ModelSerializer):
-    image = serializers.SerializerMethodField()
+    name = serializers.CharField(source='user.name', required=False)
     class Meta:
-        model = User
-        fields = ['name', 'image']
+        model = Profile
+        fields = ['name', 'image_url']
 
-    def get_image(self, obj):
-        if hasattr(obj, 'profile') and obj.profile.image:
-            return obj.profile.image.url
-        return None
 
 class LikeSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
@@ -40,7 +37,7 @@ class LikeSerializer(serializers.ModelSerializer):
         fields = ['user', 'created_at']
 
 class CommentSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
+    user = UserSerializer(source='user.profile', read_only=True)
     like_count = serializers.SerializerMethodField()
     create_time = serializers.SerializerMethodField()
 
@@ -58,18 +55,18 @@ class CommentSerializer(serializers.ModelSerializer):
         return timesince(obj.created_at) + " ago"
 
 
-class PostSerializer(serializers.ModelSerializer):
+class PostDetailSerializer(serializers.ModelSerializer):
     comments = CommentSerializer(many=True, read_only=True)
 
     class Meta:
         model = Post
-        fields = ['image', 'title', 'content', 'comments']
+        fields = ['image_url', 'title', 'content', 'comments']
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         # Reorder fields to match requested structure: image, title, content, then comments
         ordered_data = {
-            'image': representation['image'],
+            'image': representation['image_url'],
             'title': representation['title'],
             'content': representation['content'],
             'comments': representation['comments'],
