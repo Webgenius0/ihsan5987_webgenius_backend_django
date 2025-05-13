@@ -14,12 +14,23 @@ class PostlistSerializer(serializers.ModelSerializer):
 
     def get_comment_count(self, obj):
         return obj.comment_count()
-    
+
+
+class CreatePostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Post
+        fields = ['id', 'title', 'category', 'content', 'created_at']
+
 class UserSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
     class Meta:
         model = User
         fields = ['name', 'image']
+
+    def get_image(self, obj):
+        if hasattr(obj, 'profile') and obj.profile.image:
+            return obj.profile.image.url
+        return None
 
 class LikeSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
