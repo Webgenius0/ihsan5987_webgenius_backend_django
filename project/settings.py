@@ -49,7 +49,8 @@ INSTALLED_APPS = [
     'cloudinary',
 
     # my apps
-    'apps.profiles',
+    'apps.profiles.apps.ProfilesConfig',
+
     'apps.community_hubs',
 ]
 

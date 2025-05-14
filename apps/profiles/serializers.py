@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from apps.community_hubs.models import Post
 from .models import Profile
+from apps.community_hubs.serializers import UserSerializer
 
 class ProfileSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source='user.name', required=False)
@@ -32,12 +33,27 @@ class ProfileSerializer(serializers.ModelSerializer):
         return instance
     
 class MyPostSerializer(serializers.ModelSerializer):
-    user = ProfileSerializer(source='user.profile', read_only=True)
+    # user = ProfileSerializer(source='user.profile', read_only=True)
     comment_count = serializers.SerializerMethodField()
+    commented_users = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
-        fields = ['id', 'title', 'category', 'content', 'created_at', 'comment_count', 'user']
+        fields = ['id', 'title', 'category', 'content', 'created_at', 'comment_count', 'commented_users']
+
+    def get_commented_users(self, obj):
+        # Get the list of users who have commented on this post
+        comments = obj.comments.filter(post=obj).select_related('user__profile')
+        users = {comments.user.id: comments.user for comments in comments}.values()
+    
+        # Limit to 5 for avatars (you can make this dynamic or full list based on your UI)
+        max_users = 5
+        user_list = list(users)[:max_users]
+        # overflow = len(users) - max_users if len(users) > max_users else 0
+        
+        return {
+            'avatars': UserSerializer(user_list, many=True, context=self.context).data,
+        }
 
     def get_comment_count(self, obj):
         return obj.comment_count()

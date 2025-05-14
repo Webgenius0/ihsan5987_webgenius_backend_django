@@ -5,13 +5,30 @@ from django.utils.timesince import timesince
 from django.utils.timezone import now
 from datetime import timedelta
 from apps.profiles.models import Profile
+from apps.users.models import User
 
 class PostlistSerializer(serializers.ModelSerializer):
     comment_count = serializers.SerializerMethodField()
+    commented_users = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
-        fields = ['id', 'title', 'category', 'content', 'created_at', 'comment_count']
+        fields = ['id', 'title', 'category', 'content', 'created_at', 'comment_count', 'commented_users']
+
+    def get_commented_users(self, obj):
+        # Get the list of users who have commented on this post
+        comments = obj.comments.filter(post=obj).select_related('user__profile')
+        users = {comments.user.id: comments.user for comments in comments}.values()
+    
+        # Limit to 5 for avatars (you can make this dynamic or full list based on your UI)
+        max_users = 5
+        user_list = list(users)[:max_users]
+        # overflow = len(users) - max_users if len(users) > max_users else 0
+        
+        return {
+            'avatars': UserSerializer(user_list, many=True, context=self.context).data,
+            # 'overflow': overflow
+        }
 
     def get_comment_count(self, obj):
         return obj.comment_count()
@@ -23,10 +40,17 @@ class CreatePostSerializer(serializers.ModelSerializer):
         fields = ['id', 'image', 'title', 'category', 'content', 'created_at']
 
 class UserSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(source='user.name', required=False)
+    image = serializers.SerializerMethodField()
+
     class Meta:
-        model = Profile
-        fields = ['name', 'image_url']
+        model = User
+        fields = ['id', 'name', 'image']
+
+    def get_image(self, obj):
+        if hasattr(obj, 'profile') and obj.profile.image:
+            return obj.profile.image.url
+        return None
+
 
 
 class LikeSerializer(serializers.ModelSerializer):

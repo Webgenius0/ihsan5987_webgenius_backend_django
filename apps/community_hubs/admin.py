@@ -10,7 +10,7 @@ class PostAdmin(ModelAdmin):
 
 @admin.register(Comment)
 class CommentAdmin(ModelAdmin):
-    list_display = ("post", "user", "text", "created_at")
+    list_display = ("id", "post", "user", "text", "created_at")
     search_fields = ["post__title", "user__email"]
     ordering = ["-created_at"]
 
