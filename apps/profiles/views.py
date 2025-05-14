@@ -2,8 +2,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-from .serializers import ProfileSerializer
+from .serializers import ProfileSerializer, MyPostSerializer
+from apps.community_hubs.models import Post
 from .models import Profile
+from django.shortcuts import get_object_or_404
 
 class ProfileView(APIView):
     permission_classes = [IsAuthenticated]
@@ -97,3 +99,54 @@ class ProfileView(APIView):
                 "message": "Profile not found",
             }, status=status.HTTP_404_NOT_FOUND)
 
+
+class MyPostList(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        posts = Post.objects.filter(user=user).order_by('-created_at')
+        serializer = MyPostSerializer(posts, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class MyPostDetail(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self, pk, user):
+        return get_object_or_404(Post, pk=pk, user=user)
+
+    def get(self, request, pk):
+        post = self.get_object(pk, request.user)
+        serializer = MyPostSerializer(post)
+        response = {
+            "status": status.HTTP_200_OK,
+            "success": True,   
+            "message": "Post retrieved successfully",
+            "data": serializer.data
+            }
+        return Response(response, status=status.HTTP_200_OK)
+
+    def put(self, request, pk):
+        post = self.get_object(pk, request.user)
+        serializer = MyPostSerializer(post, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            response = {
+                "status": status.HTTP_200_OK,
+                "success": True,
+                "message": "Post updated successfully",
+                "data": serializer.data
+            }
+            return Response(response, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        post = self.get_object(pk, request.user)
+        post.delete()
+        response = {
+            "status": status.HTTP_204_NO_CONTENT,
+            "success": True,
+            "message": "Post deleted successfully"
+        }
+        return Response(response, status=status.HTTP_204_NO_CONTENT)
