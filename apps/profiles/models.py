@@ -49,5 +49,5 @@ class ContactUs(models.Model):
     @property
     def icon_url(self):
         if self.icon:
-            return self.icon.url  # Cloudinary provides full URL
+            return self.icon.url
         return None
