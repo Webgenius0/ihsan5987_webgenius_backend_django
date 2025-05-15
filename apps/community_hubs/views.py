@@ -22,8 +22,7 @@ class PostList(APIView):
         if sort == "most_commented":
             posts = posts.annotate(num_comments=Count("comments")).order_by("-num_comments")
         elif sort == "most_interested":
-            # Placeholder logic — replace with your interest logic (likes, views, etc.)
-            posts = posts.order_by("-created_at")
+            posts = posts.annotate(num_likes=Count("likes")).order_by("-num_likes")
         else:
             posts = posts.order_by("-created_at")  # latest
 
