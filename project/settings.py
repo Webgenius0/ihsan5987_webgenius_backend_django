@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 import os
 from pathlib import Path
 import cloudinary
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -42,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'rest_framework',
+    'rest_framework_simplejwt.token_blacklist',
     'apps.home',
     'apps.users',
 
@@ -149,6 +151,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
     ),
 }
 
@@ -164,17 +167,18 @@ EMAIL_HOST_PASSWORD = 'bdui nxzn dogt fqxl'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
+    "https://ihsan5987-django.onrender.com",
 ]
 
 #csrf setup
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
+    "https://ihsan5987-django.onrender.com",
 ]
 
 #GNEWS_API_KEY
 GNEWS_API_KEY = '5080b16455618a15457b60bb9e94d8c9'
-
 
 # Cloudinary setup
 cloudinary.config( 
@@ -183,3 +187,9 @@ cloudinary.config(
     api_secret = "OAgOpdxpTDNw9LvMzvDekZdweSI",
     secure=True
 )
+
+#Simple JWT setup
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1)
+}
