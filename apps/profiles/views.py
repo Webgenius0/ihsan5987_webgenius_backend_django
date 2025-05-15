@@ -2,10 +2,11 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-from .serializers import ProfileSerializer, MyPostSerializer
+from .serializers import ProfileSerializer, MyPostSerializer, FAQSerializer, FAQCategorySerializer, ContactUsSerializer
 from apps.community_hubs.models import Post
-from .models import Profile
+from .models import Profile, FAQ, FAQCategory, ContactUs
 from django.shortcuts import get_object_or_404
+from django.db.models import Q
 
 class ProfileView(APIView):
     permission_classes = [IsAuthenticated]
@@ -150,3 +151,50 @@ class MyPostDetail(APIView):
             "message": "Post deleted successfully"
         }
         return Response(response, status=status.HTTP_204_NO_CONTENT)
+    
+
+# FAQ View
+class FAQList(APIView):
+    def get(self, request):
+        category = request.query_params.get('category', None)
+        search = request.query_params.get('search', None)
+        
+        if category:
+            faqs = FAQ.objects.filter(category__name=category)
+        elif search:
+            faqs = FAQ.objects.filter(Q(question__icontains=search) | Q(answer__icontains=search))
+        else:
+            faqs = FAQ.objects.all()
+        serializer = FAQSerializer(faqs, many=True)
+        response = {
+            "status": status.HTTP_200_OK,
+            "success": True,
+            "message": "FAQs retrieved successfully",
+            "data": serializer.data
+        }
+        return Response(response, status=status.HTTP_200_OK)
+    
+class FAQCategoryList(APIView):
+    def get(self, request):
+        categories = FAQCategory.objects.all()
+        serializer = FAQCategorySerializer(categories, many=True)
+        response = {
+            "status": status.HTTP_200_OK,
+            "success": True,
+            "message": "FAQ categories retrieved successfully",
+            "data": serializer.data
+        }
+        return Response(response, status=status.HTTP_200_OK)
+    
+# Contact Us View
+class ContactUsList(APIView):
+    def get(self, request):
+        contacts = ContactUs.objects.all()
+        serializer = ContactUsSerializer(contacts, many=True)
+        response = {
+            "status": status.HTTP_200_OK,
+            "success": True,
+            "message": "Contact Us links retrieved successfully",
+            "data": serializer.data
+        }
+        return Response(response, status=status.HTTP_200_OK)
