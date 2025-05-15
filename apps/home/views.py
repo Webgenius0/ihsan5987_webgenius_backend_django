@@ -5,66 +5,87 @@ from rest_framework.response import Response
 from django.conf import settings
 from datetime import datetime, timedelta
 from rest_framework.permissions import IsAuthenticated
-from .models import Notification
-from .serializers import NotificationSerializer
+from .models import Notification, UserInterests
+from .serializers import NotificationSerializer, UserInterestsSerializer
+from apps.community_hubs.models import Post
+from apps.community_hubs.serializers import PostlistSerializer
 
 
 #Trending News API
 class TrendingNewsAPIView(APIView):
     def get(self, request):
-        url = "https://gnews.io/api/v4/top-headlines"
-        params = {
-            'token': settings.GNEWS_API_KEY,  # <-- Ensure this is set
-            'lang': 'en',
-            'country': 'us',
-            'max': 10
-        }
+        categories = ['general', 'world', 'nation', 'business', 'technology', 'entertainment', 'sports', 'science', 'health', 'politics']
+    
+        aggregated_articles = []
 
-        response = requests.get(url, params=params)
-        if response.status_code == 200:
-            data = response.json()
-            response_data = {
-                'status': status.HTTP_200_OK,
-                'success': True,
-                'message': 'Trending news fetched successfully',
-                'data': data.get('articles', [])
-            } 
-            return Response(response_data, status=status.HTTP_200_OK)
-        else:
-            response_data = {
-                'status': status.HTTP_400_BAD_REQUEST,
-                'success': False,
-                'message': 'Failed to fetch news',
-                'errors': response.json()
-            } 
-            return Response(response_data, status =status.HTTP_400_BAD_REQUEST)
+        for category in categories:
+            params = {
+                'token': settings.GNEWS_API_KEY,
+                'lang': 'en',
+                'country': 'us',
+                'max': 10,  
+                'q': category  
+            }
+
+            response = requests.get("https://gnews.io/api/v4/top-headlines", params=params)
+
+            if response.status_code == 200:
+                articles = response.json().get('articles', [])
+                for article in articles:
+                    aggregated_articles.append({
+                        'title': article.get('title'),
+                        'description': article.get('description'),
+                        'content': article.get('content'),
+                        'url': article.get('url'),
+                        'image': article.get('image'),
+                        'publishedAt': article.get('publishedAt'),
+                        'source': {
+                            'name': article.get('source', {}).get('name'),
+                            'url': article.get('source', {}).get('url'),
+                        },
+                        'category': category  # manually tagged category
+                    })
+        response_data = {
+            'status': status.HTTP_200_OK,
+            'success': True,
+            'message': 'Trending news fetched successfully',
+            'data': aggregated_articles
+        } 
+        return Response(response_data, status=status.HTTP_200_OK)
         
 #Recommended Topics API
 class RecommendedTopicsAPIView(APIView):
     def get(self, request):
-        topics = [
-            "technology", "sports", "business", "entertainment",
-            "science", "health", "world", "politics"
-        ]
-
-        base_url = "https://gnews.io/api/v4/search"
-        token = settings.GNEWS_API_KEY
+        categories = ['general', 'world', 'nation', 'business', 'technology', 'entertainment', 'sports', 'science', 'health', 'politics']
+    
         recommendations = []
 
-        for topic in topics:
+        for category in categories:
             params = {
-                'q': topic,
+                'token': settings.GNEWS_API_KEY,
                 'lang': 'en',
-                'max': 1,
-                'token': token
+                'country': 'us',
+                'max': 10,  
+                'q': category  
             }
-            res = requests.get(base_url, params=params)
-            if res.status_code == 200:
-                articles = res.json().get('articles', [])
-                if articles:
+
+            response = requests.get("https://gnews.io/api/v4/search", params=params)
+
+            if response.status_code == 200:
+                articles = response.json().get('articles', [])
+                for article in articles:
                     recommendations.append({
-                        'topic': topic,
-                        'article': articles[0]
+                        'title': article.get('title'),
+                        'description': article.get('description'),
+                        'content': article.get('content'),
+                        'url': article.get('url'),
+                        'image': article.get('image'),
+                        'publishedAt': article.get('publishedAt'),
+                        'source': {
+                            'name': article.get('source', {}).get('name'),
+                            'url': article.get('source', {}).get('url'),
+                        },
+                        'category': category  # manually tagged category
                     })
         response_data = {
             'status': status.HTTP_200_OK,
@@ -72,7 +93,23 @@ class RecommendedTopicsAPIView(APIView):
             'message': 'Recommended topics fetched successfully',
             'data': recommendations
         } 
-        return Response(response_data, status = status.HTTP_200_OK)
+        return Response(response_data, status=status.HTTP_200_OK)
+
+#Community Hub API
+class CommunityHubAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        posts = Post.objects.all().order_by("-created_at")
+
+        serializer = PostlistSerializer(posts, many=True)
+        return Response({
+            "status": status.HTTP_200_OK,
+            "success": True,
+            "message": "Posts fetched successfully",
+            "data": serializer.data
+        })
 
 #Search News API
 class SearchResultsAPIView(APIView):
@@ -109,47 +146,44 @@ class SearchResultsAPIView(APIView):
 #Update Me API
 class UpdateMeAPIView(APIView):
     def get(self, request):
-        topic = request.query_params.get('q')  # Optional query
-        now = datetime.utcnow()
-        past = now - timedelta(hours=6)
+        categories = ['general', 'world', 'nation', 'business', 'technology', 'entertainment', 'sports', 'science', 'health', 'politics']
+    
+        update = []
 
-        if topic:
-            # If a topic is provided, search for related news
-            url = "https://gnews.io/api/v4/search"
+        for category in categories:
             params = {
-                'q': topic,
+                'token': settings.GNEWS_API_KEY,
                 'lang': 'en',
-                'max': 10,
-                'from': past.isoformat() + 'Z',
-                'to': now.isoformat() + 'Z',
-                'token': settings.GNEWS_API_KEY
-            }
-        else:
-            # No topic? Show general recent headlines
-            url = "https://gnews.io/api/v4/top-headlines"
-            params = {
-                'lang': 'en',
-                'country': 'us',  # You can change or customize per user
-                'max': 10,
-                'token': settings.GNEWS_API_KEY
+                'country': 'us',
+                'max': 10,  
+                'q': category  
             }
 
-        res = requests.get(url, params=params)
-        if res.status_code == 200:
-            response_data = {
-                'status': status.HTTP_200_OK,
-                'success': True,
-                'message': 'Update news fetched successfully',
-                'data': res.json().get('articles', [])
-            }
-            return Response(response_data, status=status.HTTP_200_OK)
+            response = requests.get("https://gnews.io/api/v4/search", params=params)
+
+            if response.status_code == 200:
+                articles = response.json().get('articles', [])
+                for article in articles:
+                    update.append({
+                        'title': article.get('title'),
+                        'description': article.get('description'),
+                        'content': article.get('content'),
+                        'url': article.get('url'),
+                        'image': article.get('image'),
+                        'publishedAt': article.get('publishedAt'),
+                        'source': {
+                            'name': article.get('source', {}).get('name'),
+                            'url': article.get('source', {}).get('url'),
+                        },
+                        'category': category  # manually tagged category
+                    })
         response_data = {
-            'status': status.HTTP_400_BAD_REQUEST,
-            'success': False,
-            'message': 'Failed to fetch update news',
-            'errors': res.json()
-        }
-        return Response(response_data, status=status.HTTP_400_BAD_REQUEST)
+            'status': status.HTTP_200_OK,
+            'success': True,
+            'message': 'Update news fetched successfully',
+            'data': update
+        } 
+        return Response(response_data, status=status.HTTP_200_OK)
 
 #Posts View API   
 class PostsAPIView(APIView):
@@ -288,3 +322,31 @@ class SystemNotificationsAPIView(APIView):
             'data': serializer.data
         }
         return Response(response_data, status=status.HTTP_200_OK)
+
+
+#User interests API
+class UserInterestsAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # Retrieve current user's interests
+        try:
+            user_interests = UserInterests.objects.get(user=request.user)
+        except UserInterests.DoesNotExist:
+            return Response({'detail': 'No interests found for user.'}, status=404)
+        
+        serializer = UserInterestsSerializer(user_interests)
+        return Response(serializer.data)
+
+    def post(self, request):
+        # Create or update the interests
+        try:
+            user_interests = UserInterests.objects.get(user=request.user)
+            serializer = UserInterestsSerializer(user_interests, data=request.data, context={'request': request})
+        except UserInterests.DoesNotExist:
+            serializer = UserInterestsSerializer(data=request.data, context={'request': request})
+
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
