@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from apps.community_hubs.models import Post
-from .models import Profile
+from .models import Profile, FAQ, FAQCategory, ContactUs
 from apps.community_hubs.serializers import UserSerializer
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -57,3 +57,23 @@ class MyPostSerializer(serializers.ModelSerializer):
 
     def get_comment_count(self, obj):
         return obj.comment_count()
+    
+# FAQ Serializer
+class FAQSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FAQ
+        fields = ['id', 'question', 'answer', 'category']
+
+class FAQCategorySerializer(serializers.ModelSerializer):
+    faqs = FAQSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = FAQCategory
+        fields = ['id', 'name', 'faqs']
+
+
+# Contact Us Serializer
+class ContactUsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContactUs
+        fields = ['id', 'platform', 'icon_url', 'link']
