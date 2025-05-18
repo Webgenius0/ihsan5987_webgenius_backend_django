@@ -5,8 +5,8 @@ from rest_framework.response import Response
 from django.conf import settings
 from datetime import datetime, timedelta
 from rest_framework.permissions import IsAuthenticated
-from .models import Notification, UserInterests
-from .serializers import NotificationSerializer, UserInterestsSerializer
+from .models import UserInterests
+from .serializers import UserInterestsSerializer
 from apps.community_hubs.models import Post
 from apps.community_hubs.serializers import PostlistSerializer
 
@@ -291,37 +291,37 @@ class YourInterestAPIView(APIView):
             return Response(response_data, status=status.HTTP_400_BAD_REQUEST)
     
 
-#General Notification API
-class GeneralNotificationsAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+# #General Notification API
+# class GeneralNotificationsAPIView(APIView):
+#     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        user = request.user
-        general_notifications = Notification.objects.filter(user=user, notif_type='general')
-        serializer = NotificationSerializer(general_notifications, many=True)
-        response_data = {
-            'status': status.HTTP_200_OK,
-            'success': True,
-            'message': 'General notifications fetched successfully',
-            'data': serializer.data
-        }
-        return Response(response_data, status=status.HTTP_200_OK)
+#     def get(self, request):
+#         user = request.user
+#         general_notifications = Notification.objects.filter(user=user, notif_type='general')
+#         serializer = NotificationSerializer(general_notifications, many=True)
+#         response_data = {
+#             'status': status.HTTP_200_OK,
+#             'success': True,
+#             'message': 'General notifications fetched successfully',
+#             'data': serializer.data
+#         }
+#         return Response(response_data, status=status.HTTP_200_OK)
 
-#System Notification API
-class SystemNotificationsAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+# #System Notification API
+# class SystemNotificationsAPIView(APIView):
+#     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        user = request.user
-        system_notifications = Notification.objects.filter(user=user, notif_type='system')
-        serializer = NotificationSerializer(system_notifications, many=True)
-        response_data = {
-            'status': status.HTTP_200_OK,
-            'success': True,
-            'message': 'System notifications fetched successfully',
-            'data': serializer.data
-        }
-        return Response(response_data, status=status.HTTP_200_OK)
+#     def get(self, request):
+#         user = request.user
+#         system_notifications = Notification.objects.filter(user=user, notif_type='system')
+#         serializer = NotificationSerializer(system_notifications, many=True)
+#         response_data = {
+#             'status': status.HTTP_200_OK,
+#             'success': True,
+#             'message': 'System notifications fetched successfully',
+#             'data': serializer.data
+#         }
+#         return Response(response_data, status=status.HTTP_200_OK)
 
 
 #User interests API
