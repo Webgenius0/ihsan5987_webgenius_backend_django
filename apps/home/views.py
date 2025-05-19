@@ -316,37 +316,35 @@ class YourInterestAPIView(APIView):
 
 #General Notification API
 class GeneralNotificationsAPIView(APIView):
-    authentication_classes = [CustomJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        user = request.user
-        general_notifications = Notification.objects.filter(user=user, notif_type='general')
-        serializer = NotificationSerializer(general_notifications, many=True)
-        response_data = {
-            'status': status.HTTP_200_OK,
-            'success': True,
-            'message': 'General notifications fetched successfully',
-            'data': serializer.data
-        }
-        return Response(response_data, status=status.HTTP_200_OK)
+#     def get(self, request):
+#         user = request.user
+#         general_notifications = Notification.objects.filter(user=user, notif_type='general')
+#         serializer = NotificationSerializer(general_notifications, many=True)
+#         response_data = {
+#             'status': status.HTTP_200_OK,
+#             'success': True,
+#             'message': 'General notifications fetched successfully',
+#             'data': serializer.data
+#         }
+#         return Response(response_data, status=status.HTTP_200_OK)
 
 #System Notification API
 class SystemNotificationsAPIView(APIView):
-    authentication_classes = [CustomJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        user = request.user
-        system_notifications = Notification.objects.filter(user=user, notif_type='system')
-        serializer = NotificationSerializer(system_notifications, many=True)
-        response_data = {
-            'status': status.HTTP_200_OK,
-            'success': True,
-            'message': 'System notifications fetched successfully',
-            'data': serializer.data
-        }
-        return Response(response_data, status=status.HTTP_200_OK)
+#     def get(self, request):
+#         user = request.user
+#         system_notifications = Notification.objects.filter(user=user, notif_type='system')
+#         serializer = NotificationSerializer(system_notifications, many=True)
+#         response_data = {
+#             'status': status.HTTP_200_OK,
+#             'success': True,
+#             'message': 'System notifications fetched successfully',
+#             'data': serializer.data
+#         }
+#         return Response(response_data, status=status.HTTP_200_OK)
 
 
 #User interests API

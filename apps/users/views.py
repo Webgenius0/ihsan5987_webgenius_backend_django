@@ -423,19 +423,11 @@ class LogoutView(APIView):
         jti = token.get('jti')
 
         if not jti:
-            return Response({
+            response_data ={
                 "status": status.HTTP_404_NOT_FOUND,
                 "success": False,
-                "message": "No token found",
-            }, status=status.HTTP_404_NOT_FOUND)
-        
-        BlacklistToken.objects.get_or_create(jti=jti)
-
-        return Response({
-            "status": status.HTTP_200_OK,
-            "success": True,
-            "message": "Logout successful",
-        }, status=status.HTTP_200_OK)
-        
+                "message": "Refresh Token not found",
+            }      
+        return Response(response_data, status=status.HTTP_404_NOT_FOUND)
         
 
