@@ -52,11 +52,9 @@ INSTALLED_APPS = [
 
     # my apps
     'apps.profiles.apps.ProfilesConfig',
-    'apps.notifications.apps.NotificationsConfig',
-    'apps.community_hubs',
 
-    # FCM Device Package
-    'fcm_django',
+    'apps.community_hubs',
+    'apps.notifications'
 ]
 
 MIDDLEWARE = [
@@ -155,7 +153,9 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.TokenAuthentication',
+        'apps.users.authentication.CustomJWTAuthentication',
     ),
+    'EXCEPTION_HANDLER': 'apps.users.exception.custom_exception_handler',
 }
 
 #Email sending setup
@@ -195,20 +195,4 @@ cloudinary.config(
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1)
-}
-
-# Firebase initialization
-import firebase_admin
-from firebase_admin import credentials
-
-# Use os.path.join correctly and avoid backslash issues
-# BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-cred = credentials.Certificate("firebase-adminsdk.json")
-firebase_admin.initialize_app(cred)
-
-# Django FCM settings
-FCM_DJANGO_SETTINGS = {
-    "FCM_SERVER_KEY": "your-fcm-server-key",  # Get from Firebase Console > Cloud Messaging
-    "ONE_DEVICE_PER_USER": False,
-    "DELETE_INACTIVE_DEVICES": True,
 }
