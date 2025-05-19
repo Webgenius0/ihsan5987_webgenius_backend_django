@@ -6,43 +6,43 @@ from .models import Notification
 from .serializers import NotificationSerializer
 from fcm_django.models import FCMDevice
 
-class NotificationListAPIView(APIView):
+class NotificationListView(APIView):
     permission_classes = [IsAuthenticated]
-
+    
     def get(self, request):
-        # Optionally filter with query param ?is_read=true or false
-        is_read = request.query_params.get('is_read', None)
-
-        queryset = Notification.objects.filter(recipient=request.user).select_related('sender', 'sender__profile').order_by('-created_at')
-        if is_read is not None:
-            queryset = queryset.filter(is_read=is_read.lower() == 'true')
-
-        serializer = NotificationSerializer(queryset, many=True)
-        return Response(serializer.data)
-
-
-class NotificationMarkAsReadAPIView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request, pk):
-        try:
-            notification = Notification.objects.get(pk=pk, recipient=request.user)
-            notification.is_read = True
-            notification.save()
-            return Response({"detail": "Notification marked as read"}, status=status.HTTP_200_OK)
-        except Notification.DoesNotExist:
-            return Response({"detail": "Notification not found"}, status=status.HTTP_404_NOT_FOUND)
+        notifications = Notification.objects.filter(recipient=request.user).order_by('-created_at')
+        serializer = NotificationSerializer(notifications, many=True)
+        response = {
+            "status": status.HTTP_200_OK,
+            "success": True,
+            "message": "Notification fetched successfully",
+            "data": serializer.data
+        }
+        return Response(response, status=status.HTTP_200_OK)
 
 
-class NotificationMarkAllAsReadAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+# class NotificationMarkAsReadView(APIView):
+#     permission_classes = [IsAuthenticated]
 
-    def post(self, request):
-        Notification.objects.filter(recipient=request.user, is_read=False).update(is_read=True)
-        return Response({"detail": "All notifications marked as read"}, status=status.HTTP_200_OK)
+#     def post(self, request, pk):
+#         try:
+#             notification = Notification.objects.get(pk=pk, recipient=request.user)
+#             notification.is_read = True
+#             notification.save()
+#             return Response({"detail": "Notification marked as read"}, status=status.HTTP_200_OK)
+#         except Notification.DoesNotExist:
+#             return Response({"detail": "Notification not found"}, status=status.HTTP_404_NOT_FOUND)
 
 
-class RegisterDeviceAPIView(APIView):
+# class NotificationMarkAllAsReadView(APIView):
+#     permission_classes = [IsAuthenticated]
+
+#     def post(self, request):
+#         Notification.objects.filter(recipient=request.user, is_read=False).update(is_read=True)
+#         return Response({"detail": "All notifications marked as read"}, status=status.HTTP_200_OK)
+
+
+class RegisterDeviceView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):

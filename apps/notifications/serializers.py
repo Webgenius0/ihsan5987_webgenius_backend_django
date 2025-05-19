@@ -3,16 +3,17 @@ from .models import Notification
 from django.utils.timesince import timesince
 from django.utils import timezone
 import re
+from apps.community_hubs.serializers import UserSerializer
 
 class NotificationSerializer(serializers.ModelSerializer):
-    name = serializers.SerializerMethodField()
-    profile_image = serializers.SerializerMethodField()
+    recipient = UserSerializer(read_only=True)
+    # profile_image = serializers.SerializerMethodField()
     timestamp = serializers.SerializerMethodField()
     post_image = serializers.SerializerMethodField()
 
     class Meta:
         model = Notification
-        fields = ['id', 'name', 'profile_image', 'message', 'timestamp', 'post_image', 'is_read', 'category']
+        fields = ['id', 'recipient', 'message', 'timestamp', 'post_image', 'is_read', 'category']
         read_only_fields = ['id', 'timestamp', 'is_read', 'category']
 
     def get_name(self, obj):

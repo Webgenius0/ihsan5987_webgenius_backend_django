@@ -1,9 +1,18 @@
 from django.urls import path
-from .views import NotificationListAPIView, NotificationMarkAsReadAPIView, NotificationMarkAllAsReadAPIView, RegisterDeviceAPIView
+from .views import (
+    NotificationListView,
+    # UnreadNotificationCountView,
+    # MarkAsReadView,
+    # MarkAllAsReadView,
+    # NotificationDetailView,
+    RegisterDeviceView
+)
 
 urlpatterns = [
-    path('', NotificationListAPIView.as_view(), name='notification-list'),
-    path('<int:pk>/read/', NotificationMarkAsReadAPIView.as_view(), name='notification-mark-read'),
-    path('mark-all-read/', NotificationMarkAllAsReadAPIView.as_view(), name='notification-mark-all-read'),
-    path('register_device/', RegisterDeviceAPIView.as_view(), name='register-device'),
+    path('', NotificationListView.as_view(), name='notification-list'),
+    # path('notifications/unread-count/', UnreadNotificationCountView.as_view(), name='unread-count'),
+    # path('notifications/mark-all-as-read/', MarkAllAsReadView.as_view(), name='mark-all-read'),
+    # path('notifications/<int:pk>/', NotificationDetailView.as_view(), name='notification-detail'),
+    # path('notifications/<int:pk>/mark-as-read/', MarkAsReadView.as_view(), name='mark-as-read'),
+    path('register-device/', RegisterDeviceView.as_view(), name='register-device'),
 ]
