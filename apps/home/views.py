@@ -5,9 +5,9 @@ from rest_framework.response import Response
 from django.conf import settings
 from datetime import datetime, timedelta
 from rest_framework.permissions import IsAuthenticated
-from .models import Notification, UserInterests
+from .models import UserInterests
 from apps.users.authentication import CustomJWTAuthentication
-from .serializers import NotificationSerializer, UserInterestsSerializer
+from .serializers import UserInterestsSerializer
 from apps.community_hubs.models import Post
 from apps.community_hubs.serializers import PostlistSerializer
 
@@ -30,11 +30,21 @@ class TrendingNewsAPIView(APIView):
                 'max': 10,  
                 'q': category  
             }
-
+        try:
             response = requests.get("https://gnews.io/api/v4/top-headlines", params=params)
+            response_json = response.json()
+
+            # Handle API errors
+            if 'errors' in response_json:
+                return Response({
+                    'status': status.HTTP_429_TOO_MANY_REQUESTS,
+                    'success': False,
+                    'message': 'Error from GNews API',
+                    'errors': response_json['errors']
+                }, status=status.HTTP_429_TOO_MANY_REQUESTS)
 
             if response.status_code == 200:
-                articles = response.json().get('articles', [])
+                articles = response_json.get('articles', [])
                 for article in articles:
                     aggregated_articles.append({
                         'title': article.get('title'),
@@ -47,8 +57,15 @@ class TrendingNewsAPIView(APIView):
                             'name': article.get('source', {}).get('name'),
                             'url': article.get('source', {}).get('url'),
                         },
-                        'category': category  # manually tagged category
+                        'category': category
                     })
+        except requests.RequestException as e:
+            return Response({
+                'status': status.HTTP_503_SERVICE_UNAVAILABLE,
+                'success': False,
+                'message': 'Failed to fetch data from GNews API',
+                'error': str(e)
+            }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
         response_data = {
             'status': status.HTTP_200_OK,
             'success': True,
@@ -76,7 +93,18 @@ class RecommendedTopicsAPIView(APIView):
                 'q': category  
             }
 
+        try:
             response = requests.get("https://gnews.io/api/v4/search", params=params)
+            response_json = response.json()
+
+            # Handle API errors
+            if 'errors' in response_json:
+                return Response({
+                    'status': status.HTTP_429_TOO_MANY_REQUESTS,
+                    'success': False,
+                    'message': 'Error from GNews API',
+                    'errors': response_json['errors']
+                }, status=status.HTTP_429_TOO_MANY_REQUESTS)
 
             if response.status_code == 200:
                 articles = response.json().get('articles', [])
@@ -94,6 +122,13 @@ class RecommendedTopicsAPIView(APIView):
                         },
                         'category': category  # manually tagged category
                     })
+        except requests.RequestException as e:
+            return Response({
+                'status': status.HTTP_503_SERVICE_UNAVAILABLE,
+                'success': False,
+                'message': 'Failed to fetch data from GNews API',
+                'error': str(e)
+            }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
         response_data = {
             'status': status.HTTP_200_OK,
             'success': True,

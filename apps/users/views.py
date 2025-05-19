@@ -415,19 +415,26 @@ class LoginView(APIView):
 from .authentication import CustomJWTAuthentication
 
 class LogoutView(APIView):
-    authentication_classes = [CustomJWTAuthentication]
     permission_classes = [IsAuthenticated]
+    authentication_classes = [CustomJWTAuthentication]
 
     def post(self, request):
-        token = request.auth
-        jti = token.get('jti')
+        token = request.auth  # The validated access token
+        jti = token.get("jti")
 
         if not jti:
-            response_data ={
-                "status": status.HTTP_404_NOT_FOUND,
+            return Response({
                 "success": False,
-                "message": "Refresh Token not found",
-            }      
-        return Response(response_data, status=status.HTTP_404_NOT_FOUND)
+                "message": "Invalid access token."
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Save the jti in blacklist
+        BlacklistToken.objects.get_or_create(jti=jti)
+
+        return Response({
+            "status": status.HTTP_200_OK,
+            "success": True,
+            "message": "Logout successful. Access token invalidated."
+        }, status=status.HTTP_200_OK)
         
 

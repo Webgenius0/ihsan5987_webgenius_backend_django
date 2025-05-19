@@ -24,3 +24,4 @@ env/
 # System
 .DS_Store
 Thumbs.db
+db.sqlite3

@@ -14,3 +14,4 @@ def custom_exception_handler(exc, context):
                 "error": exc.detail.get('error')
             }
     return Response(response.data, status=status.HTTP_401_UNAUTHORIZED)
+
