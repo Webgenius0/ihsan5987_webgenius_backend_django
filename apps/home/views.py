@@ -6,6 +6,7 @@ from django.conf import settings
 from datetime import datetime, timedelta
 from rest_framework.permissions import IsAuthenticated
 from .models import Notification, UserInterests
+from apps.users.authentication import CustomJWTAuthentication
 from .serializers import NotificationSerializer, UserInterestsSerializer
 from apps.community_hubs.models import Post
 from apps.community_hubs.serializers import PostlistSerializer
@@ -13,6 +14,9 @@ from apps.community_hubs.serializers import PostlistSerializer
 
 #Trending News API
 class TrendingNewsAPIView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         categories = ['general', 'world', 'nation', 'business', 'technology', 'entertainment', 'sports', 'science', 'health', 'politics']
     
@@ -55,6 +59,9 @@ class TrendingNewsAPIView(APIView):
         
 #Recommended Topics API
 class RecommendedTopicsAPIView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         categories = ['general', 'world', 'nation', 'business', 'technology', 'entertainment', 'sports', 'science', 'health', 'politics']
     
@@ -97,6 +104,7 @@ class RecommendedTopicsAPIView(APIView):
 
 #Community Hub API
 class CommunityHubAPIView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -113,6 +121,9 @@ class CommunityHubAPIView(APIView):
 
 #Search News API
 class SearchResultsAPIView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         query = request.query_params.get('q')
         if not query:
@@ -145,6 +156,9 @@ class SearchResultsAPIView(APIView):
 
 #Update Me API
 class UpdateMeAPIView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         categories = ['general', 'world', 'nation', 'business', 'technology', 'entertainment', 'sports', 'science', 'health', 'politics']
     
@@ -187,6 +201,9 @@ class UpdateMeAPIView(APIView):
 
 #Posts View API   
 class PostsAPIView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         query = request.GET.get('q')
         
@@ -229,6 +246,9 @@ class PostsAPIView(APIView):
 
 #Your News API
 class YourNewsAPIView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         url = "https://gnews.io/api/v4/top-headlines"
         params = {
@@ -257,6 +277,9 @@ class YourNewsAPIView(APIView):
 
 #Your Interests API
 class YourInterestAPIView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         interests = request.GET.getlist('topics')  # list of interests
 
@@ -293,6 +316,7 @@ class YourInterestAPIView(APIView):
 
 #General Notification API
 class GeneralNotificationsAPIView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -309,6 +333,7 @@ class GeneralNotificationsAPIView(APIView):
 
 #System Notification API
 class SystemNotificationsAPIView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -326,6 +351,7 @@ class SystemNotificationsAPIView(APIView):
 
 #User interests API
 class UserInterestsAPIView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):

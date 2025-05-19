@@ -152,7 +152,9 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.TokenAuthentication',
+        'apps.users.authentication.CustomJWTAuthentication',
     ),
+    'EXCEPTION_HANDLER': 'apps.users.exception.custom_exception_handler',
 }
 
 #Email sending setup

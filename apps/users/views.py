@@ -5,10 +5,11 @@ from django.contrib.auth import login
 from django.contrib.auth.models import update_last_login
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import status
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import User, EmailOTP
+from .models import User, EmailOTP, BlacklistToken
 from django.conf import settings
 from .serializers import SignupSerializer, LoginSerializer
 
@@ -390,26 +391,51 @@ class LoginView(APIView):
         return Response(response_error, status=status.HTTP_400_BAD_REQUEST)
 
 # Logout API
+# class LogoutView(APIView):
+#     permission_classes = (IsAuthenticated,)
+
+#     def post(self, request):
+#         refresh_token = request.data["refresh_token"]
+#         try:
+#             token = RefreshToken(refresh_token)
+#             token.blacklist()
+#             response_data = {
+#                 "status": status.HTTP_200_OK,
+#                 "success": True,
+#                 "message": "Logout successful",
+#             }
+#             return Response(response_data, status=status.HTTP_200_OK)
+#         except refresh_token.DoesNotExist: 
+#             response_data = {
+#                 "status": status.HTTP_404_NOT_FOUND,
+#                 "success": False,
+#                 "message": "Refresh Token not found",
+#             }      
+#             return Response(response_data, status=status.HTTP_404_NOT_FOUND)
+from .authentication import CustomJWTAuthentication
+
 class LogoutView(APIView):
-    permission_classes = (IsAuthenticated,)
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        refresh_token = request.data["refresh_token"]
-        try:
-            token = RefreshToken(refresh_token)
-            token.blacklist()
-            response_data = {
-                "status": status.HTTP_200_OK,
-                "success": True,
-                "message": "Logout successful",
-            }
-            return Response(response_data, status=status.HTTP_200_OK)
-        except refresh_token.DoesNotExist: 
-            response_data = {
+        token = request.auth
+        jti = token.get('jti')
+
+        if not jti:
+            return Response({
                 "status": status.HTTP_404_NOT_FOUND,
                 "success": False,
-                "message": "Refresh Token not found",
-            }      
-            return Response(response_data, status=status.HTTP_404_NOT_FOUND)
+                "message": "No token found",
+            }, status=status.HTTP_404_NOT_FOUND)
+        
+        BlacklistToken.objects.get_or_create(jti=jti)
+
+        return Response({
+            "status": status.HTTP_200_OK,
+            "success": True,
+            "message": "Logout successful",
+        }, status=status.HTTP_200_OK)
+        
         
 
