@@ -4,7 +4,8 @@ from .views import (
     UnreadNotificationCountView,
     MarkAsReadView,
     MarkAllAsReadView,
-    RegisterDeviceView
+    RegisterDeviceView,
+    DeleteDeviceView
 )
 
 urlpatterns = [
@@ -14,4 +15,5 @@ urlpatterns = [
     # path('notifications/<int:pk>/', NotificationDetailView.as_view(), name='notification-detail'),
     path('<int:pk>/mark-as-read/', MarkAsReadView.as_view(), name='mark-as-read'),
     path('register-device/', RegisterDeviceView.as_view(), name='register-device'),
+    path('device/delete/', DeleteDeviceView.as_view(), name='delete-device'),
 ]

@@ -22,7 +22,7 @@ class ProfileView(APIView):
                 "message": "Profile not found",
             }, status=status.HTTP_404_NOT_FOUND)
         
-        serializer = ProfileSerializer(profile)
+        serializer = ProfileSerializer(profile, context={'request' : request})
         response = {
             "status": status.HTTP_200_OK,
             "success": True,

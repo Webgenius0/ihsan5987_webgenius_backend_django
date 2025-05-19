@@ -5,10 +5,11 @@ from apps.community_hubs.serializers import UserSerializer
 
 class ProfileSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source='user.name', required=False)
+    image = serializers.ImageField(required=False) 
 
     class Meta:
         model = Profile
-        fields = ['image_url', 'name']  # name is now part of the serializer
+        fields = ['image', 'name']  # name is now part of the serializer
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
