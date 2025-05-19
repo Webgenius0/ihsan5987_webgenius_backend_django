@@ -97,3 +97,4 @@ class PostDetailSerializer(serializers.ModelSerializer):
             'comments': representation['comments'],
         }
         return ordered_data
+    

@@ -411,5 +411,3 @@ class LogoutView(APIView):
                 "message": "Refresh Token not found",
             }      
             return Response(response_data, status=status.HTTP_404_NOT_FOUND)
-        
-

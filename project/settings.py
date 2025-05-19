@@ -52,8 +52,11 @@ INSTALLED_APPS = [
 
     # my apps
     'apps.profiles.apps.ProfilesConfig',
-
+    'apps.notifications.apps.NotificationsConfig',
     'apps.community_hubs',
+
+    # FCM Device Package
+    'fcm_django',
 ]
 
 MIDDLEWARE = [
@@ -192,4 +195,20 @@ cloudinary.config(
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1)
+}
+
+# Firebase initialization
+import firebase_admin
+from firebase_admin import credentials
+
+# Use os.path.join correctly and avoid backslash issues
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+cred = credentials.Certificate(os.path.join(BASE_DIR, 'C:\\Users\\choyo\\OneDrive\\Desktop\\2nd Project\\ihsan5987_django\\firebase-adminsdk.json'))
+firebase_admin.initialize_app(cred)
+
+# Django FCM settings
+FCM_DJANGO_SETTINGS = {
+    "FCM_SERVER_KEY": "your-fcm-server-key",  # Get from Firebase Console > Cloud Messaging
+    "ONE_DEVICE_PER_USER": False,
+    "DELETE_INACTIVE_DEVICES": True,
 }
