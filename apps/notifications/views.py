@@ -69,3 +69,19 @@ class RegisterDeviceView(APIView):
             defaults={'active': True, 'type': 'web'}
         )
         return Response({'status': 'device registered'}, status=status.HTTP_200_OK)
+    
+    
+class DeleteDeviceView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request):
+        registration_id = request.data.get('registration_id')
+        if not registration_id:
+            return Response({'error': 'registration_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            device = FCMDevice.objects.get(user=request.user, registration_id=registration_id)
+            device.delete()
+            return Response({'status': 'device deleted'}, status=status.HTTP_200_OK)
+        except FCMDevice.DoesNotExist:
+            return Response({'error': 'Device not found'}, status=status.HTTP_404_NOT_FOUND)
