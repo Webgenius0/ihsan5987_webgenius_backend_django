@@ -59,3 +59,8 @@ class NotificationSerializer(serializers.ModelSerializer):
         elif time_diff.lower() == '1 day':
             return f"Yesterday | {time_str}" if created_at < now else f"Tomorrow | {time_str}"
         return f"{time_diff} ago | {time_str}"
+
+class NotificationUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = ['is_read']
