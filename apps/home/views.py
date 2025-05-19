@@ -6,6 +6,7 @@ from django.conf import settings
 from datetime import datetime, timedelta
 from rest_framework.permissions import IsAuthenticated
 from .models import UserInterests
+from apps.users.authentication import CustomJWTAuthentication
 from .serializers import UserInterestsSerializer
 from apps.community_hubs.models import Post
 from apps.community_hubs.serializers import PostlistSerializer
@@ -13,6 +14,9 @@ from apps.community_hubs.serializers import PostlistSerializer
 
 #Trending News API
 class TrendingNewsAPIView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         categories = ['general', 'world', 'nation', 'business', 'technology', 'entertainment', 'sports', 'science', 'health', 'politics']
     
@@ -26,11 +30,21 @@ class TrendingNewsAPIView(APIView):
                 'max': 10,  
                 'q': category  
             }
-
+        try:
             response = requests.get("https://gnews.io/api/v4/top-headlines", params=params)
+            response_json = response.json()
+
+            # Handle API errors
+            if 'errors' in response_json:
+                return Response({
+                    'status': status.HTTP_429_TOO_MANY_REQUESTS,
+                    'success': False,
+                    'message': 'Error from GNews API',
+                    'errors': response_json['errors']
+                }, status=status.HTTP_429_TOO_MANY_REQUESTS)
 
             if response.status_code == 200:
-                articles = response.json().get('articles', [])
+                articles = response_json.get('articles', [])
                 for article in articles:
                     aggregated_articles.append({
                         'title': article.get('title'),
@@ -43,8 +57,15 @@ class TrendingNewsAPIView(APIView):
                             'name': article.get('source', {}).get('name'),
                             'url': article.get('source', {}).get('url'),
                         },
-                        'category': category  # manually tagged category
+                        'category': category
                     })
+        except requests.RequestException as e:
+            return Response({
+                'status': status.HTTP_503_SERVICE_UNAVAILABLE,
+                'success': False,
+                'message': 'Failed to fetch data from GNews API',
+                'error': str(e)
+            }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
         response_data = {
             'status': status.HTTP_200_OK,
             'success': True,
@@ -55,6 +76,9 @@ class TrendingNewsAPIView(APIView):
         
 #Recommended Topics API
 class RecommendedTopicsAPIView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         categories = ['general', 'world', 'nation', 'business', 'technology', 'entertainment', 'sports', 'science', 'health', 'politics']
     
@@ -69,7 +93,18 @@ class RecommendedTopicsAPIView(APIView):
                 'q': category  
             }
 
+        try:
             response = requests.get("https://gnews.io/api/v4/search", params=params)
+            response_json = response.json()
+
+            # Handle API errors
+            if 'errors' in response_json:
+                return Response({
+                    'status': status.HTTP_429_TOO_MANY_REQUESTS,
+                    'success': False,
+                    'message': 'Error from GNews API',
+                    'errors': response_json['errors']
+                }, status=status.HTTP_429_TOO_MANY_REQUESTS)
 
             if response.status_code == 200:
                 articles = response.json().get('articles', [])
@@ -87,6 +122,13 @@ class RecommendedTopicsAPIView(APIView):
                         },
                         'category': category  # manually tagged category
                     })
+        except requests.RequestException as e:
+            return Response({
+                'status': status.HTTP_503_SERVICE_UNAVAILABLE,
+                'success': False,
+                'message': 'Failed to fetch data from GNews API',
+                'error': str(e)
+            }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
         response_data = {
             'status': status.HTTP_200_OK,
             'success': True,
@@ -97,6 +139,7 @@ class RecommendedTopicsAPIView(APIView):
 
 #Community Hub API
 class CommunityHubAPIView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -113,6 +156,9 @@ class CommunityHubAPIView(APIView):
 
 #Search News API
 class SearchResultsAPIView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         query = request.query_params.get('q')
         if not query:
@@ -145,6 +191,9 @@ class SearchResultsAPIView(APIView):
 
 #Update Me API
 class UpdateMeAPIView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         categories = ['general', 'world', 'nation', 'business', 'technology', 'entertainment', 'sports', 'science', 'health', 'politics']
     
@@ -187,6 +236,9 @@ class UpdateMeAPIView(APIView):
 
 #Posts View API   
 class PostsAPIView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         query = request.GET.get('q')
         
@@ -229,6 +281,9 @@ class PostsAPIView(APIView):
 
 #Your News API
 class YourNewsAPIView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         url = "https://gnews.io/api/v4/top-headlines"
         params = {
@@ -257,6 +312,9 @@ class YourNewsAPIView(APIView):
 
 #Your Interests API
 class YourInterestAPIView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         interests = request.GET.getlist('topics')  # list of interests
 
@@ -291,9 +349,9 @@ class YourInterestAPIView(APIView):
             return Response(response_data, status=status.HTTP_400_BAD_REQUEST)
     
 
-# #General Notification API
-# class GeneralNotificationsAPIView(APIView):
-#     permission_classes = [IsAuthenticated]
+#General Notification API
+class GeneralNotificationsAPIView(APIView):
+    permission_classes = [IsAuthenticated]
 
 #     def get(self, request):
 #         user = request.user
@@ -307,9 +365,9 @@ class YourInterestAPIView(APIView):
 #         }
 #         return Response(response_data, status=status.HTTP_200_OK)
 
-# #System Notification API
-# class SystemNotificationsAPIView(APIView):
-#     permission_classes = [IsAuthenticated]
+#System Notification API
+class SystemNotificationsAPIView(APIView):
+    permission_classes = [IsAuthenticated]
 
 #     def get(self, request):
 #         user = request.user
@@ -326,6 +384,7 @@ class YourInterestAPIView(APIView):
 
 #User interests API
 class UserInterestsAPIView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
