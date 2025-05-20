@@ -108,7 +108,13 @@ class MyPostList(APIView):
         user = request.user
         posts = Post.objects.filter(user=user).order_by('-created_at')
         serializer = MyPostSerializer(posts, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        response = {
+            "status": status.HTTP_200_OK,
+            "success": True,
+            "message": "Posts retrieved successfully",
+            "data": serializer.data
+        }
+        return Response(response, status=status.HTTP_200_OK)
 
 
 class MyPostDetail(APIView):
