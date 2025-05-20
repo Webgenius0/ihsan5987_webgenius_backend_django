@@ -1,9 +1,11 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin
 from .models import User
+from import_export.admin import ImportExportModelAdmin
+from unfold.contrib.import_export.forms import ExportForm, ImportForm, SelectableFieldsExportForm
 
 @admin.register(User)
-class UserAdmin(ModelAdmin):
+class UserAdmin(ModelAdmin, ImportExportModelAdmin):
     list_display = ("name", "email", "is_staff", "is_active",)
     list_filter = ("email", "is_staff", "is_active",)
 
@@ -20,3 +22,6 @@ class UserAdmin(ModelAdmin):
     )
     search_fields = ["email"]
     ordering = ["email"]
+
+    import_form_class = ImportForm
+    export_form_class = ExportForm

@@ -120,23 +120,36 @@ class MyPostList(APIView):
 class MyPostDetail(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get_object(self, pk, user):
-        return get_object_or_404(Post, pk=pk, user=user)
-
     def get(self, request, pk):
-        post = self.get_object(pk, request.user)
-        serializer = MyPostSerializer(post)
+        try:
+            post = Post.objects.get(pk=pk, user=request.user)
+        except Post.DoesNotExist:
+            return Response({
+                "status": status.HTTP_404_NOT_FOUND,
+                "success": False,
+                "message": "Post not found"
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = MyPostSerializer(post, context={'request': request})
         response = {
             "status": status.HTTP_200_OK,
-            "success": True,   
+            "success": True,
             "message": "Post retrieved successfully",
             "data": serializer.data
-            }
+        }
         return Response(response, status=status.HTTP_200_OK)
 
     def put(self, request, pk):
-        post = self.get_object(pk, request.user)
-        serializer = MyPostSerializer(post, data=request.data, partial=True)
+        try:
+            post = Post.objects.get(pk=pk, user=request.user)
+        except Post.DoesNotExist:
+            return Response({
+                "status": status.HTTP_404_NOT_FOUND,
+                "success": False,
+                "message": "Post not found"
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = MyPostSerializer(post, data=request.data, partial=True, context={'request': request})
         if serializer.is_valid():
             serializer.save()
             response = {
@@ -146,17 +159,31 @@ class MyPostDetail(APIView):
                 "data": serializer.data
             }
             return Response(response, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({
+            "status": status.HTTP_400_BAD_REQUEST,
+            "success": False,
+            "message": "Invalid data",
+            "errors": serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
-        post = self.get_object(pk, request.user)
+        try:
+            post = Post.objects.get(pk=pk, user=request.user)
+        except Post.DoesNotExist:
+            return Response({
+                "status": status.HTTP_404_NOT_FOUND,
+                "success": False,
+                "message": "Post not found"
+            }, status=status.HTTP_404_NOT_FOUND)
+
         post.delete()
-        response = {
+        return Response({
             "status": status.HTTP_204_NO_CONTENT,
             "success": True,
             "message": "Post deleted successfully"
-        }
-        return Response(response, status=status.HTTP_204_NO_CONTENT)
+        }, status=status.HTTP_204_NO_CONTENT)
+
     
 
 # FAQ View
