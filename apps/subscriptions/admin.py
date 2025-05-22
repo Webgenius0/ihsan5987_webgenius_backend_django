@@ -6,7 +6,7 @@ from unfold.contrib.import_export.forms import ExportForm, ImportForm, Selectabl
 
 @admin.register(Plan)
 class PlanAdmin(ModelAdmin, ImportExportModelAdmin):
-    list_display = ['name', 'price', 'duration_months', 'stripe_price_id']
+    list_display = ["id",'name', 'price', 'duration_months', 'stripe_price_id']
     readonly_fields = ['stripe_price_id']
 
     import_form_class = ImportForm
@@ -14,7 +14,7 @@ class PlanAdmin(ModelAdmin, ImportExportModelAdmin):
 
 @admin.register(Subscription)
 class SubscriptionAdmin(ModelAdmin, ImportExportModelAdmin):
-    list_display = ("user", "plan", "stripe_subscription_id", "is_active", "start_date", "end_date")
+    list_display = ("id", "user", "plan", "stripe_subscription_id", "is_active", "start_date", "end_date")
 
     import_form_class = ImportForm
     export_form_class = ExportForm
