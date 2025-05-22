@@ -8,4 +8,5 @@ urlpatterns = [
     path('api/profiles/', include('apps.profiles.urls')),
     path('api/community/', include('apps.community_hubs.urls')),
     path('api/notifications/', include('apps.notifications.urls')),
+    path('api/subscriptions/', include('apps.subscriptions.urls'))
 ]
