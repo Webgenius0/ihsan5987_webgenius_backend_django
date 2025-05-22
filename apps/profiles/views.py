@@ -61,7 +61,7 @@ class ProfileView(APIView):
     #     }
     #     return Response(response, status=status.HTTP_400_BAD_REQUEST)
     
-    def patch(self, request):
+    def put(self, request):
         profile = request.user.profile
         serializer = ProfileSerializer(profile, data=request.data, partial=True)
         if serializer.is_valid():  # Added proper validation check
@@ -86,11 +86,13 @@ class ProfileView(APIView):
     def delete(self, request):
         try:
             profile = Profile.objects.get(user=request.user)
+            user = request.user
             profile.delete()
+            user.delete()
             response = {
                 "status": status.HTTP_200_OK,
                 "success": True,
-                "message": "Profile deleted successfully",
+                "message": "Profile & user deleted successfully",
             }
             return Response(response, status=status.HTTP_200_OK)
         except Profile.DoesNotExist:
