@@ -31,37 +31,37 @@ class ProfileView(APIView):
         }
         return Response(response, status=status.HTTP_200_OK)
     
-    def post(self, request):
-        # Check if user already has a profile
-        if hasattr(request.user, 'profile'):
-            response = {
-                "status": 400,
-                "success": False,
-                "message": "Profile already exists for this user.",
-                "data": None
-            }
-            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+    # def post(self, request):
+    #     # Check if user already has a profile
+    #     if hasattr(request.user, 'profile'):
+    #         response = {
+    #             "status": 400,
+    #             "success": False,
+    #             "message": "Profile already exists for this user.",
+    #             "data": None
+    #         }
+    #         return Response(response, status=status.HTTP_400_BAD_REQUEST)
         
-        # Create profile for the authenticated user
-        serializer = ProfileSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(user=request.user)  # Link profile to the authenticated user
-            response = {
-                "status": 201,
-                "success": True,
-                "message": "Profile created successfully.",
-                "data": serializer.data
-            }
-            return Response(response, status=status.HTTP_201_CREATED)
-        response = {
-            "status": 400,
-            "success": False,
-            "message": "Failed to create profile.",
-            "data": serializer.errors
-        }
-        return Response(response, status=status.HTTP_400_BAD_REQUEST)
+    #     # Create profile for the authenticated user
+    #     serializer = ProfileSerializer(data=request.data)
+    #     if serializer.is_valid():
+    #         serializer.save(user=request.user)  # Link profile to the authenticated user
+    #         response = {
+    #             "status": 201,
+    #             "success": True,
+    #             "message": "Profile created successfully.",
+    #             "data": serializer.data
+    #         }
+    #         return Response(response, status=status.HTTP_201_CREATED)
+    #     response = {
+    #         "status": 400,
+    #         "success": False,
+    #         "message": "Failed to create profile.",
+    #         "data": serializer.errors
+    #     }
+    #     return Response(response, status=status.HTTP_400_BAD_REQUEST)
     
-    def patch(self, request):
+    def put(self, request):
         profile = request.user.profile
         serializer = ProfileSerializer(profile, data=request.data, partial=True)
         if serializer.is_valid():  # Added proper validation check
@@ -86,11 +86,13 @@ class ProfileView(APIView):
     def delete(self, request):
         try:
             profile = Profile.objects.get(user=request.user)
+            user = request.user
             profile.delete()
+            user.delete()
             response = {
                 "status": status.HTTP_200_OK,
                 "success": True,
-                "message": "Profile deleted successfully",
+                "message": "Profile & user deleted successfully",
             }
             return Response(response, status=status.HTTP_200_OK)
         except Profile.DoesNotExist:
@@ -108,29 +110,48 @@ class MyPostList(APIView):
         user = request.user
         posts = Post.objects.filter(user=user).order_by('-created_at')
         serializer = MyPostSerializer(posts, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        response = {
+            "status": status.HTTP_200_OK,
+            "success": True,
+            "message": "Posts retrieved successfully",
+            "data": serializer.data
+        }
+        return Response(response, status=status.HTTP_200_OK)
 
 
 class MyPostDetail(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get_object(self, pk, user):
-        return get_object_or_404(Post, pk=pk, user=user)
-
     def get(self, request, pk):
-        post = self.get_object(pk, request.user)
-        serializer = MyPostSerializer(post)
+        try:
+            post = Post.objects.get(pk=pk, user=request.user)
+        except Post.DoesNotExist:
+            return Response({
+                "status": status.HTTP_404_NOT_FOUND,
+                "success": False,
+                "message": "Post not found"
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = MyPostSerializer(post, context={'request': request})
         response = {
             "status": status.HTTP_200_OK,
-            "success": True,   
+            "success": True,
             "message": "Post retrieved successfully",
             "data": serializer.data
-            }
+        }
         return Response(response, status=status.HTTP_200_OK)
 
     def put(self, request, pk):
-        post = self.get_object(pk, request.user)
-        serializer = MyPostSerializer(post, data=request.data, partial=True)
+        try:
+            post = Post.objects.get(pk=pk, user=request.user)
+        except Post.DoesNotExist:
+            return Response({
+                "status": status.HTTP_404_NOT_FOUND,
+                "success": False,
+                "message": "Post not found"
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = MyPostSerializer(post, data=request.data, partial=True, context={'request': request})
         if serializer.is_valid():
             serializer.save()
             response = {
@@ -140,17 +161,31 @@ class MyPostDetail(APIView):
                 "data": serializer.data
             }
             return Response(response, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({
+            "status": status.HTTP_400_BAD_REQUEST,
+            "success": False,
+            "message": "Invalid data",
+            "errors": serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
-        post = self.get_object(pk, request.user)
+        try:
+            post = Post.objects.get(pk=pk, user=request.user)
+        except Post.DoesNotExist:
+            return Response({
+                "status": status.HTTP_404_NOT_FOUND,
+                "success": False,
+                "message": "Post not found"
+            }, status=status.HTTP_404_NOT_FOUND)
+
         post.delete()
-        response = {
-            "status": status.HTTP_204_NO_CONTENT,
+        return Response({
+            "status": status.HTTP_200_OK,
             "success": True,
             "message": "Post deleted successfully"
-        }
-        return Response(response, status=status.HTTP_204_NO_CONTENT)
+        }, status=status.HTTP_200_OK)
+
     
 
 # FAQ View

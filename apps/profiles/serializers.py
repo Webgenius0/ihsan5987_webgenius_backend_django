@@ -37,10 +37,11 @@ class MyPostSerializer(serializers.ModelSerializer):
     # user = ProfileSerializer(source='user.profile', read_only=True)
     comment_count = serializers.SerializerMethodField()
     commented_users = serializers.SerializerMethodField()
+    image = serializers.ImageField(required=False)
 
     class Meta:
         model = Post
-        fields = ['id', 'title', 'category', 'content', 'created_at', 'comment_count', 'commented_users']
+        fields = ['id', 'image', 'title', 'category', 'content', 'created_at', 'comment_count', 'commented_users']
 
     def get_commented_users(self, obj):
         # Get the list of users who have commented on this post

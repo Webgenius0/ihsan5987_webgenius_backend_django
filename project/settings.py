@@ -13,6 +13,7 @@ import os
 from pathlib import Path
 import cloudinary
 from datetime import timedelta
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -46,13 +47,14 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'apps.home',
     'apps.users',
+    'import_export',
 
     # cloudinary
     'cloudinary',
 
     # my apps
     'apps.profiles.apps.ProfilesConfig',
-
+    'apps.subscriptions',
     'apps.community_hubs',
     'apps.notifications'
 ]
@@ -111,6 +113,14 @@ DATABASES = {
 }
 
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
+# Database Configuration
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
@@ -217,3 +227,8 @@ SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=7),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7)
 }
+
+# Stripe settings
+STRIPE_PUBLISHABLE_KEY = os.getenv('STRIPE_PUBLISHABLE_KEY')
+STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
+STRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET')
