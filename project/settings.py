@@ -103,24 +103,6 @@ WSGI_APPLICATION = 'project.wsgi.application'
 # }
 
 # Database Configuration
-import dj_database_url
-
-DATABASES = {
-    'default': dj_database_url.parse(
-        'postgresql://postgres:shcQivH9xxH31J1X1Hxohjbh@db.odpilpqlyscsreefmtit.supabase.co:5432/postgres',
-        conn_max_age=600
-    )
-}
-
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-
-# Database Configuration
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
