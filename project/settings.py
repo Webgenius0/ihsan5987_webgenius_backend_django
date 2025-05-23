@@ -36,6 +36,12 @@ ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
     'unfold',
+    "unfold.contrib.filters",  # optional, if special filters are needed
+    "unfold.contrib.forms",  # optional, if special form elements are needed
+    "unfold.contrib.inlines",  # optional, if special inlines are needed
+    "unfold.contrib.import_export",  # optional, if django-import-export package is used
+    "unfold.contrib.guardian",  # optional, if django-guardian package is used
+    "unfold.contrib.simple_history",
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -44,6 +50,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'rest_framework',
+    'fcm_django',
     'rest_framework_simplejwt.token_blacklist',
     'apps.home',
     'apps.users',
@@ -102,7 +109,7 @@ WSGI_APPLICATION = 'project.wsgi.application'
 #     }
 # }
 
-# Database Configuration
+#Database Configuration
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
