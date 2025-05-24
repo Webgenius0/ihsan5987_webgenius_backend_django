@@ -21,10 +21,25 @@ class TrendingNewsAPIView(APIView):
     def get(self, request):
         articles = TrendingNews.objects.all().order_by('-published_at')
         serializer = TrendingNewsSerializer(articles, many=True, context={'request': request})
-        return Response({
+        response_data = {
             'status': status.HTTP_200_OK,
             'success': True,
             'message': 'Trending news fetched successfully',
+            'data': serializer.data
+        }
+        return Response(response_data, status=status.HTTP_200_OK)
+
+#Trending News Detail API
+class TrendingNewsDetailAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, id):
+        article = get_object_or_404(TrendingNews, id=id)
+        serializer = TrendingNewsSerializer(article, context={'request': request})
+        return Response({
+            'status': status.HTTP_200_OK,
+            'success': True,
+            'message': 'Trending news detail fetched successfully',
             'data': serializer.data
         })
 
@@ -59,6 +74,20 @@ class RecommendedTopicsAPIView(APIView):
             'status': status.HTTP_200_OK,
             'success': True,
             'message': 'Recommended topics fetched successfully',
+            'data': serializer.data
+        })
+    
+#Trending News Detail API
+class RecommendedTopicsDetailsAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, id):
+        article = get_object_or_404(TrendingNews, id=id)
+        serializer = TrendingNewsSerializer(article, context={'request': request})
+        return Response({
+            'status': status.HTTP_200_OK,
+            'success': True,
+            'message': 'Trending news detail fetched successfully',
             'data': serializer.data
         })
 
