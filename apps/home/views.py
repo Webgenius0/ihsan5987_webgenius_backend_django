@@ -53,8 +53,8 @@ class RecommendedTopicsAPIView(APIView):
 
     def get(self, request):
         recommended_news_store()
-        articles = RecommendedNews.objects.all().order_by('-published_at')
-        serializer = RecommendedNewsSerializer(articles, many=True, context={'request': request})
+        articles = TrendingNews.objects.all().order_by('-published_at')
+        serializer = TrendingNewsSerializer(articles, many=True, context={'request': request})
         return Response({
             'status': status.HTTP_200_OK,
             'success': True,

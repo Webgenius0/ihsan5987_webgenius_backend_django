@@ -1,6 +1,6 @@
 import requests
 from django.conf import settings
-from .models import TrendingNews
+from .models import TrendingNews, RecommendedNews
 from datetime import datetime
 
 def trending_news_store():
@@ -58,7 +58,7 @@ def recommended_news_store():
             data = response.json()
 
             for article in data.get('articles', []):
-                TrendingNews.objects.update_or_create(
+                RecommendedNews.objects.update_or_create(
                     url=article['url'],
                     defaults={
                         'title': article.get('title'),
