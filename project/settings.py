@@ -219,6 +219,5 @@ STRIPE_PUBLISHABLE_KEY = os.getenv('STRIPE_PUBLISHABLE_KEY')
 STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
 STRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET')
 
-
-STRIPE_SUCCESS_URL = 'http://127.0.0.1:8000/package/success'
-STRIPE_CANCEL_URL = 'http://127.0.0.1:8000/package/cancel'
+STRIPE_SUCCESS_URL = 'http://127.0.0.1:8000/api/subscriptions/success/'
+STRIPE_CANCEL_URL = 'http://127.0.0.1:8000/api/subscriptions/cancel/'
