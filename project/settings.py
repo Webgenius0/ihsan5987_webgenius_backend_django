@@ -201,8 +201,7 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 #GNEWS_API_KEY
-GNEWS_API_KEY = '5080b16455618a15457b60bb9e94d8c9'
-
+GNEWS_API_KEY = 'c8953ffc8769d9e01b10e01713d86e34'
 # Cloudinary setup
 cloudinary.config( 
     cloud_name = "dt99uhnhh", 
