@@ -15,6 +15,8 @@ import cloudinary
 from datetime import timedelta
 from dotenv import load_dotenv
 
+load_dotenv()
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -61,7 +63,7 @@ INSTALLED_APPS = [
 
     # my apps
     'apps.profiles.apps.ProfilesConfig',
-    'apps.subscriptions',
+    'apps.subscription.apps.SubscriptionConfig',  
     'apps.community_hubs',
     'apps.notifications'
 ]
@@ -102,22 +104,17 @@ WSGI_APPLICATION = 'project.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-
-#Database Configuration
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'postgres',
         'USER': 'postgres.odpilpqlyscsreefmtit',
         'PASSWORD': 'shcQivH9xxH31J1X1Hxohjbh',
         'HOST': 'aws-0-eu-central-1.pooler.supabase.com',
         'PORT': '5432',
+        'OPTIONS': {
+            'sslmode': 'require',
+        },
     }
 }
 
@@ -221,3 +218,7 @@ SIMPLE_JWT = {
 STRIPE_PUBLISHABLE_KEY = os.getenv('STRIPE_PUBLISHABLE_KEY')
 STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
 STRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET')
+
+
+STRIPE_SUCCESS_URL = 'http://127.0.0.1:8000/package/success'
+STRIPE_CANCEL_URL = 'http://127.0.0.1:8000/package/cancel'
