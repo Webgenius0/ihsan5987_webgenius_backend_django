@@ -19,6 +19,7 @@ class TrendingNewsAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        trending_news_store()
         articles = TrendingNews.objects.all().order_by('-published_at')
         serializer = TrendingNewsSerializer(articles, many=True, context={'request': request})
         response_data = {
@@ -67,7 +68,6 @@ class RecommendedTopicsAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        recommended_news_store()
         articles = TrendingNews.objects.all().order_by('-published_at')
         serializer = TrendingNewsSerializer(articles, many=True, context={'request': request})
         return Response({
