@@ -61,7 +61,7 @@ class ProfileView(APIView):
     #     }
     #     return Response(response, status=status.HTTP_400_BAD_REQUEST)
     
-    def put(self, request):
+    def patch(self, request):
         profile = request.user.profile
         serializer = ProfileSerializer(profile, data=request.data, partial=True)
         if serializer.is_valid():  # Added proper validation check
