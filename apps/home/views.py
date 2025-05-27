@@ -5,137 +5,153 @@ from rest_framework.response import Response
 from django.conf import settings
 from datetime import datetime, timedelta
 from rest_framework.permissions import IsAuthenticated
-from .models import UserInterests
+from .models import UserInterests, NewsBookmark, TrendingNews, RecommendedNews
 from apps.users.authentication import CustomJWTAuthentication
-from .serializers import UserInterestsSerializer
+from .serializers import UserInterestsSerializer, TrendingNewsSerializer, RecommendedNewsSerializer
+from .utils import trending_news_store, recommended_news_store
 from apps.community_hubs.models import Post
 from apps.community_hubs.serializers import PostlistSerializer
+from django.shortcuts import get_object_or_404
 
 
 #Trending News API
 class TrendingNewsAPIView(APIView):
-    authentication_classes = [CustomJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        categories = ['general', 'world', 'nation', 'business', 'technology', 'entertainment', 'sports', 'science', 'health', 'politics']
-    
-        aggregated_articles = []
-
-        for category in categories:
-            params = {
-                'token': settings.GNEWS_API_KEY,
-                'lang': 'en',
-                'country': 'us',
-                'max': 10,  
-                'q': category  
-            }
-        try:
-            response = requests.get("https://gnews.io/api/v4/top-headlines", params=params)
-            response_json = response.json()
-
-            # Handle API errors
-            if 'errors' in response_json:
-                return Response({
-                    'status': status.HTTP_429_TOO_MANY_REQUESTS,
-                    'success': False,
-                    'message': 'Error from GNews API',
-                    'errors': response_json['errors']
-                }, status=status.HTTP_429_TOO_MANY_REQUESTS)
-
-            if response.status_code == 200:
-                articles = response_json.get('articles', [])
-                for article in articles:
-                    aggregated_articles.append({
-                        'title': article.get('title'),
-                        'description': article.get('description'),
-                        'content': article.get('content'),
-                        'url': article.get('url'),
-                        'image': article.get('image'),
-                        'publishedAt': article.get('publishedAt'),
-                        'source': {
-                            'name': article.get('source', {}).get('name'),
-                            'url': article.get('source', {}).get('url'),
-                        },
-                        'category': category
-                    })
-        except requests.RequestException as e:
-            return Response({
-                'status': status.HTTP_503_SERVICE_UNAVAILABLE,
-                'success': False,
-                'message': 'Failed to fetch data from GNews API',
-                'error': str(e)
-            }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        trending_news_store()
+        articles = TrendingNews.objects.all().order_by('-published_at')
+        serializer = TrendingNewsSerializer(articles, many=True, context={'request': request})
         response_data = {
             'status': status.HTTP_200_OK,
             'success': True,
             'message': 'Trending news fetched successfully',
-            'data': aggregated_articles
-        } 
+            'data': serializer.data
+        }
         return Response(response_data, status=status.HTTP_200_OK)
+
+#Trending News Detail API
+class TrendingNewsDetailAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, id):
+        article = get_object_or_404(TrendingNews, id=id)
+        serializer = TrendingNewsSerializer(article, context={'request': request})
+        return Response({
+            'status': status.HTTP_200_OK,
+            'success': True,
+            'message': 'Trending news detail fetched successfully',
+            'data': serializer.data
+        })
+
+
+class BookmarkNewsAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, article_id):
+        article = get_object_or_404(TrendingNews, id=article_id)
+        bookmark, created = NewsBookmark.objects.get_or_create(user=request.user, article=article)
+        if created:
+            return Response({'success': True, 'message': 'Article bookmarked.'})
+        return Response({'success': False, 'message': 'Article already bookmarked.'})
+
+    def delete(self, request, article_id):
+        article = get_object_or_404(TrendingNews, id=article_id)
+        bookmark = NewsBookmark.objects.filter(user=request.user, article=article).first()
+        if bookmark:
+            bookmark.delete()
+            return Response({'success': True, 'message': 'Bookmark removed.'})
+        return Response({'success': False, 'message': 'Bookmark not found.'})
         
 #Recommended Topics API
 class RecommendedTopicsAPIView(APIView):
-    authentication_classes = [CustomJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        categories = ['general', 'world', 'nation', 'business', 'technology', 'entertainment', 'sports', 'science', 'health', 'politics']
-    
-        recommendations = []
-
-        for category in categories:
-            params = {
-                'token': settings.GNEWS_API_KEY,
-                'lang': 'en',
-                'country': 'us',
-                'max': 10,  
-                'q': category  
-            }
-
-        try:
-            response = requests.get("https://gnews.io/api/v4/search", params=params)
-            response_json = response.json()
-
-            # Handle API errors
-            if 'errors' in response_json:
-                return Response({
-                    'status': status.HTTP_429_TOO_MANY_REQUESTS,
-                    'success': False,
-                    'message': 'Error from GNews API',
-                    'errors': response_json['errors']
-                }, status=status.HTTP_429_TOO_MANY_REQUESTS)
-
-            if response.status_code == 200:
-                articles = response.json().get('articles', [])
-                for article in articles:
-                    recommendations.append({
-                        'title': article.get('title'),
-                        'description': article.get('description'),
-                        'content': article.get('content'),
-                        'url': article.get('url'),
-                        'image': article.get('image'),
-                        'publishedAt': article.get('publishedAt'),
-                        'source': {
-                            'name': article.get('source', {}).get('name'),
-                            'url': article.get('source', {}).get('url'),
-                        },
-                        'category': category  # manually tagged category
-                    })
-        except requests.RequestException as e:
-            return Response({
-                'status': status.HTTP_503_SERVICE_UNAVAILABLE,
-                'success': False,
-                'message': 'Failed to fetch data from GNews API',
-                'error': str(e)
-            }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
-        response_data = {
+        articles = TrendingNews.objects.all().order_by('-published_at')
+        serializer = TrendingNewsSerializer(articles, many=True, context={'request': request})
+        return Response({
             'status': status.HTTP_200_OK,
             'success': True,
             'message': 'Recommended topics fetched successfully',
-            'data': recommendations
-        } 
-        return Response(response_data, status=status.HTTP_200_OK)
+            'data': serializer.data
+        })
+    
+#Trending News Detail API
+class RecommendedTopicsDetailsAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, id):
+        article = get_object_or_404(TrendingNews, id=id)
+        serializer = TrendingNewsSerializer(article, context={'request': request})
+        return Response({
+            'status': status.HTTP_200_OK,
+            'success': True,
+            'message': 'Trending news detail fetched successfully',
+            'data': serializer.data
+        })
+
+# class RecommendedTopicsAPIView(APIView):
+#     authentication_classes = [CustomJWTAuthentication]
+#     permission_classes = [IsAuthenticated]
+
+#     def get(self, request):
+#         categories = ['general', 'world', 'nation', 'business', 'technology', 'entertainment', 'sports', 'science', 'health', 'politics']
+    
+#         recommendations = []
+
+#         for category in categories:
+#             params = {
+#                 'token': settings.GNEWS_API_KEY,
+#                 'lang': 'en',
+#                 'country': 'us',
+#                 'max': 10,  
+#                 'q': category  
+#             }
+
+#         try:
+#             response = requests.get("https://gnews.io/api/v4/search", params=params)
+#             response_json = response.json()
+
+#             # Handle API errors
+#             if 'errors' in response_json:
+#                 return Response({
+#                     'status': status.HTTP_429_TOO_MANY_REQUESTS,
+#                     'success': False,
+#                     'message': 'Error from GNews API',
+#                     'errors': response_json['errors']
+#                 }, status=status.HTTP_429_TOO_MANY_REQUESTS)
+
+#             if response.status_code == 200:
+#                 articles = response.json().get('articles', [])
+#                 for article in articles:
+#                     recommendations.append({
+#                         'title': article.get('title'),
+#                         'description': article.get('description'),
+#                         'content': article.get('content'),
+#                         'url': article.get('url'),
+#                         'image': article.get('image'),
+#                         'publishedAt': article.get('publishedAt'),
+#                         'source': {
+#                             'name': article.get('source', {}).get('name'),
+#                             'url': article.get('source', {}).get('url'),
+#                         },
+#                         'category': category  # manually tagged category
+#                     })
+#         except requests.RequestException as e:
+#             return Response({
+#                 'status': status.HTTP_503_SERVICE_UNAVAILABLE,
+#                 'success': False,
+#                 'message': 'Failed to fetch data from GNews API',
+#                 'error': str(e)
+#             }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+#         response_data = {
+#             'status': status.HTTP_200_OK,
+#             'success': True,
+#             'message': 'Recommended topics fetched successfully',
+#             'data': recommendations
+#         } 
+#         return Response(response_data, status=status.HTTP_200_OK)
 
 #Community Hub API
 class CommunityHubAPIView(APIView):

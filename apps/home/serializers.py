@@ -1,8 +1,41 @@
 from rest_framework import serializers
-from .models import Interest, UserInterests
+from .models import Interest, UserInterests, TrendingNews, RecommendedNews, NewsBookmark
 from .gnews_service import human_readable_time  # import the time formatter
 from datetime import datetime, timedelta
+
+#Trending news serializer
+class TrendingNewsSerializer(serializers.ModelSerializer):
+    is_bookmarked = serializers.SerializerMethodField()
+
+    class Meta:
+        model = TrendingNews
+        fields = '__all__'
+
+    def get_is_bookmarked(self, obj):
+        user = self.context.get('request').user
+        return obj.bookmarks.filter(user=user).exists()
     
+#Recommended news serializer
+class RecommendedNewsSerializer(serializers.ModelSerializer):
+    is_bookmarked = serializers.SerializerMethodField()
+
+    class Meta:
+        model = RecommendedNews
+        fields = '__all__'
+
+    def get_is_bookmarked(self, obj):
+        user = self.context.get('request').user
+        return obj.bookmarks.filter(user=user).exists()
+
+
+#Bookmark news serializer
+class NewsBookmarkSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = NewsBookmark
+        fields = ['id', 'user', 'article', 'bookmarked_at']
+        read_only_fields = ['user', 'bookmarked_at']
+
+
 #User interests serializer
 class InterestSerializer(serializers.ModelSerializer):
     class Meta:
