@@ -35,6 +35,27 @@ class PackageView(APIView):
             "data": serializer.data
         }
         return Response(response)
+    
+class UserActiveSubscriptionView(APIView):
+    def get(self, request):
+        try:
+            subscription = Subscription.objects.get(user=request.user, is_active=True)
+            serializer = SubscriptionSerializer(subscription)
+            response = {
+                "status": status.HTTP_200_OK,
+                "success": True,
+                "message": "Active subscription retrieved successfully",
+                "data": serializer.data
+            }
+            return Response(response)
+        except Subscription.DoesNotExist:
+            response = {
+                "status": status.HTTP_404_NOT_FOUND,
+                "success": False,
+                "message": "No active subscription found",
+                "data": None
+            }
+            return Response(response)
 
 class SubscriptionView(APIView):
     def get(self, request, package_id=None):
