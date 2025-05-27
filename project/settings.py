@@ -183,6 +183,9 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'towhidulislam.mail@gmail.com'
 EMAIL_HOST_PASSWORD = 'bdui nxzn dogt fqxl'
 
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+ADMIN_EMAIL = 'towhidulislam.mail@gmail.com'
+
 #CORS setup
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",

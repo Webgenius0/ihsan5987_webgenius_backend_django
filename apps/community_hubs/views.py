@@ -1,11 +1,13 @@
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from django.conf import settings
 from rest_framework import status, permissions
 from django.db.models import Q, Count
+from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
-from .models import Post, Comment, Like
-from .serializers import PostlistSerializer,CreatePostSerializer, PostDetailSerializer, CommentSerializer, LikeSerializer
+from .models import Post, Comment, Like, CommentReport
+from .serializers import PostlistSerializer,CreatePostSerializer, PostDetailSerializer, CommentSerializer, LikeSerializer, CommentReportSerializer
 
 
 class PostList(APIView):
@@ -197,3 +199,50 @@ class LikeView(APIView):
                 "message": "Comment liked successfully",
                 "data": serializer.data
             }, status=status.HTTP_201_CREATED)
+        
+
+class CommentReportView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, pk):
+        try:
+            comment = Comment.objects.get(pk=pk)
+        except Comment.DoesNotExist:
+            return Response({
+                "status": status.HTTP_404_NOT_FOUND,
+                "success": False,
+                "message": "Comment not found"
+            }, status=status.HTTP_404_NOT_FOUND)
+        
+        if CommentReport.objects.filter(comment=comment, reporter=request.user).exists():
+            return Response({
+                "status": status.HTTP_400_BAD_REQUEST,
+                "success": False,
+                "message": "You have already reported this comment"
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        serializer = CommentReportSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(comment=comment, reporter=request.user)
+            
+            # Send email notification to admin
+            send_mail(
+                subject='🚨 New Comment Report',
+                message=f"A new comment has been reported:\n\nComment ID: {comment.id}\nReason: {serializer.validated_data['reason']}\nMessage: {serializer.validated_data.get('message', 'No message provided')}",
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[settings.ADMIN_EMAIL],  # Ensure this is set in your settings
+                fail_silently=False,
+            )
+            return Response({
+                "status": status.HTTP_201_CREATED,
+                "success": True,
+                "message": "Comment reported successfully",
+                "data": serializer.data
+            }, status=status.HTTP_201_CREATED)
+        
+        return Response({
+            "status": status.HTTP_400_BAD_REQUEST,
+            "success": False,
+            "message": "Failed to report comment",
+            "errors": serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
