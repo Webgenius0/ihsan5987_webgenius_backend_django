@@ -32,7 +32,7 @@ class TrendingNewsAPIView(APIView):
 # Trending News Detail API
 class TrendingNewsDetailAPIView(APIView):
     permission_classes = [IsAuthenticated]
-    r
+    
     def get(self, request, id):
         article = get_object_or_404(TrendingNews, id=id)
         serializer = TrendingNewsSerializer(
