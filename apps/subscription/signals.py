@@ -1,5 +1,5 @@
 import stripe
-from .models import Package
+from .models import Package, Subscription
 from django.conf import settings
 from django.dispatch import receiver
 from django.db.models.signals import post_save, pre_delete
@@ -66,3 +66,13 @@ def delete_stripe_product(sender, instance, **kwargs):
             instance.stripe_price_id,
             active=False,
         )
+
+# Premium User Signal
+@receiver(post_save, sender=Subscription)
+def update_premium_user_status(sender, instance, **kwargs):
+    user = instance.user
+    profile = getattr(user, 'profile', None)
+
+    if profile:
+        profile.premium_user = instance.is_active
+        profile.save()

@@ -1,13 +1,13 @@
 from rest_framework import serializers
 from .models import Package, Subscription
-from apps.users.models import User
 
+# Package Serializer
 class PackageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Package
         fields = '__all__'
 
-
+# Subscription Serializer
 class SubscriptionSerializer(serializers.ModelSerializer):
     package = PackageSerializer(read_only=True)
     user = serializers.StringRelatedField(read_only=True)
