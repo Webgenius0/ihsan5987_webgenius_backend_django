@@ -81,10 +81,11 @@ class CommentSerializer(serializers.ModelSerializer):
     
 
 class CommentReportSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = CommentReport
-        fields = ['id', 'reason', 'message', 'status', 'created_at']
-        read_only_fields = ['status', 'created_at']
+        fields = ['id', 'comment', 'reason', 'message', 'status', 'created_at']
+        read_only_fields = ['status', 'created_at', 'comment']
 
 
 class PostDetailSerializer(serializers.ModelSerializer):

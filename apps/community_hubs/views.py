@@ -83,7 +83,7 @@ class CommentView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, post_id):
-        comments = Comment.objects.filter(post_id=post_id).order_by("-created_at")
+        comments = Comment.objects.filter(post_id=post_id, is_active=True).order_by("-created_at")
         serializer = CommentSerializer(comments, many=True)
         return Response({
             "status": status.HTTP_200_OK,
@@ -246,3 +246,16 @@ class CommentReportView(APIView):
             "message": "Failed to report comment",
             "errors": serializer.errors
         }, status=status.HTTP_400_BAD_REQUEST)
+    
+    def save(self, *args, **kwargs):
+        if self.pk:
+            previous = CommentReport.objects.get(pk=self.pk)
+            if previous.status != 'dismissed' and self.status == 'dismissed':
+                self.comment.is_active = False
+                self.comment.save()
+
+        elif self.status == 'dismissed':
+            self.comment.is_active =False
+            self.comment.save()
+
+        super().save(*args, **kwargs)
