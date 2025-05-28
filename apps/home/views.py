@@ -3,18 +3,17 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.conf import settings
-from datetime import datetime, timedelta
 from rest_framework.permissions import IsAuthenticated
-from .models import UserInterests, NewsBookmark, TrendingNews, RecommendedNews
+from .models import UserInterests, NewsBookmark, TrendingNews
 from apps.users.authentication import CustomJWTAuthentication
-from .serializers import UserInterestsSerializer, TrendingNewsSerializer, RecommendedNewsSerializer
-from .utils import trending_news_store, recommended_news_store
+from .serializers import UserInterestsSerializer, TrendingNewsSerializer
+from .utils import trending_news_store
 from apps.community_hubs.models import Post
 from apps.community_hubs.serializers import PostlistSerializer
 from django.shortcuts import get_object_or_404
 
 
-#Trending News API
+# Trending News API
 class TrendingNewsAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -29,21 +28,23 @@ class TrendingNewsAPIView(APIView):
             'data': serializer.data
         }
         return Response(response_data, status=status.HTTP_200_OK)
-
-#Trending News Detail API
+    
+# Trending News Detail API
 class TrendingNewsDetailAPIView(APIView):
     permission_classes = [IsAuthenticated]
-
+    r
     def get(self, request, id):
         article = get_object_or_404(TrendingNews, id=id)
-        serializer = TrendingNewsSerializer(article, context={'request': request})
+        serializer = TrendingNewsSerializer(
+            article,
+            context={'request': request}
+        )
         return Response({
             'status': status.HTTP_200_OK,
             'success': True,
             'message': 'Trending news detail fetched successfully',
             'data': serializer.data
         })
-
 
 class BookmarkNewsAPIView(APIView):
     permission_classes = [IsAuthenticated]
