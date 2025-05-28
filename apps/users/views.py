@@ -1,11 +1,8 @@
 import random
 from django.utils import timezone
 from django.core.mail import send_mail
-from django.contrib.auth import login
-from django.contrib.auth.models import update_last_login
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import status
-from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -14,16 +11,15 @@ from django.conf import settings
 from .serializers import SignupSerializer, LoginSerializer
 
 
-#Signup View
+# Signup View
 class SignupView(APIView):
     def post(self, request, *args, **kwargs):
         serializer = SignupSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save(is_active=False)
-
+            
             otp = str(random.randint(1000, 9999))
 
-            
             EmailOTP.objects.create(
                 user=user,
                 otp=otp,
