@@ -33,6 +33,34 @@ class Comment(models.Model):
 
     def __str__(self):
         return f"{self.user.name} - {self.post.title}"
+    
+class CommentReport(models.Model):
+    REASON_CHOICES = [
+        ('spam', 'Spam'),
+        ('abuse', 'Abuse'),
+        ('offensive', 'Offensive Content'),
+        ('other', 'Other'),
+    ]
+
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('reviewed', 'Reviewed'),
+        ('dismissed', 'Dismissed'),
+    ]
+
+    reporter = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reports')
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name='reports')
+    reason = models.CharField(max_length=255, choices=REASON_CHOICES)
+    message = models.TextField(blank=True, null=True)
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('reporter', 'comment')
+
+    def __str__(self):
+        return f"Report by {self.reporter.name} on comment {self.comment.id} - {self.status}"
+
 
 class Like(models.Model):
     comment = models.ForeignKey(Comment, related_name='likes', on_delete=models.CASCADE)
