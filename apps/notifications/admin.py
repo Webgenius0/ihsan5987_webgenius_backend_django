@@ -10,3 +10,4 @@ class NotificationAdmin(ModelAdmin, ImportExportModelAdmin):
 
     import_form_class = ImportForm
     export_form_class = ExportForm
+    selectable_fields_export_form_class = SelectableFieldsExportForm
