@@ -1,7 +1,8 @@
 import stripe
-from .models import Package, Subscription
 from django.conf import settings
 from django.dispatch import receiver
+from django.utils import timezone
+from .models import Package, Subscription
 from django.db.models.signals import post_save, pre_delete
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -69,10 +70,19 @@ def delete_stripe_product(sender, instance, **kwargs):
 
 # Premium User Signal
 @receiver(post_save, sender=Subscription)
-def update_premium_user_status(sender, instance, **kwargs):
-    user = instance.user
-    profile = getattr(user, 'profile', None)
+def update_premium_user_status(sender, instance, created, **kwargs):
+    profile = instance.user.profile
 
-    if profile:
-        profile.premium_user = instance.is_active
+    # Ensure end_date is timezone-aware
+    end_date = instance.end_date
+    if timezone.is_naive(end_date):
+        end_date = timezone.make_aware(end_date)
+
+    now = timezone.now()
+
+    # Update premium status
+    is_premium = instance.is_active and end_date > now
+    if profile.premium_user != is_premium:
+        profile.premium_user = is_premium
         profile.save()
+        # print(f"Updated premium status for {profile.user.email}: {is_premium}")
