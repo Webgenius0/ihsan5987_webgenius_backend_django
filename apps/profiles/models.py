@@ -6,6 +6,9 @@ from cloudinary.models import CloudinaryField
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     image = CloudinaryField('image', null=True, blank=True)
+    premium_user = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     @property
     def image_url(self):
