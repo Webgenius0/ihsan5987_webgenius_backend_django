@@ -10,11 +10,13 @@ class NotificationSerializer(serializers.ModelSerializer):
     # profile_image = serializers.SerializerMethodField()
     timestamp = serializers.SerializerMethodField()
     post_image = serializers.SerializerMethodField()
+    new = serializers.SerializerMethodField()
+    icon = serializers.SerializerMethodField()
 
     class Meta:
         model = Notification
-        fields = ['id', 'recipient', 'message', 'timestamp', 'post_image', 'is_read', 'category']
-        read_only_fields = ['id', 'timestamp', 'is_read', 'category']
+        fields = ['id', 'recipient', 'title', 'icon', 'message', 'timestamp', 'post_image', 'is_read', 'category', 'new']
+        read_only_fields = ['id', 'timestamp', 'is_read', 'category', 'icon']
 
     def get_name(self, obj):
         print(f"Serializer get_name - sender: {obj.sender}, type: {type(obj.sender)}")
@@ -59,6 +61,15 @@ class NotificationSerializer(serializers.ModelSerializer):
         elif time_diff.lower() == '1 day':
             return f"Yesterday | {time_str}" if created_at < now else f"Tomorrow | {time_str}"
         return f"{time_diff} ago | {time_str}"
+    
+    def get_new(self, obj):
+        return not obj.is_read
+    
+    def get_icon(self, obj):
+        icon_key = obj.system_event
+        print(f"Serializer get_icon - icon_key: {icon_key}")
+        return Notification.CLOUDINARY_ICON_MAP.get(icon_key)
+
 
 class NotificationUpdateSerializer(serializers.ModelSerializer):
     class Meta:
