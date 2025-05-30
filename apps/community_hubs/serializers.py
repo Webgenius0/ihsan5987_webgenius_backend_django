@@ -103,5 +103,4 @@ class PostDetailSerializer(serializers.ModelSerializer):
             'content': representation['content'],
             'comments': representation['comments'],
         }
-        return ordered_data
-    
+        return ordered_data 
