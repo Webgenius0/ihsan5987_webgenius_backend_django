@@ -35,3 +35,25 @@ def send_notification(sender, recipient, notification_type, message, related_pos
                 'related_comment_id': related_comment.id if related_comment else None,
             }
         )
+print("Calling send_system_notification...")
+def send_system_notification(recipient, title, message, event_type):
+    icon_key = event_type
+    notification  = Notification.objects.create(
+        sender=None,
+        recipient=recipient,
+        category='system',
+        notification_type='system',
+        title=title,
+        message=message,
+        system_event=event_type,
+        icon=icon_key
+    )
+
+     # Send to device if available
+    devices = FCMDevice.objects.filter(user=recipient, active=True)
+    if devices.exists():
+        devices.send_message(
+            title=title,
+            body=message,
+            data={'notification_id': str(notification.id), 'category': 'system'}
+        )
