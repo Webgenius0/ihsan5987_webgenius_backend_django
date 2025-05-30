@@ -358,18 +358,19 @@ class LoginView(APIView):
             refresh = RefreshToken.for_user(user)
             access_token = str(refresh.access_token)
 
-            # response_data = {
-            #         "status": status.HTTP_200_OK,
-            #         "success": "true",
-            #         "message": "Login Successful",
-            #         "data": {
-            #             "access_token": access_token,
-            #             "refresh_token": str(refresh)
-            #         },
-            #     }
             response_data = {
-                "access_token": access_token,
-                "refresh_token": str(refresh)
+                "status": status.HTTP_200_OK,
+                "success": True,
+                "message": "Login Successful",
+                "token_type": "Bearer",
+                "token": access_token,
+                "data": {
+                    "id": user.id,
+                    "name": user.name,
+                    "email": user.email,
+                    "is_verified": user.is_active,
+                    "is_subscribed": user.is_subscribed,
+                },
             }
             return Response(response_data, status=status.HTTP_200_OK)
         
