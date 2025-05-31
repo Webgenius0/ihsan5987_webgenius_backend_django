@@ -13,7 +13,7 @@ class ProfileView(APIView):
 
     def get(self, request):
         try:
-            profile = Profile.objects.get(user=request.user)
+            profile = Profile.objects.get(user=request.user).order_by('-created_at')
 
         except Profile.DoesNotExist:
             return Response({

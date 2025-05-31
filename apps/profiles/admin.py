@@ -1,12 +1,12 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin
-from .models import Profile, FAQ, FAQCategory, ContactUs
 from import_export.admin import ImportExportModelAdmin
+from .models import Profile, FAQ, FAQCategory, ContactUs
 from unfold.contrib.import_export.forms import ExportForm, ImportForm, SelectableFieldsExportForm
 
 @admin.register(Profile)
 class ProfileAdmin(ModelAdmin, ImportExportModelAdmin):
-    list_display = ("user", "image")
+    list_display = ("user", "image", "premium_user",)
     search_fields = ["user__email"]
     ordering = ["user__email"]
     list_filter = ["user__is_active"]
@@ -14,6 +14,7 @@ class ProfileAdmin(ModelAdmin, ImportExportModelAdmin):
 
     import_form_class = ImportForm
     export_form_class = ExportForm
+    selectable_fields_export_form_class = SelectableFieldsExportForm
 
 @admin.register(FAQCategory)
 class FAQCategoryAdmin(ModelAdmin, ImportExportModelAdmin):
@@ -24,6 +25,7 @@ class FAQCategoryAdmin(ModelAdmin, ImportExportModelAdmin):
 
     import_form_class = ImportForm
     export_form_class = ExportForm
+    selectable_fields_export_form_class = SelectableFieldsExportForm
 
 @admin.register(FAQ)
 class FAQAdmin(ModelAdmin, ImportExportModelAdmin):
@@ -35,6 +37,7 @@ class FAQAdmin(ModelAdmin, ImportExportModelAdmin):
 
     import_form_class = ImportForm
     export_form_class = ExportForm
+    selectable_fields_export_form_class = SelectableFieldsExportForm
 
 @admin.register(ContactUs)
 class ContactUsAdmin(ModelAdmin, ImportExportModelAdmin):
@@ -45,4 +48,5 @@ class ContactUsAdmin(ModelAdmin, ImportExportModelAdmin):
 
     import_form_class = ImportForm
     export_form_class = ExportForm
+    selectable_fields_export_form_class = SelectableFieldsExportForm
     
