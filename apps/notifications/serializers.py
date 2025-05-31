@@ -1,8 +1,8 @@
-from rest_framework import serializers
-from .models import Notification
-from django.utils.timesince import timesince
-from django.utils import timezone
 import re
+from .models import Notification
+from django.utils import timezone
+from rest_framework import serializers
+from django.utils.timesince import timesince
 from apps.community_hubs.serializers import UserSerializer
 
 class NotificationSerializer(serializers.ModelSerializer):

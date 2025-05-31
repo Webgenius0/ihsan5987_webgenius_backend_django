@@ -7,16 +7,16 @@ from .serializers import NotificationSerializer, NotificationUpdateSerializer
 from fcm_django.models import FCMDevice
 from django.shortcuts import get_object_or_404
 
-class NotificationListView(APIView):
+class GeneralNotificationListView(APIView):
     permission_classes = [IsAuthenticated]
     
     def get(self, request):
-        notifications = Notification.objects.filter(recipient=request.user).order_by('-created_at')
+        notifications = Notification.objects.filter(recipient=request.user, category='general').order_by('-created_at')
         serializer = NotificationSerializer(notifications, many=True)
         response = {
             "status": status.HTTP_200_OK,
             "success": True,
-            "message": "Notification fetched successfully",
+            "message": "General Notification fetched successfully",
             "data": serializer.data
         }
         return Response(response, status=status.HTTP_200_OK)
