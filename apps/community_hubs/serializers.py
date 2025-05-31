@@ -5,39 +5,68 @@ from django.utils.timezone import now
 from datetime import timedelta
 from apps.profiles.models import Profile
 from apps.users.models import User
-from .models import Post, Comment, Like, CommentReport
+from .models import Post, Comment, Like, CommentReport, Tag
 
 class PostlistSerializer(serializers.ModelSerializer):
     comment_count = serializers.SerializerMethodField()
     commented_users = serializers.SerializerMethodField()
+    tags = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
-        fields = ['id', 'title', 'category', 'content', 'created_at', 'comment_count', 'commented_users']
-
-    def get_commented_users(self, obj):
-        # Get the list of users who have commented on this post
-        comments = obj.comments.filter(post=obj).select_related('user__profile')
-        users = {comments.user.id: comments.user for comments in comments}.values()
-    
-        # Limit to 5 for avatars (you can make this dynamic or full list based on your UI)
-        max_users = 5
-        user_list = list(users)[:max_users]
-        # overflow = len(users) - max_users if len(users) > max_users else 0
-        
-        return {
-            'avatars': UserSerializer(user_list, many=True, context=self.context).data,
-            # 'overflow': overflow
-        }
+        fields = [
+            'id', 'user', 'title', 'topic','category', 'image', 'content',
+            'created_at', 'comment_count', 'commented_users', 'tags'
+        ]
 
     def get_comment_count(self, obj):
-        return obj.comment_count()
+        return obj.comment_count()  # assumes a method in your model
 
+    def get_commented_users(self, obj):
+        # Fetch comments with related user and profile data
+        comments = obj.comments.select_related('user__profile')
+        
+        # Collect unique users based on user ID
+        users_dict = {}
+        for comment in comments:
+            user = comment.user
+            users_dict[user.id] = user
+
+        # Limit to 5 users for avatars
+        user_list = list(users_dict.values())[:5]
+
+        return {
+            'avatars': UserSerializer(user_list, many=True, context=self.context).data
+        }
+
+    def get_tags(self, obj):
+        return [tag.tag_names for tag in obj.tags.all()]
 
 class CreatePostSerializer(serializers.ModelSerializer):
+    tag_names = serializers.ListField(
+        child=serializers.CharField(), write_only=True, required=False
+    )
+    tags = serializers.SerializerMethodField()  # Optional: for returning tag names in response
+
     class Meta:
         model = Post
-        fields = ['id', 'image', 'title', 'category', 'content', 'created_at']
+        fields = ['id', 'image', 'topic', 'title', 'category', 'content', 'created_at', 'tag_names', 'tags']
+
+    def get_tags(self, obj):
+        return [tag.tag_names for tag in obj.tags.all()]
+
+    def create(self, validated_data):
+        tag_names = validated_data.pop('tag_names', [])
+        post = Post.objects.create(**validated_data)
+
+        # Create or get Tag objects and associate with post
+        tags = []
+        for name in tag_names:
+            tag, _ = Tag.objects.get_or_create(tag_names=name)
+            tags.append(tag)
+
+        post.tags.set(tags)
+        return post
 
 class UserSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
