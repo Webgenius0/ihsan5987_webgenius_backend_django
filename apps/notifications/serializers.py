@@ -62,42 +62,15 @@ class GeneralNotificationSerializer(serializers.ModelSerializer):
     
 
 class SystemNotificationSerializer(serializers.ModelSerializer):
-    recipient = UserSerializer(read_only=True)
-    profile_image = serializers.SerializerMethodField()
-    timestamp = serializers.SerializerMethodField()
-    post_image = serializers.SerializerMethodField()
     new = serializers.SerializerMethodField()
     icon = serializers.SerializerMethodField()
+    timestamp = serializers.SerializerMethodField()
 
     class Meta:
         model = Notification
-        fields = ['id', 'recipient', 'title', 'icon', 'message', 'timestamp', 'is_read', 'category', 'new']
-        read_only_fields = ['id', 'timestamp', 'is_read', 'category', 'icon']
+        fields = ['id','title', 'icon', 'message', 'timestamp', 'is_read', 'category', 'new']
+        read_only_fields = ['id', 'timestamp', 'is_read', 'category', 'icon', 'new']
 
-    def get_name(self, obj):
-        print(f"Serializer get_name - sender: {obj.sender}, type: {type(obj.sender)}")
-        if obj.sender:
-            print(f"Sender name: {obj.sender.name}")
-        else:
-            print("Sender is None")
-        return obj.sender.name if obj.sender else None
-
-    def get_profile_image(self, obj):
-        if obj.sender:
-            print(f"Serializer get_profile_image - sender has profile? {hasattr(obj.sender, 'profile')}")
-            if hasattr(obj.sender, 'profile'):
-                print(f"Profile image_url: {obj.sender.profile.image_url}")
-        else:
-            print("Sender is None in get_profile_image")
-        return obj.sender.profile.image_url if (obj.sender and hasattr(obj.sender, 'profile')) else None
-
-
-
-    def get_post_image(self, obj):
-        try:
-            return obj.related_post.image.url if obj.related_post and obj.related_post.image else None
-        except Exception:
-            return None
 
     def get_timestamp(self, obj):
         created_at = obj.created_at
