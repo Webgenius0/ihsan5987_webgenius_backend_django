@@ -3,23 +3,33 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from .models import Notification
-from .serializers import NotificationSerializer, NotificationUpdateSerializer
+from .serializers import GeneralNotificationSerializer, NotificationUpdateSerializer, SystemNotificationSerializer
 from fcm_django.models import FCMDevice
 from django.shortcuts import get_object_or_404
 
-class NotificationListView(APIView):
+class GeneralNotificationListView(APIView):
     permission_classes = [IsAuthenticated]
     
     def get(self, request):
-        notifications = Notification.objects.filter(recipient=request.user, category='general').order_by('-created_at')
-        serializer = NotificationSerializer(notifications, many=True)
-        response = {
-            "status": status.HTTP_200_OK,
-            "success": True,
-            "message": "Notification fetched successfully",
-            "data": serializer.data
-        }
-        return Response(response, status=status.HTTP_200_OK)
+        try:
+            notifications = Notification.objects.filter(recipient=request.user, category='general').order_by('-created_at')
+            serializer = GeneralNotificationSerializer(notifications, many=True)
+            response = {
+                "status": status.HTTP_200_OK,
+                "success": True,
+                "message": "General Notification fetched successfully",
+                "data": serializer.data
+            }
+            return Response(response, status=status.HTTP_200_OK)
+        except Exception as e:
+            import traceback
+            print(f"Error in GeneralNotificationListView: {str(e)}")
+            print(f"Traceback: {traceback.format_exc()}")
+            return Response({
+                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "success": False,
+                "error": str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class UnreadNotificationCountView(APIView):
@@ -27,18 +37,34 @@ class UnreadNotificationCountView(APIView):
     
     def get(self, request):
         count = Notification.objects.filter(recipient=request.user, is_read=False).count()
-        return Response({'unread_count': count}, status=status.HTTP_200_OK)
+        return Response({
+            "status": status.HTTP_200_OK,
+            "success": True,
+            "message": "Unread notification count fetched successfully",
+            'unread_count': count
+            }, status=status.HTTP_200_OK)
 
 class MarkAsReadView(APIView):
     permission_classes = [IsAuthenticated]
     
     def patch(self, request, pk):
         notification = get_object_or_404(Notification, pk=pk, recipient=request.user)
+
+        # Force update `is_read` to True
+        notification.is_read = True
+        notification.save()
+
         serializer = NotificationUpdateSerializer(notification, data=request.data, partial=True)
-        
+            
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            response = {
+                "status": status.HTTP_200_OK,
+                "success": True,
+                "message": "Notification marked as read successfully",
+                "data": serializer.data
+            }
+            return Response(response, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class MarkAllAsReadView(APIView):
@@ -51,7 +77,10 @@ class MarkAllAsReadView(APIView):
         ).update(is_read=True)
         
         return Response(
-            {'detail': f'{updated} notifications marked as read'},
+            {
+                "success": True,
+                "message": f"{updated} notifications marked as read",
+            },
             status=status.HTTP_200_OK
         )
 
@@ -68,7 +97,11 @@ class RegisterDeviceView(APIView):
             registration_id=registration_id,
             defaults={'active': True, 'type': 'web'}
         )
-        return Response({'status': 'device registered'}, status=status.HTTP_200_OK)
+        return Response({
+            "status": status.HTTP_200_OK,
+            "success": True,
+            "message": "Device registered successfully",
+            }, status=status.HTTP_200_OK)
     
     
 class DeleteDeviceView(APIView):
@@ -82,9 +115,18 @@ class DeleteDeviceView(APIView):
         try:
             device = FCMDevice.objects.get(user=request.user, registration_id=registration_id)
             device.delete()
-            return Response({'status': 'device deleted'}, status=status.HTTP_200_OK)
+            return Response({
+                "status": status.HTTP_200_OK,
+                "success": True,
+                "message": "Device deleted successfully",
+                }, status=status.HTTP_200_OK)
+        
         except FCMDevice.DoesNotExist:
-            return Response({'error': 'Device not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({
+                "status": status.HTTP_404_NOT_FOUND,
+                "success": False,
+                "message": "Device not found",
+                }, status=status.HTTP_404_NOT_FOUND)
         
 
 # System notifications
@@ -96,7 +138,7 @@ class SystemNotificationListView(APIView):
             recipient=request.user,
             category='system'
         ).order_by('-created_at')
-        serializer = NotificationSerializer(notifications, many=True)
+        serializer = SystemNotificationSerializer(notifications, many=True)
         return Response({
             "status": status.HTTP_200_OK,
             "success": True,
