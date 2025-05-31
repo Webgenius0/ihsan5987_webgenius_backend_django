@@ -6,7 +6,8 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import User, EmailOTP, BlacklistToken
+from apps.notifications.services import send_system_notification
+from .models import User, EmailOTP, BlacklistToken, UserDevice
 from django.conf import settings
 from .serializers import SignupSerializer, LoginSerializer
 
@@ -114,6 +115,12 @@ class VerifyOTPView(APIView):
             "success": "true",
             "message": "OTP verified successfully.",
         }
+        send_system_notification(
+            recipient=user,
+            title="🎉 Account Setup Complete",
+            message="Your account has been successfully completed. Welcome aboard!",
+            event_type='account_complete',
+        )
         return Response(response_data, status=status.HTTP_200_OK)
 
 
@@ -177,7 +184,7 @@ class VerifyResetPasswordOTPView(APIView):
         response_data = {
             "status": status.HTTP_200_OK,
             "success": "true",
-            "message": "OTP verified successfully.",
+            "message": "Reset Password OTP verified successfully.",
         }
         return Response(response_data, status=status.HTTP_200_OK)
 
@@ -330,7 +337,13 @@ class ResetPasswordView(APIView):
             user.save()
 
         EmailOTP.objects.filter(user=user).delete()  # Clean up OTPs
-
+        
+        send_system_notification(
+            recipient=user,
+            title="🔒 Password Changed",
+            message="Your password has been successfully changed.",
+            event_type='password_change',
+        )
         return Response({
             "status": status.HTTP_200_OK,
             "success": True,
@@ -355,21 +368,40 @@ class LoginView(APIView):
                     status=status.HTTP_403_FORBIDDEN
                 )
 
+
+            device_info = UserDevice.get_device_info(request)
+            ip_address = UserDevice.get_client_ip(request)
+
+            known_device = UserDevice.objects.filter(
+                user=user, device_info=device_info, ip_address=ip_address
+            ).first()
+
+            if not known_device:
+                UserDevice.objects.create(user=user, device_info=device_info, ip_address=ip_address)
+
+                send_system_notification(
+                    recipient=user,
+                    title="🔐 New Device Login",
+                    message="Your account was accessed from a new device. If this wasn't you, please secure your account.",
+                    event_type='new_device_login',
+                )
+
             refresh = RefreshToken.for_user(user)
             access_token = str(refresh.access_token)
 
-            # response_data = {
-            #         "status": status.HTTP_200_OK,
-            #         "success": "true",
-            #         "message": "Login Successful",
-            #         "data": {
-            #             "access_token": access_token,
-            #             "refresh_token": str(refresh)
-            #         },
-            #     }
             response_data = {
-                "access_token": access_token,
-                "refresh_token": str(refresh)
+                "status": status.HTTP_200_OK,
+                "success": True,
+                "message": "Login Successful",
+                "token_type": "Bearer",
+                "token": access_token,
+                "data": {
+                    "id": user.id,
+                    "name": user.name,
+                    "email": user.email,
+                    "is_verified": user.is_active,
+                    "is_subscribed": user.is_subscribed,
+                },
             }
             return Response(response_data, status=status.HTTP_200_OK)
         
@@ -379,12 +411,12 @@ class LoginView(APIView):
             error_message = error_value[0] if isinstance(error_value, list) else error_value
 
         response_error = {
-            "status": status.HTTP_400_BAD_REQUEST,
-            "success": "false",
+            "status": status.HTTP_403_FORBIDDEN,
+            "success": False,
             "message": "Invalid login credentials",
             "errors": error_message,
         }
-        return Response(response_error, status=status.HTTP_400_BAD_REQUEST)
+        return Response(response_error, status=status.HTTP_403_FORBIDDEN)
 
 # Logout API
 # class LogoutView(APIView):

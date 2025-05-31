@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils import timezone
+from django.utils.timezone import now
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.utils.translation import gettext as _
 
@@ -32,6 +33,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default = False)
     is_active = models.BooleanField(default = False)
     is_superuser = models.BooleanField(default = False)
+    is_subscribed = models.BooleanField(default = False)
+
+    # Login failed attempts
+    failed_login_attempts = models.IntegerField(default=0)
+    last_failed_login = models.DateTimeField(null=True, blank=True)
 
     objects = CustomUserManager()
 
@@ -40,7 +46,32 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
+
+# User Device Model
+class UserDevice(models.Model):
+    user = models.ForeignKey('User', on_delete=models.CASCADE, related_name='devices')
+    device_info = models.TextField()
+    ip_address = models.GenericIPAddressField()
+    last_used = models.DateTimeField(default=now)
+
+    class Meta:
+        unique_together = ('user', 'device_info', 'ip_address')  # Avoid duplicates
+
+    def __str__(self):
+        return f"{self.user.email} - {self.device_info} - {self.ip_address}"
     
+    def get_device_info(request):
+        return request.META.get('HTTP_USER_AGENT', 'unknown-device')
+
+    def get_client_ip(request):
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0]
+        else:
+            ip = request.META.get('REMOTE_ADDR')
+        return ip
+
+
 #EmailOTP Model
 class EmailOTP(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -65,3 +96,4 @@ class BlacklistToken(models.Model):
 
     def __str__(self):
         return self.jti
+    
