@@ -1,8 +1,9 @@
 from rest_framework import serializers
 from apps.community_hubs.models import Post
-from .models import Profile, FAQ, FAQCategory, ContactUs
 from apps.community_hubs.serializers import UserSerializer
+from .models import Profile, FAQ, FAQCategory, ContactUs, NotificationSetting
 
+# Profile Serializer
 class ProfileSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source='user.name', required=False)
     image = serializers.ImageField(required=False) 
@@ -32,7 +33,8 @@ class ProfileSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
-    
+
+# My Post Serializer
 class MyPostSerializer(serializers.ModelSerializer):
     # user = ProfileSerializer(source='user.profile', read_only=True)
     comment_count = serializers.SerializerMethodField()
@@ -79,3 +81,14 @@ class ContactUsSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContactUs
         fields = ['id', 'platform', 'icon_url', 'link']
+
+# Notification Setting Serializer
+class NotificationSettingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = NotificationSetting
+        fields = ['id', 'comment_on_posts', 'like_on_comments', 'trending_topics', 'my_recommendations', 'posts_on_my_interests']
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['user'] = instance.user.id
+        return data
