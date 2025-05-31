@@ -18,7 +18,7 @@ urlpatterns = [
     path('general/<int:pk>/mark-as-read/', MarkAsReadView.as_view(), name='general-mark-as-read'),
     path('general/mark-all-as-read/', MarkAllAsReadView.as_view(), name='general-mark-all-read'),
     # path('notifications/<int:pk>/', NotificationDetailView.as_view(), name='notification-detail'),
-    path('register-device/', RegisterDeviceView.as_view(), name='register-device'),
+    path('register/device/', RegisterDeviceView.as_view(), name='register-device'),
     path('device/delete/', DeleteDeviceView.as_view(), name='delete-device'),
 
     # System notifications
