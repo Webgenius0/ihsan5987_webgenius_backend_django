@@ -1,7 +1,7 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin
 from import_export.admin import ImportExportModelAdmin
-from .models import Profile, FAQ, FAQCategory, ContactUs
+from .models import Profile, FAQ, FAQCategory, ContactUs, NotificationSetting
 from unfold.contrib.import_export.forms import ExportForm, ImportForm, SelectableFieldsExportForm
 
 @admin.register(Profile)
@@ -49,4 +49,14 @@ class ContactUsAdmin(ModelAdmin, ImportExportModelAdmin):
     import_form_class = ImportForm
     export_form_class = ExportForm
     selectable_fields_export_form_class = SelectableFieldsExportForm
-    
+
+@admin.register(NotificationSetting)
+class NotificationSettingAdmin(ModelAdmin, ImportExportModelAdmin):
+    list_display = ("user", "comment_on_posts", "like_on_comments", "trending_topics", "my_recommendations", "posts_on_my_interests")
+    search_fields = ["user__email"]
+    ordering = ["user__email"]
+    list_per_page = 20
+
+    import_form_class = ImportForm
+    export_form_class = ExportForm
+    selectable_fields_export_form_class = SelectableFieldsExportForm

@@ -1,13 +1,14 @@
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
-from .serializers import ProfileSerializer, MyPostSerializer, FAQSerializer, FAQCategorySerializer, ContactUsSerializer
-from apps.community_hubs.models import Post
-from .models import Profile, FAQ, FAQCategory, ContactUs
-from django.shortcuts import get_object_or_404
 from django.db.models import Q
+from rest_framework import status
+from rest_framework.views import APIView
+from apps.community_hubs.models import Post
+from rest_framework.response import Response
+from django.shortcuts import get_object_or_404
+from rest_framework.permissions import IsAuthenticated
+from .models import Profile, FAQ, FAQCategory, ContactUs, NotificationSetting
+from .serializers import ProfileSerializer, MyPostSerializer, FAQSerializer, FAQCategorySerializer, ContactUsSerializer, NotificationSettingSerializer
 
+# Profile View
 class ProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -103,6 +104,7 @@ class ProfileView(APIView):
             }, status=status.HTTP_404_NOT_FOUND)
 
 
+# My Post View
 class MyPostList(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -119,6 +121,7 @@ class MyPostList(APIView):
         return Response(response, status=status.HTTP_200_OK)
 
 
+# My Post Detail View
 class MyPostDetail(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -208,7 +211,8 @@ class FAQList(APIView):
             "data": serializer.data
         }
         return Response(response, status=status.HTTP_200_OK)
-    
+
+# FAQ Category View
 class FAQCategoryList(APIView):
     def get(self, request):
         categories = FAQCategory.objects.all()
@@ -233,3 +237,38 @@ class ContactUsList(APIView):
             "data": serializer.data
         }
         return Response(response, status=status.HTTP_200_OK)
+    
+# Notification Setting View
+class NotificationSettingView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        settings, created = NotificationSetting.objects.get_or_create(user=request.user)
+        serializer = NotificationSettingSerializer(settings)
+        response = {
+            "status": status.HTTP_200_OK,
+            "success": True,
+            "message": "Notification setting retrieved successfully",
+            "data": serializer.data
+        }
+        return Response(response, status=status.HTTP_200_OK)
+    
+    def put(self, request):
+        settings, created = NotificationSetting.objects.get_or_create(user=request.user)
+        serializer = NotificationSettingSerializer(settings, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            response = {
+                "status": status.HTTP_200_OK,
+                "success": True,
+                "message": "Notification setting updated successfully",
+                "data": serializer.data
+            }
+            return Response(response, status=status.HTTP_200_OK)
+        return Response({
+            "status": status.HTTP_400_BAD_REQUEST,
+            "success": False,
+            "message": "Invalid data",
+            "errors": serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+

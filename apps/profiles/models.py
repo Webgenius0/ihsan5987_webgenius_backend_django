@@ -54,3 +54,14 @@ class ContactUs(models.Model):
         if self.icon:
             return self.icon.url
         return None
+
+class NotificationSetting(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='notification_setting')
+    comment_on_posts = models.BooleanField(default=True)
+    like_on_comments = models.BooleanField(default=True)
+    trending_topics = models.BooleanField(default=True)
+    my_recommendations = models.BooleanField(default=True)
+    posts_on_my_interests = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.user.name}'s notification setting"
