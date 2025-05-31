@@ -11,7 +11,7 @@ class NotificationListView(APIView):
     permission_classes = [IsAuthenticated]
     
     def get(self, request):
-        notifications = Notification.objects.filter(recipient=request.user).order_by('-created_at')
+        notifications = Notification.objects.filter(recipient=request.user, category='general').order_by('-created_at')
         serializer = NotificationSerializer(notifications, many=True)
         response = {
             "status": status.HTTP_200_OK,
