@@ -58,6 +58,10 @@ INSTALLED_APPS = [
     'apps.users',
     'import_export',
 
+    'schema_viewer',
+    
+
+
     # cloudinary
     'cloudinary',
 
