@@ -29,6 +29,7 @@ class CustomUserManager(BaseUserManager):
 class User(AbstractBaseUser, PermissionsMixin):
     name = models.CharField(max_length = 255, default="Anonymous")
     email = models.EmailField(unique = True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     is_staff = models.BooleanField(default = False)
     is_active = models.BooleanField(default = False)
