@@ -35,7 +35,7 @@ def send_notification(sender, recipient, notification_type, message, related_pos
                 'related_comment_id': related_comment.id if related_comment else None,
             }
         )
-print("Calling send_system_notification...")
+
 def send_system_notification(recipient, title, message, event_type):
     icon_key = event_type
     notification  = Notification.objects.create(

@@ -58,6 +58,10 @@ INSTALLED_APPS = [
     'apps.users',
     'import_export',
 
+    'schema_viewer',
+    
+
+
     # cloudinary
     'cloudinary',
 
@@ -198,6 +202,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
     "https://ihsan5987-django.onrender.com",
+    "https://8793-103-174-189-33.ngrok-free.app",
 ]
 
 #GNEWS_API_KEY

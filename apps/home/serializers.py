@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Interest, UserInterests, TrendingNews, RecommendedNews, NewsBookmark
+from .models import Interest, UserInterests, TrendingNews, RecommendedNews, NewsBookmark, UserPreference
 from .gnews_service import human_readable_time  # import the time formatter
 from datetime import datetime, timedelta
 
@@ -38,9 +38,27 @@ class NewsBookmarkSerializer(serializers.ModelSerializer):
 
 #User interests serializer
 class InterestSerializer(serializers.ModelSerializer):
+    category = serializers.StringRelatedField()
+    subcategory = serializers.StringRelatedField()
+
     class Meta:
         model = Interest
-        fields = ('id', 'name')
+        fields = ['id', 'name', 'category', 'subcategory']
+
+class UserInterestsSerializer(serializers.ModelSerializer):
+    interests = InterestSerializer(many=True)
+
+    class Meta:
+        model = UserInterests
+        fields = ['interests', 'selected_interests']
+
+class UserPreferenceSerializer(serializers.ModelSerializer):
+    interest = InterestSerializer()
+
+    class Meta:
+        model = UserPreference
+        fields = ['interest', 'clicked_at']
+
 
 class UserInterestsSerializer(serializers.ModelSerializer):
     interests = serializers.ListField(
