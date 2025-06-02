@@ -41,16 +41,43 @@ class NewsBookmark(models.Model):
 
 
 #Interest model
-class Interest(models.Model):
+class Category(models.Model):
     name = models.CharField(max_length=255)
 
     def __str__(self):
         return self.name
 
+class SubCategory(models.Model):
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='subcategories')
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"{self.category.name} - {self.name}"
+    
+class Interest(models.Model):
+    name = models.CharField(max_length=255)
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
+    subcategory = models.ForeignKey(SubCategory, on_delete=models.SET_NULL, null=True, blank=True)
+
+    def __str__(self):
+        return self.name
+    
 class UserInterests(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='user_interests')
     interests = models.ManyToManyField(Interest, related_name='user_interests')
     selected_interests = models.IntegerField(default=0)
 
     def __str__(self):
-        return f"{self.user.username}'s interests"
+        return f"{self.user.email}'s interests"
+    
+class UserPreference(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='preferences')
+    interest = models.ForeignKey(Interest, on_delete=models.CASCADE)
+    clicked_at = models.DateTimeField(auto_now=True)  # When user interacted with it
+
+    class Meta:
+        unique_together = ('user', 'interest')  # Avoid duplicate records
+
+    def __str__(self):
+        return f"{self.user.email} clicked {self.interest.name}"
+

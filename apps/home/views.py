@@ -92,67 +92,7 @@ class RecommendedTopicsDetailsAPIView(APIView):
             'data': serializer.data
         })
 
-# class RecommendedTopicsAPIView(APIView):
-#     authentication_classes = [CustomJWTAuthentication]
-#     permission_classes = [IsAuthenticated]
 
-#     def get(self, request):
-#         categories = ['general', 'world', 'nation', 'business', 'technology', 'entertainment', 'sports', 'science', 'health', 'politics']
-    
-#         recommendations = []
-
-#         for category in categories:
-#             params = {
-#                 'token': settings.GNEWS_API_KEY,
-#                 'lang': 'en',
-#                 'country': 'us',
-#                 'max': 10,  
-#                 'q': category  
-#             }
-
-#         try:
-#             response = requests.get("https://gnews.io/api/v4/search", params=params)
-#             response_json = response.json()
-
-#             # Handle API errors
-#             if 'errors' in response_json:
-#                 return Response({
-#                     'status': status.HTTP_429_TOO_MANY_REQUESTS,
-#                     'success': False,
-#                     'message': 'Error from GNews API',
-#                     'errors': response_json['errors']
-#                 }, status=status.HTTP_429_TOO_MANY_REQUESTS)
-
-#             if response.status_code == 200:
-#                 articles = response.json().get('articles', [])
-#                 for article in articles:
-#                     recommendations.append({
-#                         'title': article.get('title'),
-#                         'description': article.get('description'),
-#                         'content': article.get('content'),
-#                         'url': article.get('url'),
-#                         'image': article.get('image'),
-#                         'publishedAt': article.get('publishedAt'),
-#                         'source': {
-#                             'name': article.get('source', {}).get('name'),
-#                             'url': article.get('source', {}).get('url'),
-#                         },
-#                         'category': category  # manually tagged category
-#                     })
-#         except requests.RequestException as e:
-#             return Response({
-#                 'status': status.HTTP_503_SERVICE_UNAVAILABLE,
-#                 'success': False,
-#                 'message': 'Failed to fetch data from GNews API',
-#                 'error': str(e)
-#             }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
-#         response_data = {
-#             'status': status.HTTP_200_OK,
-#             'success': True,
-#             'message': 'Recommended topics fetched successfully',
-#             'data': recommendations
-#         } 
-#         return Response(response_data, status=status.HTTP_200_OK)
 
 #Community Hub API
 class CommunityHubAPIView(APIView):
@@ -364,65 +304,66 @@ class YourInterestAPIView(APIView):
                 'errors': response.json()
             }
             return Response(response_data, status=status.HTTP_400_BAD_REQUEST)
-    
 
-#General Notification API
-class GeneralNotificationsAPIView(APIView):
-    permission_classes = [IsAuthenticated]
-
-#     def get(self, request):
-#         user = request.user
-#         general_notifications = Notification.objects.filter(user=user, notif_type='general')
-#         serializer = NotificationSerializer(general_notifications, many=True)
-#         response_data = {
-#             'status': status.HTTP_200_OK,
-#             'success': True,
-#             'message': 'General notifications fetched successfully',
-#             'data': serializer.data
-#         }
-#         return Response(response_data, status=status.HTTP_200_OK)
-
-#System Notification API
-class SystemNotificationsAPIView(APIView):
-    permission_classes = [IsAuthenticated]
-
-#     def get(self, request):
-#         user = request.user
-#         system_notifications = Notification.objects.filter(user=user, notif_type='system')
-#         serializer = NotificationSerializer(system_notifications, many=True)
-#         response_data = {
-#             'status': status.HTTP_200_OK,
-#             'success': True,
-#             'message': 'System notifications fetched successfully',
-#             'data': serializer.data
-#         }
-#         return Response(response_data, status=status.HTTP_200_OK)
 
 
 #User interests API
-class UserInterestsAPIView(APIView):
-    authentication_classes = [CustomJWTAuthentication]
-    permission_classes = [IsAuthenticated]
+from rest_framework import generics, permissions, status
+from .models import UserInterests, UserPreference, Interest
+from .serializers import UserInterestsSerializer, UserPreferenceSerializer
+from django.utils import timezone
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-    def get(self, request):
-        # Retrieve current user's interests
-        try:
-            user_interests = UserInterests.objects.get(user=request.user)
-        except UserInterests.DoesNotExist:
-            return Response({'detail': 'No interests found for user.'}, status=404)
-        
-        serializer = UserInterestsSerializer(user_interests)
-        return Response(serializer.data)
+class UserInterestsView(generics.RetrieveUpdateAPIView):
+    """
+    GET: Retrieve current user's interests
+    PUT/PATCH: Update current user's interests (set list)
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    serializer_class = UserInterestsSerializer
+
+    def get_object(self):
+        # Get or create UserInterests for current user
+        obj, created = UserInterests.objects.get_or_create(user=self.request.user)
+        return obj
+
+    def perform_update(self, serializer):
+        # You can add extra logic here if needed
+        serializer.save()
+
+class UserPreferencesListView(generics.ListAPIView):
+    """
+    GET: List user's tracked preferences (clicked interests)
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = UserPreferenceSerializer
+
+    def get_queryset(self):
+        return UserPreference.objects.filter(user=self.request.user).order_by('-clicked_at')
+
+class TrackUserPreferenceView(APIView):
+    """
+    POST: Track a user preference (user clicked an interest)
+    Payload: { "interest_id": <id> }
+    """
+    permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
-        # Create or update the interests
-        try:
-            user_interests = UserInterests.objects.get(user=request.user)
-            serializer = UserInterestsSerializer(user_interests, data=request.data, context={'request': request})
-        except UserInterests.DoesNotExist:
-            serializer = UserInterestsSerializer(data=request.data, context={'request': request})
+        interest_id = request.data.get('interest_id')
+        if not interest_id:
+            return Response({"error": "interest_id is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        if serializer.is_valid():
-            serializer.save(user=request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            interest = Interest.objects.get(id=interest_id)
+        except Interest.DoesNotExist:
+            return Response({"error": "Interest not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        obj, created = UserPreference.objects.get_or_create(user=request.user, interest=interest)
+        obj.clicked_at = timezone.now()
+        obj.save()
+
+        serializer = UserPreferenceSerializer(obj)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+

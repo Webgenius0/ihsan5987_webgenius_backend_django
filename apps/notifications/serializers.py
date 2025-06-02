@@ -1,22 +1,20 @@
-from rest_framework import serializers
-from .models import Notification
-from django.utils.timesince import timesince
-from django.utils import timezone
 import re
+from .models import Notification
+from django.utils import timezone
+from rest_framework import serializers
+from django.utils.timesince import timesince
 from apps.community_hubs.serializers import UserSerializer
 
-class NotificationSerializer(serializers.ModelSerializer):
+class GeneralNotificationSerializer(serializers.ModelSerializer):
     recipient = UserSerializer(read_only=True)
-    # profile_image = serializers.SerializerMethodField()
+    profile_image = serializers.SerializerMethodField()
     timestamp = serializers.SerializerMethodField()
     post_image = serializers.SerializerMethodField()
-    new = serializers.SerializerMethodField()
-    icon = serializers.SerializerMethodField()
 
     class Meta:
         model = Notification
-        fields = ['id', 'recipient', 'title', 'icon', 'message', 'timestamp', 'post_image', 'is_read', 'category', 'new']
-        read_only_fields = ['id', 'timestamp', 'is_read', 'category', 'icon']
+        fields = ['id', 'recipient', 'profile_image', 'message', 'timestamp', 'post_image', 'category', 'is_read']
+        read_only_fields = ['id', 'timestamp', 'category', 'is_read']
 
     def get_name(self, obj):
         print(f"Serializer get_name - sender: {obj.sender}, type: {type(obj.sender)}")
@@ -42,6 +40,37 @@ class NotificationSerializer(serializers.ModelSerializer):
             return obj.related_post.image.url if obj.related_post and obj.related_post.image else None
         except Exception:
             return None
+
+    def get_timestamp(self, obj):
+        created_at = obj.created_at
+        now = timezone.now()
+        time_diff = timesince(created_at, now).split(",")[0]
+        time_str = created_at.strftime("%I:%M %p")
+
+        if time_diff.lower() == '0 minutes':
+            return f"Today | {time_str}"
+        elif re.match(r'^\d+\s(day|days)', time_diff):
+            days = re.match(r'(\d+)\s(day|days)', time_diff).group(1)
+            return f"{days}d ago | {time_str}"
+        elif re.match(r'^\d+\s(hour|hours)', time_diff):
+            hours = re.match(r'(\d+)\s(hour|hours)', time_diff).group(1)
+            if int(hours) < 24:
+                return f"{hours}h ago | {time_str}"
+        elif time_diff.lower() == '1 day':
+            return f"Yesterday | {time_str}" if created_at < now else f"Tomorrow | {time_str}"
+        return f"{time_diff} ago | {time_str}"
+    
+
+class SystemNotificationSerializer(serializers.ModelSerializer):
+    new = serializers.SerializerMethodField()
+    icon = serializers.SerializerMethodField()
+    timestamp = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Notification
+        fields = ['id','title', 'icon', 'message', 'timestamp', 'is_read', 'category', 'new']
+        read_only_fields = ['id', 'timestamp', 'is_read', 'category', 'icon', 'new']
+
 
     def get_timestamp(self, obj):
         created_at = obj.created_at
