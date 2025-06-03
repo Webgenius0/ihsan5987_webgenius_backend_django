@@ -6,9 +6,9 @@ from unfold.contrib.import_export.forms import ExportForm, ImportForm, Selectabl
 
 @admin.register(Profile)
 class ProfileAdmin(ModelAdmin, ImportExportModelAdmin):
-    list_display = ("user", "image", "premium_user",)
+    list_display = ("id", "user", "image", "premium_user",)
     search_fields = ["user__email"]
-    ordering = ["user__email"]
+    ordering = ["created_at"]
     list_filter = ["user__is_active"]
     list_per_page = 20
 
@@ -18,9 +18,10 @@ class ProfileAdmin(ModelAdmin, ImportExportModelAdmin):
 
 @admin.register(FAQCategory)
 class FAQCategoryAdmin(ModelAdmin, ImportExportModelAdmin):
-    list_display = ("name",)
+    list_display = ("id", "name",)
     search_fields = ["name"]
     ordering = ["name"]
+    list_filter = ["name"]
     list_per_page = 20
 
     import_form_class = ImportForm
@@ -44,6 +45,7 @@ class ContactUsAdmin(ModelAdmin, ImportExportModelAdmin):
     list_display = ("platform", "link")
     search_fields = ["platform"]
     ordering = ["platform"]
+    list_filter = ["platform"]
     list_per_page = 20
 
     import_form_class = ImportForm
@@ -52,9 +54,10 @@ class ContactUsAdmin(ModelAdmin, ImportExportModelAdmin):
 
 @admin.register(NotificationSetting)
 class NotificationSettingAdmin(ModelAdmin, ImportExportModelAdmin):
-    list_display = ("user", "comment_on_posts", "like_on_comments", "trending_topics", "my_recommendations", "posts_on_my_interests")
+    list_display = ("id" ,"user", "comment_on_posts", "like_on_comments", "trending_topics", "my_recommendations", "posts_on_my_interests")
     search_fields = ["user__email"]
-    ordering = ["user__email"]
+    ordering = ["-created_at"]
+    list_filter = ["user"]
     list_per_page = 20
 
     import_form_class = ImportForm

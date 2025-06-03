@@ -15,40 +15,68 @@ from .serializers import SignupSerializer, LoginSerializer
 # Signup View
 class SignupView(APIView):
     def post(self, request, *args, **kwargs):
-        serializer = SignupSerializer(data=request.data)
-        if serializer.is_valid():
-            user = serializer.save(is_active=False)
+        try:
+            serializer = SignupSerializer(data=request.data)
+            if serializer.is_valid():
+                try:
+                    user = serializer.save(is_active=False)
+                    
+                    otp = str(random.randint(1000, 9999))
+
+                    EmailOTP.objects.create(
+                        user=user,
+                        otp=otp,
+                        created_at=timezone.now(),
+                        attempts=0
+                    )
+
+                    # Send OTP email
+                    try:
+                        send_mail(
+                            subject="Your OTP Code",
+                            message=f"Your OTP is {otp}",
+                            from_email=settings.EMAIL_HOST_USER,
+                            recipient_list=[user.email],
+                        )
+                    except Exception as e:
+                        print(f"Error sending email: {str(e)}")
+                        # Delete the created user and OTP if email fails
+                        user.delete()
+                        return Response({
+                            "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            "success": "false",
+                            "message": "Failed to send verification email. Please try again.",
+                        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+                    response_data = {
+                        "status": status.HTTP_201_CREATED,
+                        "success": "true",
+                        "message": "User created. OTP sent to email for verification.",
+                    }
+                    return Response(response_data, status=status.HTTP_201_CREATED)
+                except Exception as e:
+                    print(f"Error creating user: {str(e)}")
+                    return Response({
+                        "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                        "success": "false",
+                        "message": "Failed to create user. Please try again.",
+                    }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
-            otp = str(random.randint(1000, 9999))
-
-            EmailOTP.objects.create(
-                user=user,
-                otp=otp,
-                created_at=timezone.now(),
-                attempts=0
-            )
-
-            # Send OTP email
-            send_mail(
-                subject="Your OTP Code",
-                message=f"Your OTP is {otp}",
-                from_email=settings.EMAIL_HOST_USER,
-                recipient_list=[user.email],
-            )
-
             response_data = {
-                "status": status.HTTP_201_CREATED,
-                "success": "true",
-                "message": "User created. OTP sent to email for verification.",
+                "status": status.HTTP_400_BAD_REQUEST,
+                "success": "false",
+                "message": serializer.errors,
             }
-            return Response(response_data, status=status.HTTP_201_CREATED)
-        
-        response_data = {
-            "status": status.HTTP_400_BAD_REQUEST,
-            "success": "false",
-            "message": serializer.errors,
-        }
-        return Response(response_data, status=status.HTTP_400_BAD_REQUEST)
+            return Response(response_data, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            import traceback
+            print(f"Unexpected error in SignupView: {str(e)}")
+            print(f"Traceback: {traceback.format_exc()}")
+            return Response({
+                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "success": "false",
+                "message": "An unexpected error occurred. Please try again.",
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 #Verify OTP View
 class VerifyOTPView(APIView):

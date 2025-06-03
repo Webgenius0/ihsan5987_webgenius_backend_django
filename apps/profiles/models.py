@@ -62,6 +62,8 @@ class NotificationSetting(models.Model):
     trending_topics = models.BooleanField(default=True)
     my_recommendations = models.BooleanField(default=True)
     posts_on_my_interests = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.user.name}'s notification setting"
