@@ -1,21 +1,12 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin   
-from .models import Post, Comment, Like, CommentReport, Tag
+from .models import Post, Comment, Like, CommentReport
 from import_export.admin import ImportExportModelAdmin
 from unfold.contrib.import_export.forms import ExportForm, ImportForm, SelectableFieldsExportForm
 
-@admin.register(Tag)
-class TagAdmin(ModelAdmin, ImportExportModelAdmin):
-    list_display = ("id", "tag_names", "created_at")
-    search_fields = ["tag_names"]
-    ordering = ["-created_at"]
-
-    import_form_class = ImportForm
-    export_form_class = ExportForm
-
 @admin.register(Post)
 class PostAdmin(ModelAdmin, ImportExportModelAdmin):
-    list_display = ("id", "title", "content", "user", "topic", "category", "created_at")
+    list_display = ("id", "title", "content", "category", "user", "created_at")
     search_fields = ["title", "user__email"]
     ordering = ["-created_at"]
 
