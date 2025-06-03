@@ -14,7 +14,10 @@ class ProfileView(APIView):
 
     def get(self, request):
         try:
+            user=request.user
+            print(f"ProfileView - user: {user}")
             profile = Profile.objects.get(user=request.user)
+            print(f"ProfileView - profile: {profile}")
 
         except Profile.DoesNotExist:
             return Response({

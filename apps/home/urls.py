@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import TrendingNewsAPIView, TrendingNewsDetailAPIView, RecommendedTopicsAPIView, RecommendedTopicsDetailsAPIView, SearchResultsAPIView, UpdateMeAPIView, YourNewsAPIView, YourInterestAPIView, UserInterestsAPIView, CommunityHubAPIView
+from .views import TrendingNewsAPIView, TrendingNewsDetailAPIView, RecommendedTopicsAPIView, RecommendedTopicsDetailsAPIView, SearchResultsAPIView, UpdateMeAPIView, YourNewsAPIView, YourInterestAPIView, UserInterestsView, CommunityHubAPIView, TrackUserPreferenceView, UserPreferencesListView
 
 urlpatterns = [
     path('trending_news/', TrendingNewsAPIView.as_view(), name='trending-news'),
@@ -13,5 +13,7 @@ urlpatterns = [
     path('your_news/', YourNewsAPIView.as_view(), name='your-news'),
     path('your_interests/', YourInterestAPIView.as_view(), name='your-interests'),
 
-    path('user_interests/', UserInterestsAPIView.as_view(), name='user-interests'),
+    path('user_interests/', UserInterestsView.as_view(), name='user-interests'),
+    path('user_interests/track/', TrackUserPreferenceView.as_view(), name='track-user-preference'),
+    path('user_interests/preferences/', UserPreferencesListView.as_view(), name='user-preferences'),
 ]
