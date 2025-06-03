@@ -5,7 +5,7 @@ from django.utils.timezone import now
 from datetime import timedelta
 from apps.profiles.models import Profile
 from apps.users.models import User
-from .models import Post, Comment, Like, CommentReport, Tag
+from .models import Post, Comment, Like, CommentReport
 
 class PostlistSerializer(serializers.ModelSerializer):
     comment_count = serializers.SerializerMethodField()
@@ -43,30 +43,13 @@ class PostlistSerializer(serializers.ModelSerializer):
         return [tag.tag_names for tag in obj.tags.all()]
 
 class CreatePostSerializer(serializers.ModelSerializer):
-    tag_names = serializers.ListField(
-        child=serializers.CharField(), write_only=True, required=False
-    )
-    tags = serializers.SerializerMethodField()  # Optional: for returning tag names in response
 
     class Meta:
         model = Post
-        fields = ['id', 'image', 'topic', 'title', 'category', 'content', 'created_at', 'tag_names', 'tags']
+        fields = ['id', 'image', 'title', 'category', 'content', 'created_at']
 
     def get_tags(self, obj):
         return [tag.tag_names for tag in obj.tags.all()]
-
-    def create(self, validated_data):
-        tag_names = validated_data.pop('tag_names', [])
-        post = Post.objects.create(**validated_data)
-
-        # Create or get Tag objects and associate with post
-        tags = []
-        for name in tag_names:
-            tag, _ = Tag.objects.get_or_create(tag_names=name)
-            tags.append(tag)
-
-        post.tags.set(tags)
-        return post
 
 class UserSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
