@@ -167,18 +167,8 @@ class CommentView(APIView):
 class LikeView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    def post(self, request):
-        comment_id = request.data.get("comment")
-
-        if not comment_id:
-            response = {
-                "status": status.HTTP_400_BAD_REQUEST,
-                "success": False,
-                "message": "Comment id is required"
-            }
-            return Response(response, status=status.HTTP_400_BAD_REQUEST)
-        
-        comment = get_object_or_404(Comment, id=comment_id)
+    def post(self, request, pk):
+        comment =  get_object_or_404(Comment, pk=pk)
 
         like_qs = Like.objects.filter(user=request.user, comment=comment)
 
