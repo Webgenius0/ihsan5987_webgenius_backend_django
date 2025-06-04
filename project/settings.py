@@ -217,8 +217,12 @@ cloudinary.config(
 
 #Simple JWT setup
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(days=7),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=7)
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+
+    # Refresh Token Rotation
+    "ROTATE_REFRESH_TOKENS": True,  # generates a new refresh token when used
+    "BLACKLIST_AFTER_ROTATION": True,
 }
 
 # Stripe settings

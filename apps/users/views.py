@@ -10,7 +10,7 @@ from apps.notifications.services import send_system_notification
 from .models import User, EmailOTP, BlacklistToken, UserDevice
 from django.conf import settings
 from .serializers import SignupSerializer, LoginSerializer
-
+from .authentication import CustomJWTAuthentication
 
 # Signup View
 class SignupView(APIView):
@@ -446,51 +446,14 @@ class LoginView(APIView):
         }
         return Response(response_error, status=status.HTTP_403_FORBIDDEN)
 
-# Logout API
-# class LogoutView(APIView):
-#     permission_classes = (IsAuthenticated,)
-
-#     def post(self, request):
-#         refresh_token = request.data["refresh_token"]
-#         try:
-#             token = RefreshToken(refresh_token)
-#             token.blacklist()
-#             response_data = {
-#                 "status": status.HTTP_200_OK,
-#                 "success": True,
-#                 "message": "Logout successful",
-#             }
-#             return Response(response_data, status=status.HTTP_200_OK)
-#         except refresh_token.DoesNotExist: 
-#             response_data = {
-#                 "status": status.HTTP_404_NOT_FOUND,
-#                 "success": False,
-#                 "message": "Refresh Token not found",
-#             }      
-#             return Response(response_data, status=status.HTTP_404_NOT_FOUND)
-from .authentication import CustomJWTAuthentication
-
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
-    authentication_classes = [CustomJWTAuthentication]
 
     def post(self, request):
-        token = request.auth  # The validated access token
-        jti = token.get("jti")
-
-        if not jti:
-            return Response({
-                "success": False,
-                "message": "Invalid access token."
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        # Save the jti in blacklist
-        BlacklistToken.objects.get_or_create(jti=jti)
-
         return Response({
             "status": status.HTTP_200_OK,
             "success": True,
-            "message": "Logout successful. Access token invalidated."
+            "message": "Logout successful."
         }, status=status.HTTP_200_OK)
         
 
