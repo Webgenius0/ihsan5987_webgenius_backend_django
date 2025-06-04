@@ -86,7 +86,7 @@ class ContactUsSerializer(serializers.ModelSerializer):
 class NotificationSettingSerializer(serializers.ModelSerializer):
     class Meta:
         model = NotificationSetting
-        fields = ['id', 'comment_on_posts', 'like_on_comments', 'trending_topics', 'my_recommendations', 'posts_on_my_interests']
+        fields = ['id', 'comments_on_posts', 'like_on_comments', 'trending_topics', 'my_recommendations', 'posts_on_my_interests']
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
