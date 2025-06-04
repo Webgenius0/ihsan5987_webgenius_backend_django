@@ -57,7 +57,7 @@ class ContactUs(models.Model):
 
 class NotificationSetting(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='notification_setting')
-    comment_on_posts = models.BooleanField(default=True)
+    comments_on_posts = models.BooleanField(default=True)
     like_on_comments = models.BooleanField(default=True)
     trending_topics = models.BooleanField(default=True)
     my_recommendations = models.BooleanField(default=True)

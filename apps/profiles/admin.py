@@ -54,7 +54,7 @@ class ContactUsAdmin(ModelAdmin, ImportExportModelAdmin):
 
 @admin.register(NotificationSetting)
 class NotificationSettingAdmin(ModelAdmin, ImportExportModelAdmin):
-    list_display = ("id" ,"user", "comment_on_posts", "like_on_comments", "trending_topics", "my_recommendations", "posts_on_my_interests")
+    list_display = ("id" ,"user", "comments_on_posts", "like_on_comments", "trending_topics", "my_recommendations", "posts_on_my_interests")
     search_fields = ["user__email"]
     ordering = ["-created_at"]
     list_filter = ["user"]
