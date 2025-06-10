@@ -1,5 +1,6 @@
 from django.db import models
 from apps.users.models import User
+from apps.home.models import Search
 from cloudinary.models import CloudinaryField
 
 # Create your models here.
@@ -67,3 +68,11 @@ class NotificationSetting(models.Model):
 
     def __str__(self):
         return f"{self.user.name}'s notification setting"
+
+# Feedback for about smailtalk page
+class Feedback(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    search = models.ForeignKey(Search, on_delete=models.CASCADE)
+    content = models.TextField()
+    rating = models.IntegerField()
+    created_at = models.DateField(auto_now_add=True)
