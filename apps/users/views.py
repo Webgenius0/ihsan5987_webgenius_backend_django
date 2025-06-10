@@ -7,76 +7,47 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from apps.notifications.services import send_system_notification
-from .models import User, EmailOTP, BlacklistToken, UserDevice
+from .models import User, EmailOTP, UserDevice
 from django.conf import settings
 from .serializers import SignupSerializer, LoginSerializer
-from .authentication import CustomJWTAuthentication
 
 # Signup View
 class SignupView(APIView):
     def post(self, request, *args, **kwargs):
-        try:
-            serializer = SignupSerializer(data=request.data)
-            if serializer.is_valid():
-                try:
-                    user = serializer.save(is_active=False)
-                    
-                    otp = str(random.randint(1000, 9999))
-
-                    EmailOTP.objects.create(
-                        user=user,
-                        otp=otp,
-                        created_at=timezone.now(),
-                        attempts=0
-                    )
-
-                    # Send OTP email
-                    try:
-                        send_mail(
-                            subject="Your OTP Code",
-                            message=f"Your OTP is {otp}",
-                            from_email=settings.EMAIL_HOST_USER,
-                            recipient_list=[user.email],
-                        )
-                    except Exception as e:
-                        print(f"Error sending email: {str(e)}")
-                        # Delete the created user and OTP if email fails
-                        user.delete()
-                        return Response({
-                            "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            "success": "false",
-                            "message": "Failed to send verification email. Please try again.",
-                        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-                    response_data = {
-                        "status": status.HTTP_201_CREATED,
-                        "success": "true",
-                        "message": "User created. OTP sent to email for verification.",
-                    }
-                    return Response(response_data, status=status.HTTP_201_CREATED)
-                except Exception as e:
-                    print(f"Error creating user: {str(e)}")
-                    return Response({
-                        "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
-                        "success": "false",
-                        "message": "Failed to create user. Please try again.",
-                    }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        serializer = SignupSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save(is_active=False)
             
+            otp = str(random.randint(1000, 9999))
+
+            # Send OTP email
+            send_mail(
+                subject="Your OTP Code",
+                message=f"Your OTP is {otp}",
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list=[user.email],
+            )
+
+            EmailOTP.objects.create(
+                user=user,
+                otp=otp,
+                created_at=timezone.now(),
+                attempts=0
+            )
+
             response_data = {
-                "status": status.HTTP_400_BAD_REQUEST,
-                "success": "false",
-                "message": serializer.errors,
+                "status": status.HTTP_201_CREATED,
+                "success": "true",
+                "message": "User created. OTP sent to email for verification.",
             }
-            return Response(response_data, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            import traceback
-            print(f"Unexpected error in SignupView: {str(e)}")
-            print(f"Traceback: {traceback.format_exc()}")
-            return Response({
-                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
-                "success": "false",
-                "message": "An unexpected error occurred. Please try again.",
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(response_data, status=status.HTTP_201_CREATED)
+        
+        response_data = {
+            "status": status.HTTP_400_BAD_REQUEST,
+            "success": "false",
+            "message": serializer.errors,
+        }
+        return Response(response_data, status=status.HTTP_400_BAD_REQUEST)
 
 #Verify OTP View
 class VerifyOTPView(APIView):

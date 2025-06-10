@@ -13,6 +13,7 @@ class SignupSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('name', 'email', 'password')
+        extra_kwargs = {'password': {'write_only': True}}
     
     def create(self, validated_data):
         # Use create_user to properly hash the password
