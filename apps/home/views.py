@@ -1,369 +1,414 @@
-import requests
+from rest_framework.views import APIView
+from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from django.conf import settings
-from rest_framework.permissions import IsAuthenticated
-from .models import UserInterests, NewsBookmark, TrendingNews
-from apps.users.authentication import CustomJWTAuthentication
-from .serializers import UserInterestsSerializer, TrendingNewsSerializer
-from .utils import trending_news_store
-from apps.community_hubs.models import Post
-from apps.community_hubs.serializers import PostlistSerializer
 from django.shortcuts import get_object_or_404
+from .models import (
+    Response as ResponseModel, Topic, Category, Subcategory, GeneralFact, News,
+    InterestingTrivia, Opinion, Question, Search
+)
+from apps.users.models import User
+from apps.profiles.models import Feedback
+from .serializers import (
+    ResponseSerializer, TopicSerializer, CategorySerializer, SubcategorySerializer,
+    GeneralFactSerializer, NewsSerializer, InterestingTriviaSerializer, OpinionSerializer,
+    QuestionSerializer, UserSerializer, SearchSerializer, FeedbackSerializer
+)
+from rest_framework.pagination import PageNumberPagination
+
+class StandardResultsSetPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
 
 
-# Trending News API
-class TrendingNewsAPIView(APIView):
-    permission_classes = [IsAuthenticated]
-
+# Generic pattern for List + Detail APIViews:
+class CategoryListAPIView(APIView):
     def get(self, request):
-        trending_news_store()
-        articles = TrendingNews.objects.all().order_by('-published_at')
-        serializer = TrendingNewsSerializer(articles, many=True, context={'request': request})
-        response_data = {
-            'status': status.HTTP_200_OK,
-            'success': True,
-            'message': 'Trending news fetched successfully',
-            'data': serializer.data
-        }
-        return Response(response_data, status=status.HTTP_200_OK)
+        categories = Category.objects.all()
+        serializer = CategorySerializer(categories, many=True)
+        return Response(serializer.data)
+
+class CategoryDetailAPIView(APIView):
+    def get(self, request, pk):
+        category = get_object_or_404(Category, pk=pk)
+        serializer = CategorySerializer(category)
+        return Response(serializer.data)
+
+class SubcategoryListAPIView(APIView):
+    def get(self, request):
+        subcategories = Subcategory.objects.all()
+        serializer = SubcategorySerializer(subcategories, many=True)
+        return Response(serializer.data)
+
+class SubcategoryDetailAPIView(APIView):
+    def get(self, request, pk):
+        subcategory = get_object_or_404(Subcategory, pk=pk)
+        serializer = SubcategorySerializer(subcategory)
+        return Response(serializer.data)
+
+class TopicListAPIView(APIView):
+    def get(self, request):
+        topics = Topic.objects.all()
+        serializer = TopicSerializer(topics, many=True)
+        return Response(serializer.data)
+
+class TopicDetailAPIView(APIView):
+    def get(self, request, pk):
+        topic = get_object_or_404(Topic, pk=pk)
+        serializer = TopicSerializer(topic)
+        return Response(serializer.data)
+
+class GeneralFactListAPIView(APIView):
+    def get(self, request):
+        facts = GeneralFact.objects.all()
+        serializer = GeneralFactSerializer(facts, many=True)
+        return Response(serializer.data)
+
+class GeneralFactDetailAPIView(APIView):
+    def get(self, request, pk):
+        fact = get_object_or_404(GeneralFact, pk=pk)
+        serializer = GeneralFactSerializer(fact)
+        return Response(serializer.data)
+
+class NewsListAPIView(APIView):
+    def get(self, request):
+        news = News.objects.all()
+        serializer = NewsSerializer(news, many=True)
+        return Response(serializer.data)
+
+class NewsDetailAPIView(APIView):
+    def get(self, request, pk):
+        news_item = get_object_or_404(News, pk=pk)
+        serializer = NewsSerializer(news_item)
+        return Response(serializer.data)
+
+class InterestingTriviaListAPIView(APIView):
+    def get(self, request):
+        trivia = InterestingTrivia.objects.all()
+        serializer = InterestingTriviaSerializer(trivia, many=True)
+        return Response(serializer.data)
+
+class InterestingTriviaDetailAPIView(APIView):
+    def get(self, request, pk):
+        trivia = get_object_or_404(InterestingTrivia, pk=pk)
+        serializer = InterestingTriviaSerializer(trivia)
+        return Response(serializer.data)
+
+class OpinionListAPIView(APIView):
+    def get(self, request):
+        opinions = Opinion.objects.all()
+        serializer = OpinionSerializer(opinions, many=True)
+        return Response(serializer.data)
+
+class OpinionDetailAPIView(APIView):
+    def get(self, request, pk):
+        opinion = get_object_or_404(Opinion, pk=pk)
+        serializer = OpinionSerializer(opinion)
+        return Response(serializer.data)
+
+class QuestionListAPIView(APIView):
+    def get(self, request):
+        questions = Question.objects.all()
+        serializer = QuestionSerializer(questions, many=True)
+        return Response(serializer.data)
+
+class QuestionDetailAPIView(APIView):
+    def get(self, request, pk):
+        question = get_object_or_404(Question, pk=pk)
+        serializer = QuestionSerializer(question)
+        return Response(serializer.data)
+
+class UserDetailAPIView(APIView):
+    def get(self, request, pk):
+        user = get_object_or_404(User, pk=pk)
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
+
+class ResponseListAPIView(APIView, StandardResultsSetPagination):
+    def get(self, request):
+        responses = ResponseModel.objects.all()
+        category_id = request.query_params.get('category_id')
+        topic_id = request.query_params.get('topic_id')
+
+        if category_id:
+            responses = responses.filter(category_id=category_id)
+        if topic_id:
+            responses = responses.filter(topic_id=topic_id)
+
+        results = self.paginate_queryset(responses, request, view=self)
+        serializer = ResponseSerializer(results, many=True)
+        return self.get_paginated_response(serializer.data)
+
+class ResponseDetailAPIView(APIView):
+    def get(self, request, pk):
+        response = get_object_or_404(ResponseModel, pk=pk)
+        serializer = ResponseSerializer(response)
+        return Response(serializer.data)
+
+class SearchListAPIView(APIView, StandardResultsSetPagination):
+    def get(self, request):
+        searches = Search.objects.all()
+        user_id = request.query_params.get('user_id')
+        if user_id:
+            searches = searches.filter(user_id=user_id)
+        results = self.paginate_queryset(searches, request, view=self)
+        serializer = SearchSerializer(results, many=True)
+        return self.get_paginated_response(serializer.data)
+
+class SearchDetailAPIView(APIView):
+    def get(self, request, pk):
+        search = get_object_or_404(Search, pk=pk)
+        serializer = SearchSerializer(search)
+        return Response(serializer.data)
+
+class FeedbackListAPIView(APIView, StandardResultsSetPagination):
+    def get(self, request):
+        feedbacks = Feedback.objects.all()
+        user_id = request.query_params.get('user_id')
+        if user_id:
+            feedbacks = feedbacks.filter(user_id=user_id)
+        results = self.paginate_queryset(feedbacks, request, view=self)
+        serializer = FeedbackSerializer(results, many=True)
+        return self.get_paginated_response(serializer.data)
+
+class FeedbackDetailAPIView(APIView):
+    def get(self, request, pk):
+        feedback = get_object_or_404(Feedback, pk=pk)
+        serializer = FeedbackSerializer(feedback)
+        return Response(serializer.data)
+
+
+
+
+
+
+
+
+
+
+
+# import requests
+# from rest_framework import status
+# from rest_framework.views import APIView
+# from rest_framework.response import Response
+# from django.conf import settings
+# from rest_framework.permissions import IsAuthenticated
+# from apps.community_hubs.models import Post
+# from apps.community_hubs.serializers import PostlistSerializer
+# from django.shortcuts import get_object_or_404
+
+
+# # Trending News API
+
+
+
+# #Community Hub API
+# class CommunityHubAPIView(APIView):
+#     permission_classes = [IsAuthenticated]
+
+#     def get(self, request):
+
+#         posts = Post.objects.all().order_by("-created_at")
+
+#         serializer = PostlistSerializer(posts, many=True)
+#         return Response({
+#             "status": status.HTTP_200_OK,
+#             "success": True,
+#             "message": "Posts fetched successfully",
+#             "data": serializer.data
+#         })
+
+# #Search News API
+# class SearchResultsAPIView(APIView):
+#     permission_classes = [IsAuthenticated]
+
+#     def get(self, request):
+#         query = request.query_params.get('q')
+#         if not query:
+#             return Response({"error": "Query parameter 'q' is required"}, status=400)
+
+#         url = "https://gnews.io/api/v4/search"
+#         params = {
+#             'q': query,
+#             'lang': 'en',
+#             'max': 10,
+#             'token': settings.GNEWS_API_KEY
+#         }
+#         res = requests.get(url, params=params)
+#         if res.status_code == 200:
+#             response_data = {
+#                 'status': status.HTTP_200_OK,
+#                 'success': True,
+#                 'message': 'Search results fetched successfully',
+#                 'data': res.json().get('articles', [])
+#             } 
+#             return Response(response_data, status = status.HTTP_200_OK)
+#         else:
+#             response_data = {
+#                 'status': status.HTTP_400_BAD_REQUEST,
+#                 'success': False,
+#                 'message': 'Search failed',
+#                 'errors': res.json()
+#             } 
+#             return Response(response_data, status = status.HTTP_400_BAD_REQUEST)
+
+# #Update Me API
+# class UpdateMeAPIView(APIView):
+#     permission_classes = [IsAuthenticated]
+
+#     def get(self, request):
+#         categories = ['general', 'world', 'nation', 'business', 'technology', 'entertainment', 'sports', 'science', 'health', 'politics']
     
-# Trending News Detail API
-class TrendingNewsDetailAPIView(APIView):
-    permission_classes = [IsAuthenticated]
-    
-    def get(self, request, id):
-        article = get_object_or_404(TrendingNews, id=id)
-        serializer = TrendingNewsSerializer(
-            article,
-            context={'request': request}
-        )
-        return Response({
-            'status': status.HTTP_200_OK,
-            'success': True,
-            'message': 'Trending news detail fetched successfully',
-            'data': serializer.data
-        })
+#         update = []
 
-class BookmarkNewsAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+#         for category in categories:
+#             params = {
+#                 'token': settings.GNEWS_API_KEY,
+#                 'lang': 'en',
+#                 'country': 'us',
+#                 'max': 10,  
+#                 'q': category  
+#             }
 
-    def post(self, request, article_id):
-        article = get_object_or_404(TrendingNews, id=article_id)
-        bookmark, created = NewsBookmark.objects.get_or_create(user=request.user, article=article)
-        if created:
-            return Response({'success': True, 'message': 'Article bookmarked.'})
-        return Response({'success': False, 'message': 'Article already bookmarked.'})
+#             response = requests.get("https://gnews.io/api/v4/search", params=params)
 
-    def delete(self, request, article_id):
-        article = get_object_or_404(TrendingNews, id=article_id)
-        bookmark = NewsBookmark.objects.filter(user=request.user, article=article).first()
-        if bookmark:
-            bookmark.delete()
-            return Response({'success': True, 'message': 'Bookmark removed.'})
-        return Response({'success': False, 'message': 'Bookmark not found.'})
+#             if response.status_code == 200:
+#                 articles = response.json().get('articles', [])
+#                 for article in articles:
+#                     update.append({
+#                         'title': article.get('title'),
+#                         'description': article.get('description'),
+#                         'content': article.get('content'),
+#                         'url': article.get('url'),
+#                         'image': article.get('image'),
+#                         'publishedAt': article.get('publishedAt'),
+#                         'source': {
+#                             'name': article.get('source', {}).get('name'),
+#                             'url': article.get('source', {}).get('url'),
+#                         },
+#                         'category': category  # manually tagged category
+#                     })
+#         response_data = {
+#             'status': status.HTTP_200_OK,
+#             'success': True,
+#             'message': 'Update news fetched successfully',
+#             'data': update
+#         } 
+#         return Response(response_data, status=status.HTTP_200_OK)
+
+# #Posts View API   
+# class PostsAPIView(APIView):
+#     permission_classes = [IsAuthenticated]
+
+#     def get(self, request):
+#         query = request.GET.get('q')
         
-#Recommended Topics API
-class RecommendedTopicsAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+#         if query:
+#             # Use search endpoint when query is present
+#             url = "https://gnews.io/api/v4/search"
+#             params = {
+#                 'q': query,
+#                 'token': settings.GNEWS_API_KEY,
+#                 'lang': 'en',
+#                 'max': 10
+#             }
+#         else:
+#             # Use top-headlines endpoint when query is not present
+#             url = "https://gnews.io/api/v4/top-headlines"
+#             params = {
+#                 'token': settings.GNEWS_API_KEY,
+#                 'lang': 'en',
+#                 'country': 'us',
+#                 'max': 10
+#             }
 
-    def get(self, request):
-        articles = TrendingNews.objects.all().order_by('-published_at')
-        serializer = TrendingNewsSerializer(articles, many=True, context={'request': request})
-        return Response({
-            'status': status.HTTP_200_OK,
-            'success': True,
-            'message': 'Recommended topics fetched successfully',
-            'data': serializer.data
-        })
-    
-#Trending News Detail API
-class RecommendedTopicsDetailsAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+#         response = requests.get(url, params=params)
 
-    def get(self, request, id):
-        article = get_object_or_404(TrendingNews, id=id)
-        serializer = TrendingNewsSerializer(article, context={'request': request})
-        return Response({
-            'status': status.HTTP_200_OK,
-            'success': True,
-            'message': 'Trending news detail fetched successfully',
-            'data': serializer.data
-        })
+#         if response.status_code == 200:
+#             response_data = {
+#                 'status': status.HTTP_200_OK,
+#                 'success': True,
+#                 'message': 'Posts fetched successfully',
+#                 'data': response.json().get('articles', [])
+#             }
+#             return Response(response_data, status=status.HTTP_200_OK)
+#         response_data = {
+#             'status': status.HTTP_400_BAD_REQUEST,
+#             'success': False,
+#             'message': 'Failed to fetch posts',
+#             'errors': response.json()
+#         }
+#         return Response(response_data, status=status.HTTP_400_BAD_REQUEST)
 
+# #Your News API
+# class YourNewsAPIView(APIView):
+#     permission_classes = [IsAuthenticated]
 
+#     def get(self, request):
+#         url = "https://gnews.io/api/v4/top-headlines"
+#         params = {
+#             'token': settings.GNEWS_API_KEY,
+#             'lang': 'en',
+#             'country': 'us',
+#             'max': 10
+#         }
 
-#Community Hub API
-class CommunityHubAPIView(APIView):
-    authentication_classes = [CustomJWTAuthentication]
-    permission_classes = [IsAuthenticated]
+#         response = requests.get(url, params=params)
+#         if response.status_code == 200:
+#             response_data = {
+#                 'status': status.HTTP_200_OK,
+#                 'success': True,
+#                 'message': 'Your news fetched successfully',
+#                 'data': response.json().get('articles', [])
+#             }
+#             return Response(response_data, status=status.HTTP_200_OK)
+#         response_data = {
+#             'status': status.HTTP_400_BAD_REQUEST,
+#             'success': False,
+#             'message': 'Failed to fetch your news',
+#             'errors': response.json()
+#         }
+#         return Response(response_data, status=status.HTTP_400_BAD_REQUEST)
 
-    def get(self, request):
+# #Your Interests API
+# class YourInterestAPIView(APIView):
+#     permission_classes = [IsAuthenticated]
 
-        posts = Post.objects.all().order_by("-created_at")
+#     def get(self, request):
+#         interests = request.GET.getlist('topics')  # list of interests
 
-        serializer = PostlistSerializer(posts, many=True)
-        return Response({
-            "status": status.HTTP_200_OK,
-            "success": True,
-            "message": "Posts fetched successfully",
-            "data": serializer.data
-        })
+#         if not interests:
+#             return Response({'error': 'Please provide at least one topic using ?topics=topic1&topics=topic2'})
 
-#Search News API
-class SearchResultsAPIView(APIView):
-    authentication_classes = [CustomJWTAuthentication]
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        query = request.query_params.get('q')
-        if not query:
-            return Response({"error": "Query parameter 'q' is required"}, status=400)
-
-        url = "https://gnews.io/api/v4/search"
-        params = {
-            'q': query,
-            'lang': 'en',
-            'max': 10,
-            'token': settings.GNEWS_API_KEY
-        }
-        res = requests.get(url, params=params)
-        if res.status_code == 200:
-            response_data = {
-                'status': status.HTTP_200_OK,
-                'success': True,
-                'message': 'Search results fetched successfully',
-                'data': res.json().get('articles', [])
-            } 
-            return Response(response_data, status = status.HTTP_200_OK)
-        else:
-            response_data = {
-                'status': status.HTTP_400_BAD_REQUEST,
-                'success': False,
-                'message': 'Search failed',
-                'errors': res.json()
-            } 
-            return Response(response_data, status = status.HTTP_400_BAD_REQUEST)
-
-#Update Me API
-class UpdateMeAPIView(APIView):
-    authentication_classes = [CustomJWTAuthentication]
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        categories = ['general', 'world', 'nation', 'business', 'technology', 'entertainment', 'sports', 'science', 'health', 'politics']
-    
-        update = []
-
-        for category in categories:
-            params = {
-                'token': settings.GNEWS_API_KEY,
-                'lang': 'en',
-                'country': 'us',
-                'max': 10,  
-                'q': category  
-            }
-
-            response = requests.get("https://gnews.io/api/v4/search", params=params)
-
-            if response.status_code == 200:
-                articles = response.json().get('articles', [])
-                for article in articles:
-                    update.append({
-                        'title': article.get('title'),
-                        'description': article.get('description'),
-                        'content': article.get('content'),
-                        'url': article.get('url'),
-                        'image': article.get('image'),
-                        'publishedAt': article.get('publishedAt'),
-                        'source': {
-                            'name': article.get('source', {}).get('name'),
-                            'url': article.get('source', {}).get('url'),
-                        },
-                        'category': category  # manually tagged category
-                    })
-        response_data = {
-            'status': status.HTTP_200_OK,
-            'success': True,
-            'message': 'Update news fetched successfully',
-            'data': update
-        } 
-        return Response(response_data, status=status.HTTP_200_OK)
-
-#Posts View API   
-class PostsAPIView(APIView):
-    authentication_classes = [CustomJWTAuthentication]
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        query = request.GET.get('q')
-        
-        if query:
-            # Use search endpoint when query is present
-            url = "https://gnews.io/api/v4/search"
-            params = {
-                'q': query,
-                'token': settings.GNEWS_API_KEY,
-                'lang': 'en',
-                'max': 10
-            }
-        else:
-            # Use top-headlines endpoint when query is not present
-            url = "https://gnews.io/api/v4/top-headlines"
-            params = {
-                'token': settings.GNEWS_API_KEY,
-                'lang': 'en',
-                'country': 'us',
-                'max': 10
-            }
-
-        response = requests.get(url, params=params)
-
-        if response.status_code == 200:
-            response_data = {
-                'status': status.HTTP_200_OK,
-                'success': True,
-                'message': 'Posts fetched successfully',
-                'data': response.json().get('articles', [])
-            }
-            return Response(response_data, status=status.HTTP_200_OK)
-        response_data = {
-            'status': status.HTTP_400_BAD_REQUEST,
-            'success': False,
-            'message': 'Failed to fetch posts',
-            'errors': response.json()
-        }
-        return Response(response_data, status=status.HTTP_400_BAD_REQUEST)
-
-#Your News API
-class YourNewsAPIView(APIView):
-    authentication_classes = [CustomJWTAuthentication]
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        url = "https://gnews.io/api/v4/top-headlines"
-        params = {
-            'token': settings.GNEWS_API_KEY,
-            'lang': 'en',
-            'country': 'us',
-            'max': 10
-        }
-
-        response = requests.get(url, params=params)
-        if response.status_code == 200:
-            response_data = {
-                'status': status.HTTP_200_OK,
-                'success': True,
-                'message': 'Your news fetched successfully',
-                'data': response.json().get('articles', [])
-            }
-            return Response(response_data, status=status.HTTP_200_OK)
-        response_data = {
-            'status': status.HTTP_400_BAD_REQUEST,
-            'success': False,
-            'message': 'Failed to fetch your news',
-            'errors': response.json()
-        }
-        return Response(response_data, status=status.HTTP_400_BAD_REQUEST)
-
-#Your Interests API
-class YourInterestAPIView(APIView):
-    authentication_classes = [CustomJWTAuthentication]
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        interests = request.GET.getlist('topics')  # list of interests
-
-        if not interests:
-            return Response({'error': 'Please provide at least one topic using ?topics=topic1&topics=topic2'})
-
-        all_articles = []
-        for topic in interests:
-            url = "https://gnews.io/api/v4/search"
-            params = {
-                'q': topic,
-                'token': settings.GNEWS_API_KEY,
-                'lang': 'en',
-                'max': 3  # limit per topic
-            }
-            response = requests.get(url, params=params)
-            if response.status_code == 200:
-                all_articles.extend(response.json().get('articles', []))
-                response_data = {
-                    'status': status.HTTP_200_OK,
-                    'success': True,
-                    'message': 'Your interests fetched successfully',
-                    'data': all_articles
-                }
-                return Response(response_data, status=status.HTTP_200_OK)
-            response_data = {
-                'status': status.HTTP_400_BAD_REQUEST,
-                'success': False,
-                'message': 'Failed to fetch your interests',
-                'errors': response.json()
-            }
-            return Response(response_data, status=status.HTTP_400_BAD_REQUEST)
+#         all_articles = []
+#         for topic in interests:
+#             url = "https://gnews.io/api/v4/search"
+#             params = {
+#                 'q': topic,
+#                 'token': settings.GNEWS_API_KEY,
+#                 'lang': 'en',
+#                 'max': 3  # limit per topic
+#             }
+#             response = requests.get(url, params=params)
+#             if response.status_code == 200:
+#                 all_articles.extend(response.json().get('articles', []))
+#                 response_data = {
+#                     'status': status.HTTP_200_OK,
+#                     'success': True,
+#                     'message': 'Your interests fetched successfully',
+#                     'data': all_articles
+#                 }
+#                 return Response(response_data, status=status.HTTP_200_OK)
+#             response_data = {
+#                 'status': status.HTTP_400_BAD_REQUEST,
+#                 'success': False,
+#                 'message': 'Failed to fetch your interests',
+#                 'errors': response.json()
+#             }
+#             return Response(response_data, status=status.HTTP_400_BAD_REQUEST)
 
 
 
-#User interests API
-from rest_framework import generics, permissions, status
-from .models import UserInterests, UserPreference, Interest
-from .serializers import UserInterestsSerializer, UserPreferenceSerializer
-from django.utils import timezone
-from rest_framework.response import Response
-from rest_framework.views import APIView
+# #User interests API
 
-class UserInterestsView(generics.RetrieveUpdateAPIView):
-    """
-    GET: Retrieve current user's interests
-    PUT/PATCH: Update current user's interests (set list)
-    """
-    permission_classes = [permissions.IsAuthenticated]
-
-    serializer_class = UserInterestsSerializer
-
-    def get_object(self):
-        # Get or create UserInterests for current user
-        obj, created = UserInterests.objects.get_or_create(user=self.request.user)
-        return obj
-
-    def perform_update(self, serializer):
-        # You can add extra logic here if needed
-        serializer.save()
-
-class UserPreferencesListView(generics.ListAPIView):
-    """
-    GET: List user's tracked preferences (clicked interests)
-    """
-    permission_classes = [permissions.IsAuthenticated]
-    serializer_class = UserPreferenceSerializer
-
-    def get_queryset(self):
-        return UserPreference.objects.filter(user=self.request.user).order_by('-clicked_at')
-
-class TrackUserPreferenceView(APIView):
-    """
-    POST: Track a user preference (user clicked an interest)
-    Payload: { "interest_id": <id> }
-    """
-    permission_classes = [permissions.IsAuthenticated]
-
-    def post(self, request):
-        interest_id = request.data.get('interest_id')
-        if not interest_id:
-            return Response({"error": "interest_id is required"}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            interest = Interest.objects.get(id=interest_id)
-        except Interest.DoesNotExist:
-            return Response({"error": "Interest not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        obj, created = UserPreference.objects.get_or_create(user=request.user, interest=interest)
-        obj.clicked_at = timezone.now()
-        obj.save()
-
-        serializer = UserPreferenceSerializer(obj)
-        return Response(serializer.data, status=status.HTTP_200_OK)
 

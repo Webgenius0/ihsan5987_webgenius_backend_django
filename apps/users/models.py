@@ -30,7 +30,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     name = models.CharField(max_length = 255, default="Anonymous")
     #username = models.CharField(max_length=255, null=True, blank=True)
     email = models.EmailField(unique = True)
-    created_at = models.DateTimeField(auto_now_add=True)
 
     is_staff = models.BooleanField(default = False)
     is_active = models.BooleanField(default = False)
@@ -92,11 +91,4 @@ class EmailOTP(models.Model):
     def __str__(self):
         return f"{self.user.email}"
     
-#Blacklist Access Token Model
-class BlacklistToken(models.Model):
-    jti = models.CharField(max_length = 255, primary_key=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return self.jti
     

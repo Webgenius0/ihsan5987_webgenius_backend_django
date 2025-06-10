@@ -7,76 +7,47 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from apps.notifications.services import send_system_notification
-from .models import User, EmailOTP, BlacklistToken, UserDevice
+from .models import User, EmailOTP, UserDevice
 from django.conf import settings
 from .serializers import SignupSerializer, LoginSerializer
-
 
 # Signup View
 class SignupView(APIView):
     def post(self, request, *args, **kwargs):
-        try:
-            serializer = SignupSerializer(data=request.data)
-            if serializer.is_valid():
-                try:
-                    user = serializer.save(is_active=False)
-                    
-                    otp = str(random.randint(1000, 9999))
-
-                    EmailOTP.objects.create(
-                        user=user,
-                        otp=otp,
-                        created_at=timezone.now(),
-                        attempts=0
-                    )
-
-                    # Send OTP email
-                    try:
-                        send_mail(
-                            subject="Your OTP Code",
-                            message=f"Your OTP is {otp}",
-                            from_email=settings.EMAIL_HOST_USER,
-                            recipient_list=[user.email],
-                        )
-                    except Exception as e:
-                        print(f"Error sending email: {str(e)}")
-                        # Delete the created user and OTP if email fails
-                        user.delete()
-                        return Response({
-                            "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            "success": "false",
-                            "message": "Failed to send verification email. Please try again.",
-                        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-                    response_data = {
-                        "status": status.HTTP_201_CREATED,
-                        "success": "true",
-                        "message": "User created. OTP sent to email for verification.",
-                    }
-                    return Response(response_data, status=status.HTTP_201_CREATED)
-                except Exception as e:
-                    print(f"Error creating user: {str(e)}")
-                    return Response({
-                        "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
-                        "success": "false",
-                        "message": "Failed to create user. Please try again.",
-                    }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        serializer = SignupSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save(is_active=False)
             
+            otp = str(random.randint(1000, 9999))
+
+            # Send OTP email
+            send_mail(
+                subject="Your OTP Code",
+                message=f"Your OTP is {otp}",
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list=[user.email],
+            )
+
+            EmailOTP.objects.create(
+                user=user,
+                otp=otp,
+                created_at=timezone.now(),
+                attempts=0
+            )
+
             response_data = {
-                "status": status.HTTP_400_BAD_REQUEST,
-                "success": "false",
-                "message": serializer.errors,
+                "status": status.HTTP_201_CREATED,
+                "success": "true",
+                "message": "User created. OTP sent to email for verification.",
             }
-            return Response(response_data, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            import traceback
-            print(f"Unexpected error in SignupView: {str(e)}")
-            print(f"Traceback: {traceback.format_exc()}")
-            return Response({
-                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
-                "success": "false",
-                "message": "An unexpected error occurred. Please try again.",
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(response_data, status=status.HTTP_201_CREATED)
+        
+        response_data = {
+            "status": status.HTTP_400_BAD_REQUEST,
+            "success": "false",
+            "message": serializer.errors,
+        }
+        return Response(response_data, status=status.HTTP_400_BAD_REQUEST)
 
 #Verify OTP View
 class VerifyOTPView(APIView):
@@ -446,51 +417,14 @@ class LoginView(APIView):
         }
         return Response(response_error, status=status.HTTP_403_FORBIDDEN)
 
-# Logout API
-# class LogoutView(APIView):
-#     permission_classes = (IsAuthenticated,)
-
-#     def post(self, request):
-#         refresh_token = request.data["refresh_token"]
-#         try:
-#             token = RefreshToken(refresh_token)
-#             token.blacklist()
-#             response_data = {
-#                 "status": status.HTTP_200_OK,
-#                 "success": True,
-#                 "message": "Logout successful",
-#             }
-#             return Response(response_data, status=status.HTTP_200_OK)
-#         except refresh_token.DoesNotExist: 
-#             response_data = {
-#                 "status": status.HTTP_404_NOT_FOUND,
-#                 "success": False,
-#                 "message": "Refresh Token not found",
-#             }      
-#             return Response(response_data, status=status.HTTP_404_NOT_FOUND)
-from .authentication import CustomJWTAuthentication
-
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
-    authentication_classes = [CustomJWTAuthentication]
 
     def post(self, request):
-        token = request.auth  # The validated access token
-        jti = token.get("jti")
-
-        if not jti:
-            return Response({
-                "success": False,
-                "message": "Invalid access token."
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        # Save the jti in blacklist
-        BlacklistToken.objects.get_or_create(jti=jti)
-
         return Response({
             "status": status.HTTP_200_OK,
             "success": True,
-            "message": "Logout successful. Access token invalidated."
+            "message": "Logout successful."
         }, status=status.HTTP_200_OK)
         
 

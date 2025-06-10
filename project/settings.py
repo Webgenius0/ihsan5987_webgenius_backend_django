@@ -172,11 +172,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        #'rest_framework_simplejwt.authentication.JWTAuthentication',
-        'apps.users.authentication.CustomJWTAuthentication',
         'rest_framework.authentication.TokenAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
-    'EXCEPTION_HANDLER': 'apps.users.exception.custom_exception_handler',
 }
 
 #Email sending setup
@@ -202,7 +200,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
     "https://ihsan5987-django.onrender.com",
-    "https://8793-103-174-189-33.ngrok-free.app",
+    "https://ece4-103-174-189-33.ngrok-free.app",
 ]
 
 #GNEWS_API_KEY
@@ -217,8 +215,12 @@ cloudinary.config(
 
 #Simple JWT setup
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(days=7),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=7)
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+
+    # Refresh Token Rotation
+    "ROTATE_REFRESH_TOKENS": True,  # generates a new refresh token when used
+    "BLACKLIST_AFTER_ROTATION": True,
 }
 
 # Stripe settings

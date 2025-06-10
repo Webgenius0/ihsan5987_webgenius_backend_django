@@ -10,13 +10,12 @@ from .models import Post, Comment, Like, CommentReport
 class PostlistSerializer(serializers.ModelSerializer):
     comment_count = serializers.SerializerMethodField()
     commented_users = serializers.SerializerMethodField()
-    tags = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
         fields = [
-            'id', 'user', 'title', 'topic','category', 'image', 'content',
-            'created_at', 'comment_count', 'commented_users', 'tags'
+            'id', 'user', 'title','category', 'image', 'content',
+            'created_at', 'comment_count', 'commented_users'
         ]
 
     def get_comment_count(self, obj):
@@ -39,8 +38,6 @@ class PostlistSerializer(serializers.ModelSerializer):
             'avatars': UserSerializer(user_list, many=True, context=self.context).data
         }
 
-    def get_tags(self, obj):
-        return [tag.tag_names for tag in obj.tags.all()]
 
 class CreatePostSerializer(serializers.ModelSerializer):
 
@@ -48,8 +45,6 @@ class CreatePostSerializer(serializers.ModelSerializer):
         model = Post
         fields = ['id', 'image', 'title', 'category', 'content', 'created_at']
 
-    def get_tags(self, obj):
-        return [tag.tag_names for tag in obj.tags.all()]
 
 class UserSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
