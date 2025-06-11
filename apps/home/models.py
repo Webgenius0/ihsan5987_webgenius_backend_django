@@ -65,8 +65,8 @@ class Question(models.Model):
 
 # Response
 class Response(models.Model):
-    category = models.ForeignKey(Category, on_delete=models.CASCADE)
-    subcategory = models.ForeignKey(Subcategory, on_delete=models.CASCADE)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, null = True, blank = True)
+    subcategory = models.ForeignKey(Subcategory, on_delete=models.CASCADE, null = True, blank = True)
     topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
     general_fact = models.ForeignKey(GeneralFact, on_delete=models.SET_NULL, null=True)
     news = models.ForeignKey(News, on_delete=models.SET_NULL, null=True)
@@ -100,6 +100,7 @@ class SearchTag(models.Model):
 class Recommendation(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    subcategory = models.ForeignKey(Subcategory, on_delete=models.CASCADE, null = True, blank = True)
     topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
     headline = models.TextField()
     description = models.TextField()
@@ -108,6 +109,19 @@ class Recommendation(models.Model):
     created_at = models.DateField(auto_now_add=True)
     last_refresh = models.DateField()
 
+# Update Me
+class UpdateMe(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null = True, blank = True)
+    subcategory = models.ForeignKey(Subcategory, on_delete=models.SET_NULL, null = True, blank = True)
+    topic = models.ForeignKey(Topic, on_delete=models.SET_NULL, null=True)
+    short_info = models.JSONField()
+    reference_url = models.JSONField()
+    background_story = models.JSONField()
+    picture_url = models.TextField()
+    created_at = models.DateField()
+    interest = models.BooleanField()
+
 # Keywords
 class KeyWord(models.Model):
     key_words = models.TextField()
@@ -115,6 +129,8 @@ class KeyWord(models.Model):
 # Trending
 class Trending(models.Model):
     key_words = models.ForeignKey(KeyWord, on_delete=models.CASCADE)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, null = True, blank = True)
+    subcategory = models.ForeignKey(Subcategory, on_delete=models.CASCADE, null = True, blank = True)
     description = models.TextField()
     why_trending = models.TextField()
     key_points = models.TextField()
@@ -138,12 +154,13 @@ class Bookmark(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     trending = models.ForeignKey(Trending, on_delete=models.SET_NULL, null=True, blank=True)
     recommendation = models.ForeignKey(Recommendation, on_delete=models.SET_NULL, null=True, blank=True)
+    update_me = models.ForeignKey(UpdateMe, on_delete=models.CASCADE, null=True)
     search = models.ForeignKey(Search, on_delete=models.SET_NULL, null=True, blank=True)
     community_post = models.ForeignKey(Post, on_delete=models.SET_NULL, null=True, blank=True)
 
 # Preferences
 class Preference(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    category = models.ForeignKey(Category, on_delete=models.CASCADE)
-    subcategory = models.ForeignKey(Subcategory, on_delete=models.CASCADE)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, null = True, blank = True)
+    subcategory = models.ForeignKey(Subcategory, on_delete=models.CASCADE, null = True, blank = True)
     created_at = models.DateField(auto_now_add=True)

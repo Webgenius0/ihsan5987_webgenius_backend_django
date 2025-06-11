@@ -1,7 +1,7 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin
 from import_export.admin import ImportExportModelAdmin
-from .models import Profile, FAQ, FAQCategory, ContactUs, NotificationSetting
+from .models import Profile, FAQ, FAQCategory, ContactUs, NotificationSetting, Feedback
 from unfold.contrib.import_export.forms import ExportForm, ImportForm, SelectableFieldsExportForm
 
 @admin.register(Profile)
@@ -63,3 +63,19 @@ class NotificationSettingAdmin(ModelAdmin, ImportExportModelAdmin):
     import_form_class = ImportForm
     export_form_class = ExportForm
     selectable_fields_export_form_class = SelectableFieldsExportForm
+
+@admin.register(Feedback)
+class FeedbackAdmin(ModelAdmin, ImportExportModelAdmin):
+    list_display = ("id", "user", "search", "content_snippet", "rating", "created_at")
+    search_fields = ["user__email", "content"]
+    ordering = ["-created_at"]
+    list_filter = ["user", "rating", "created_at"]
+    list_per_page = 20
+
+    import_form_class = ImportForm
+    export_form_class = ExportForm
+    selectable_fields_export_form_class = SelectableFieldsExportForm
+
+    def content_snippet(self, obj):
+        return (obj.content[:50] + "...") if len(obj.content) > 50 else obj.content
+    content_snippet.short_description = "Content"
