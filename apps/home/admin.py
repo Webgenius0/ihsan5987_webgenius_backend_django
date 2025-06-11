@@ -2,7 +2,8 @@ from django.contrib import admin
 from .models import (
     Category, Subcategory, TopicTag, Topic, GeneralFact, News, InterestingTrivia,
     Opinion, Question, Response, Option, Search, SearchTag, Recommendation,
-    KeyWord, Trending, TrendingUser, RecommendationUser, Bookmark, Preference
+    KeyWord, Trending, TrendingUser, RecommendationUser, Bookmark, Preference,
+    UpdateMe  
 )
 
 # Category & Subcategory
@@ -37,7 +38,7 @@ class TopicAdmin(admin.ModelAdmin):
 # GeneralFact
 @admin.register(GeneralFact)
 class GeneralFactAdmin(admin.ModelAdmin):
-    list_display = ('id', 'general_created_at', 'picture_url')
+    list_display = ("id", "general_definition", "general_created_at", "key_facts_created_at", "picture_created_at")
     search_fields = ('general_definition', 'general_fun_fact', 'key_facts_text')
     ordering = ('-general_created_at',)
 
@@ -119,6 +120,15 @@ class RecommendationAdmin(admin.ModelAdmin):
     ordering = ('-created_at',)
 
 
+# UpdateMe
+@admin.register(UpdateMe)
+class UpdateMeAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'category', 'subcategory', 'topic', 'created_at', 'interest')
+    list_filter = ('created_at', 'interest', 'category', 'subcategory', 'topic')
+    search_fields = ('short_info', 'background_story', 'reference_url')
+    ordering = ('-created_at',)
+
+
 # KeyWord
 @admin.register(KeyWord)
 class KeyWordAdmin(admin.ModelAdmin):
@@ -154,7 +164,7 @@ class RecommendationUserAdmin(admin.ModelAdmin):
 # Bookmark
 @admin.register(Bookmark)
 class BookmarkAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'trending', 'recommendation', 'search', 'community_post')
+    list_display = ('id', 'user', 'trending', 'recommendation', 'update_me', 'search', 'community_post')
     list_filter = ('user',)
     search_fields = ('user__username',)
 
