@@ -1,4 +1,5 @@
 from django.contrib import admin
+from unfold.admin import ModelAdmin
 from .models import (
     Category, Subcategory, TopicTag, Topic, GeneralFact, News, InterestingTrivia,
     Opinion, Question, Response, Option, Search, SearchTag, Recommendation,
@@ -122,7 +123,7 @@ class RecommendationAdmin(admin.ModelAdmin):
 
 # UpdateMe
 @admin.register(UpdateMe)
-class UpdateMeAdmin(admin.ModelAdmin):
+class UpdateMeAdmin(ModelAdmin):
     list_display = ('id', 'user', 'category', 'subcategory', 'topic', 'created_at', 'interest')
     list_filter = ('created_at', 'interest', 'category', 'subcategory', 'topic')
     search_fields = ('short_info', 'background_story', 'reference_url')
@@ -138,7 +139,7 @@ class KeyWordAdmin(admin.ModelAdmin):
 
 # Trending
 @admin.register(Trending)
-class TrendingAdmin(admin.ModelAdmin):
+class TrendingAdmin(ModelAdmin):
     list_display = ('id', 'key_words', 'description', 'why_trending', 'picture_url', 'created_at')
     list_filter = ('created_at',)
     search_fields = ('description', 'why_trending', 'key_points', 'outlook')

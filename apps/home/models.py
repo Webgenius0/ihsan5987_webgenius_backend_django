@@ -128,7 +128,7 @@ class KeyWord(models.Model):
 
 # Trending
 class Trending(models.Model):
-    key_words = models.ForeignKey(KeyWord, on_delete=models.CASCADE)
+    key_words = models.ForeignKey(KeyWord, on_delete=models.CASCADE, null=True, blank=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null = True, blank = True)
     subcategory = models.ForeignKey(Subcategory, on_delete=models.CASCADE, null = True, blank = True)
     description = models.TextField()
@@ -136,7 +136,7 @@ class Trending(models.Model):
     key_points = models.TextField()
     outlook = models.TextField()
     picture_url = models.URLField(blank=True, null=True)
-    picture_last_refresh = models.DateField()
+    picture_last_refresh = models.DateField(blank=True, null=True)
     created_at = models.DateField(auto_now_add=True)
 
 # User-Interaction Tables

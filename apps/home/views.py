@@ -410,5 +410,176 @@ class FeedbackDetailAPIView(APIView):
 
 
 # #User interests API
+from decouple import config
+from datetime import date
+from rest_framework.permissions import AllowAny
+
+from utility.ai_scripts import (
+    generate_update_element,
+    generate_trending_now_element
+)
+
+from .models import (
+    UpdateMe,   
+    Trending
+)
+from .serializers import (
+    UpdateMeSerializer,
+    TrendingNewsSerializer
+)
+
+openai_api_key = config("OPENAI_API_KEY")
+class UpdateMeAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        update_me_data = UpdateMe.objects.all().order_by('-created_at')
+        serializer = UpdateMeSerializer(update_me_data, many=True)
+        return Response({
+            "status": status.HTTP_200_OK,
+            "success": True,
+            "message": "Update Me data fetched successfully",
+            "data": serializer.data
+        }, status=status.HTTP_200_OK)
+        
+    
+
+    def post(self, request):
+        try:
+            data = generate_update_element("world cup football",openai_api_key)
+
+            if data:
+                print("Generated data:", data)
+
+                category_name = data.get("category")
+                subcategory_name = data.get("subcategory")
+                topic_title = data.get("topic")
+                short_info = data.get("short_info", [])
+                reference_url = data.get("reference_url")
+                background_story = data.get("background_story", {})
+                picture_url = data.get("picture_url")
+
+                # Fetch or create related models
+                category, _ = Category.objects.get_or_create(category_name=category_name)
+                subcategory, _ = Subcategory.objects.get_or_create(subcategory_name=subcategory_name)
+                topic, _ = Topic.objects.get_or_create(name=topic_title)
+
+                # Save the update
+                update = UpdateMe.objects.create(
+                    user_id=1,  # Replace with the correct user ID or logic
+                    category=category,
+                    subcategory=subcategory,
+                    topic=topic,
+                    short_info=short_info,
+                    reference_url=reference_url,
+                    background_story=background_story,
+                    picture_url=picture_url,
+                    created_at=date.today(),
+                    interest=True
+                )
+            print('message is saved')
+        except Exception as e:
+            print(f"Error saving update me data: {e}")
+            return Response({
+                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "success": False,
+                "message": "Failed to save Update Me data"
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({
+            "status": status.HTTP_200_OK,
+            "success": True,
+            "message": "Update Me data saved successfully"
+        }, status=status.HTTP_200_OK)
+    
 
 
+class TrendingNewsAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        try:
+            data = generate_trending_now_element("world cup football", openai_api_key)
+            if data:
+                print("generated data", data)
+                # example ai response
+                # {{
+                #     "topic": "Super Bowl 2025",
+                #     "category": "Sports",
+                #     "subcategory": "NFL",
+                #     "description": "Super Bowl 2025 is the most anticipated event of the year, drawing millions of viewers worldwide.",
+                #     "why_is_it_trending": [
+                #         "The game is just days away, and preparations are in full swing.",
+                #         "High-profile teams are expected to deliver a thrilling performance.",
+                #         "The halftime show lineup, headlined by Kendrick Lamar, is generating buzz."
+                #     ],
+                #     "key_points": [
+                #         "Teams: Philadelphia Eagles vs. Kansas City Chiefs.",
+                #         "Halftime Show: Star performances with potential surprise guests.",
+                #         "Betting Odds: Significant shifts in favor of an underdog."
+                #     ],
+                #     "overlook_what_might_happen_next": [
+                #         "Game Prediction: Analysts lean towards a close contest.",
+                #         "Halftime Surprises: There may be unexpected guest performances.",
+                #         "Viewership: Could set new records in streaming numbers."
+                #     ]
+                #     }}
+
+                # topic_title = data.get("topic")
+                category_name = data.get("category")
+                subcategory_name = data.get("subcategory")
+                description = data.get("description")
+                why_is_it_trending = data.get("why_is_it_trending", [])
+                key_points = data.get("key_points", [])
+                overlook_what_might_happen_next = data.get("overlook_what_might_happen_next", [])
+                picture_url = data.get("picture_url")
+
+                category, _ = Category.objects.get_or_create(category_name=category_name)
+                subcategory, _ = Subcategory.objects.get_or_create(subcategory_name=subcategory_name)
+
+
+                trending_model = Trending.objects.create(
+                    # key_words=topic_title,
+                    category=category,
+                    subcategory=subcategory,
+                    description=description,
+                    why_trending=why_is_it_trending,
+                    key_points=key_points,
+                    outlook=overlook_what_might_happen_next,
+                    picture_url=picture_url,
+                    created_at=date.today()
+                )
+                print("Trending news saved successfully.")
+                return Response({
+                    "status": status.HTTP_201_CREATED,
+                    "success": True,
+                    "message": "Trending news data saved successfully",
+                    "data": {
+                        "id": trending_model.id,
+                        "category": category_name,
+                        "subcategory": subcategory_name,
+                        "description": description,
+                        "why_trending": why_is_it_trending,
+                        "key_points": key_points,
+                        "outlook": overlook_what_might_happen_next,
+                        "picture_url": picture_url
+                    }
+                }, status=status.HTTP_201_CREATED)
+            else:
+                print("No data generated.")
+        except Exception as e:
+            print(f"Error saving trending news data: {e}")
+            return Response({
+                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "success": False,
+                "message": "Failed to save trending news data"
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    def get(self, request):
+        trending_news = Trending.objects.all().order_by('-created_at')
+        serializer = TrendingNewsSerializer(trending_news, many=True)
+        return Response({
+            "status": status.HTTP_200_OK,
+            "success": True,
+            "message": "Trending news data fetched successfully",
+            "data": serializer.data
+        }, status=status.HTTP_200_OK)

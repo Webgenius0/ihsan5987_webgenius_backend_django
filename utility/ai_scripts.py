@@ -1067,7 +1067,7 @@ def build_prompt_trending(keywords, article_text, extra_links=None):
     ''')
     return prompt
 
-def generate_trending_now_element(keywords, extra_links=None, OPENAI_API_KEY='Open-AI-API'):
+def generate_trending_now_element(keywords, OPENAI_API_KEY='Open-AI-API', extra_links=None):
     article_text = get_news(keywords, 3)
     prompt = build_prompt_trending(keywords, article_text, extra_links)
     raw_response = get_llm_response(prompt, OPENAI_API_KEY)
