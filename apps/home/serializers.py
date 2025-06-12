@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import (
     Response, Topic, Category, Subcategory, GeneralFact, News, InterestingTrivia,
-    Opinion, Question, Search, UpdateMe, Trending
+    Opinion, Question, Search, UpdateMe, Trending, Recommendation
 )
 from apps.profiles.models import Feedback
 from apps.users.models import User
@@ -112,4 +112,10 @@ class TrendingNewsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Trending
         fields = '__all__'
+        depth = 1
+
+class RecommendationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Recommendation
+        exclude = ['user']
         depth = 1

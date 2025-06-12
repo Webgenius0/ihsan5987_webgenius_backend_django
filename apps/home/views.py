@@ -416,16 +416,19 @@ from rest_framework.permissions import AllowAny
 
 from utility.ai_scripts import (
     generate_update_element,
-    generate_trending_now_element
+    generate_trending_now_element,
+    recommendations
 )
 
 from .models import (
     UpdateMe,   
-    Trending
+    Trending,
+    Recommendation,
 )
 from .serializers import (
     UpdateMeSerializer,
-    TrendingNewsSerializer
+    TrendingNewsSerializer,
+    RecommendationSerializer
 )
 
 openai_api_key = config("OPENAI_API_KEY")
@@ -446,11 +449,12 @@ class UpdateMeAPIView(APIView):
 
     def post(self, request):
         try:
-            data = generate_update_element("world cup football",openai_api_key)
+            data = generate_update_element("Israel Palestine War",openai_api_key)
 
             if data:
                 print("Generated data:", data)
 
+                topic_title = data.get("topic")
                 category_name = data.get("category")
                 subcategory_name = data.get("subcategory")
                 topic_title = data.get("topic")
@@ -582,4 +586,62 @@ class TrendingNewsAPIView(APIView):
             "success": True,
             "message": "Trending news data fetched successfully",
             "data": serializer.data
+        }, status=status.HTTP_200_OK)
+
+
+class RecommendationsAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        recommendations_data = Recommendation.objects.all().order_by('-created_at')
+        serializer = RecommendationSerializer(recommendations_data, many=True)
+        return Response({
+            "status": status.HTTP_200_OK,
+            "success": True,
+            "message": "Recommendations data fetched successfully",
+            "data": serializer.data
+        }, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        try:
+            data = recommendations("world cup football", OPENAI_API_KEY=openai_api_key)
+            if data:
+                print("Generated data:", data)
+
+                topic_title = data.get("topic")
+                category_name = data.get("category")
+
+                topic, _ = Topic.objects.get_or_create(name=topic_title)
+                category, _ = Category.objects.get_or_create(category_name=category_name)
+
+                recommendation_model = Recommendation.objects.create(
+                    user_id=1,  # Replace with the correct user ID or logic
+                    category=category,
+                    topic=topic,
+                    headline=data.get("headline", ""),
+                    introduction=data.get("introduction", ""),
+                    key_tips_and_takeaways=data.get("key_tips_and_takeaways", ""),
+                    fun_facts=data.get("fun_facts", ""),
+                    conclusion=data.get("conclusion", ""),
+                    picture_url=data.get("picture_url",None),
+                    created_at=date.today(),
+                    last_refresh=date.today()
+                )
+                print('message is saved')
+
+            else:
+                print("No data generated.")
+        except Exception as e:
+            print(f"Error generating recommendations: {e}")
+            return Response({
+                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "success": False,
+                "message": "Failed to generate recommendations"
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        return Response({
+            "status": status.HTTP_200_OK,
+            "success": True,
+            "message": "Recommendations data generated successfully",
+            "data": data
         }, status=status.HTTP_200_OK)

@@ -12,7 +12,8 @@ from .views import (
     ResponseListAPIView, ResponseDetailAPIView,
     SearchListAPIView, SearchDetailAPIView,
     FeedbackListAPIView, FeedbackDetailAPIView,
-    UpdateMeAPIView, TrendingNewsAPIView
+    UpdateMeAPIView, TrendingNewsAPIView,
+    RecommendationsAPIView
 )
 
 urlpatterns = [
@@ -67,4 +68,6 @@ urlpatterns = [
     # badsha
     path('update-me/', UpdateMeAPIView.as_view(), name='update-me'),
     path('trending-news/', TrendingNewsAPIView.as_view(), name='trending-news'),
+    path('recommendation-news/', RecommendationsAPIView.as_view(), name='recommendation-news'),
+    
 ]
