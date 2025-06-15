@@ -424,6 +424,7 @@ from .models import (
     UpdateMe,   
     Trending,
     Recommendation,
+    Preference
 )
 from .serializers import (
     UpdateMeSerializer,
@@ -645,3 +646,32 @@ class RecommendationsAPIView(APIView):
             "message": "Recommendations data generated successfully",
             "data": data
         }, status=status.HTTP_200_OK)
+    
+class PreferencesAPIView(APIView):
+    # permission_classes = [AllowAny]
+
+    def post(self, request):
+        user = request.user
+        data = request.data.get('interests',[])
+        print('data', data)
+
+        for name in data:
+            category = Category.objects.filter(category_name__icontains=name).first()
+            print('category', category)
+            if category:
+                # Update or create the user's preference for this category
+                user_preferences, _ = Preference.objects.get_or_create(
+                    user=user,
+                    category=category,
+                )     
+                print('add preferences')
+        return Response({
+            "status": status.HTTP_200_OK,
+            "success": True,
+            "message": "Preferences updated successfully"
+        }, status=status.HTTP_200_OK)
+    
+        
+            
+
+        

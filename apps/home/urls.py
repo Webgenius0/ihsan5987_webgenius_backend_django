@@ -13,7 +13,8 @@ from .views import (
     SearchListAPIView, SearchDetailAPIView,
     FeedbackListAPIView, FeedbackDetailAPIView,
     UpdateMeAPIView, TrendingNewsAPIView,
-    RecommendationsAPIView
+    RecommendationsAPIView,
+    PreferencesAPIView
 )
 
 urlpatterns = [
@@ -69,5 +70,8 @@ urlpatterns = [
     path('update-me/', UpdateMeAPIView.as_view(), name='update-me'),
     path('trending-news/', TrendingNewsAPIView.as_view(), name='trending-news'),
     path('recommendation-news/', RecommendationsAPIView.as_view(), name='recommendation-news'),
+
+    # preferences 
+    path('preferences/set/', PreferencesAPIView.as_view(), name='set-preferences'),
     
 ]

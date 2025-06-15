@@ -173,6 +173,7 @@ class BookmarkAdmin(admin.ModelAdmin):
 # Preference
 @admin.register(Preference)
 class PreferenceAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'category', 'subcategory', 'created_at')
+    list_display = ('id', 'user__name', 'category', 'subcategory', 'created_at')
     list_filter = ('created_at', 'category', 'subcategory')
     search_fields = ('user__username',)
+    list_display_links = ('id', 'user__name', 'category')
