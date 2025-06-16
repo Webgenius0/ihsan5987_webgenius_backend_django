@@ -6,7 +6,7 @@ from unfold.contrib.import_export.forms import ExportForm, ImportForm, Selectabl
 
 @admin.register(Post)
 class PostAdmin(ModelAdmin, ImportExportModelAdmin):
-    list_display = ("id", "title", "content", "category", "user", "created_at")
+    list_display = ("id", "title", "content", "user", "created_at")
     search_fields = ["title", "user__email"]
     ordering = ["-created_at"]
 
