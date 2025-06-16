@@ -1,6 +1,5 @@
 from django.db import models
 from django.conf import settings
-from apps.community_hubs.models import Post
 
 # Category & Subcategory
 class Category(models.Model):
