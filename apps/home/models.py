@@ -1,88 +1,91 @@
 from django.db import models
 from django.conf import settings
+from apps.community_hubs.models import Post
 
-#Trending News model
-class TrendingNews(models.Model):
-    title = models.CharField(max_length=500)
-    description = models.TextField(null=True, blank=True)
-    content = models.TextField(null=True, blank=True)
-    url = models.URLField(unique=True)
-    image = models.URLField(null=True, blank=True)
-    published_at = models.DateTimeField()
-    source_name = models.CharField(max_length=255, null=True, blank=True)
-    source_url = models.URLField(null=True, blank=True)
-    category = models.CharField(max_length=100)
-
-    def __str__(self):
-        return self.title
-    
-class RecommendedNews(models.Model):
-    title = models.CharField(max_length=500)
-    description = models.TextField(null=True, blank=True)
-    content = models.TextField(null=True, blank=True)
-    url = models.URLField(unique=True)
-    image = models.URLField(null=True, blank=True)
-    published_at = models.DateTimeField()
-    source_name = models.CharField(max_length=255, null=True, blank=True)
-    source_url = models.URLField(null=True, blank=True)
-    category = models.CharField(max_length=100)
-
-    def __str__(self):
-        return self.title
-
-# Bookmark model
-class NewsBookmark(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='bookmarks')
-    article = models.ForeignKey(TrendingNews, on_delete=models.CASCADE, related_name='bookmarks')
-    bookmarked_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        unique_together = ('user', 'article')
-
-
-#Interest model
+# Category & Subcategory
 class Category(models.Model):
+    category_name = models.CharField(max_length=200, default="Unknown-Category")
+    created_at = models.DateField(auto_now_add=True)
+
+class Subcategory(models.Model):
+    subcategory_name = models.CharField(max_length=200, default="Unknown-SubCategory")
+    created_at = models.DateField(auto_now_add=True)
+
+# Topic Tags
+class TopicTag(models.Model):
+    tag_names = models.TextField()
+    created_at = models.DateField(auto_now_add=True)
+
+# Topic
+class Topic(models.Model):
     name = models.CharField(max_length=255)
+    topic_tags = models.ForeignKey(TopicTag, on_delete=models.SET_NULL, null=True)
+    created_at = models.DateField(auto_now_add=True)
 
-    def __str__(self):
-        return self.name
+# General Facts
+class GeneralFact(models.Model):
+    general_definition = models.TextField()
+    general_points = models.TextField()
+    general_fun_fact = models.TextField()
+    general_created_at = models.DateField()
+    key_facts_text = models.TextField()
+    key_facts_fun_fact = models.TextField()
+    key_facts_created_at = models.DateField()
+    picture_url = models.URLField()
+    picture_created_at = models.DateField()
 
-class SubCategory(models.Model):
-    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='subcategories')
-    name = models.CharField(max_length=255)
+# News
+class News(models.Model):
+    news_text = models.TextField()
+    news_fun_facts = models.TextField()
+    news_oldest_article_date = models.DateField()
+    news_newest_article_date = models.DateField()
+    news_picture_url = models.URLField()
+    news_picture_created_at = models.DateField()
 
-    def __str__(self):
-        return f"{self.category.name} - {self.name}"
-    
-class Interest(models.Model):
-    name = models.CharField(max_length=255)
-    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
-    subcategory = models.ForeignKey(SubCategory, on_delete=models.SET_NULL, null=True, blank=True)
+# Interesting Trivia
+class InterestingTrivia(models.Model):
+    trivia_text = models.TextField()
+    picture_url = models.URLField()
+    trivia_fun_fact = models.TextField()
+    trivia_text_created_at = models.DateField()
+    trivia_picture_created_at = models.DateField()
 
-    def __str__(self):
-        return self.name
-    
-class UserInterests(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='user_interests')
-    interests = models.ManyToManyField(Interest, related_name='user_interests')
-    selected_interests = models.IntegerField(default=0)
+# Opinions
+class Opinion(models.Model):
+    opinions_text = models.TextField()
+    opinions_fun_fact = models.TextField()
+    opinions_created_at = models.DateField()
 
-    def __str__(self):
-        return f"{self.user.email}'s interests"
-    
-class UserPreference(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='preferences')
-    interest = models.ForeignKey(Interest, on_delete=models.CASCADE)
-    clicked_at = models.DateTimeField(auto_now=True)  # When user interacted with it
+# Questions
+class Question(models.Model):
+    questions_text = models.TextField()
+    questions_fun_fact = models.TextField()
+    questions_created_at = models.DateField()
 
-    class Meta:
-        unique_together = ('user', 'interest')  # Avoid duplicate records
+# Response
+class Response(models.Model):
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, null = True, blank = True)
+    subcategory = models.ForeignKey(Subcategory, on_delete=models.CASCADE, null = True, blank = True)
+    topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
+    general_fact = models.ForeignKey(GeneralFact, on_delete=models.SET_NULL, null=True)
+    news = models.ForeignKey(News, on_delete=models.SET_NULL, null=True)
+    interesting_trivia = models.ForeignKey(InterestingTrivia, on_delete=models.SET_NULL, null=True)
+    opinion = models.ForeignKey(Opinion, on_delete=models.SET_NULL, null=True)
+    question = models.ForeignKey(Question, on_delete=models.SET_NULL, null=True)
+    further_key_words = models.TextField(blank=True)
+    created_at = models.DateField(auto_now_add=True)
 
-    def __str__(self):
-        return f"{self.user.email} clicked {self.interest.name}"
+# Options
+class Option(models.Model):
+    options = models.TextField()
+    selection = models.TextField()
 
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 =======
+=======
+>>>>>>> 65eeb245896c7c3793d4ea75f8ef9dc65701b7d0
 # Search
 class Search(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='searches')
@@ -153,8 +156,11 @@ class RecommendationUser(models.Model):
     clicked_at = models.DateField()
 
 class Bookmark(models.Model):
+<<<<<<< HEAD
     from apps.community_hubs.models import Post
 
+=======
+>>>>>>> 65eeb245896c7c3793d4ea75f8ef9dc65701b7d0
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     trending = models.ForeignKey(Trending, on_delete=models.SET_NULL, null=True, blank=True)
     recommendation = models.ForeignKey(Recommendation, on_delete=models.SET_NULL, null=True, blank=True)
@@ -168,4 +174,7 @@ class Preference(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null = True, blank = True)
     subcategory = models.ForeignKey(Subcategory, on_delete=models.CASCADE, null = True, blank = True)
     created_at = models.DateField(auto_now_add=True)
+<<<<<<< HEAD
 >>>>>>> Stashed changes
+=======
+>>>>>>> 65eeb245896c7c3793d4ea75f8ef9dc65701b7d0
