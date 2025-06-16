@@ -81,11 +81,6 @@ class Option(models.Model):
     options = models.TextField()
     selection = models.TextField()
 
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-=======
-=======
->>>>>>> 65eeb245896c7c3793d4ea75f8ef9dc65701b7d0
 # Search
 class Search(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='searches')
@@ -156,11 +151,8 @@ class RecommendationUser(models.Model):
     clicked_at = models.DateField()
 
 class Bookmark(models.Model):
-<<<<<<< HEAD
     from apps.community_hubs.models import Post
 
-=======
->>>>>>> 65eeb245896c7c3793d4ea75f8ef9dc65701b7d0
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     trending = models.ForeignKey(Trending, on_delete=models.SET_NULL, null=True, blank=True)
     recommendation = models.ForeignKey(Recommendation, on_delete=models.SET_NULL, null=True, blank=True)
@@ -174,7 +166,4 @@ class Preference(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null = True, blank = True)
     subcategory = models.ForeignKey(Subcategory, on_delete=models.CASCADE, null = True, blank = True)
     created_at = models.DateField(auto_now_add=True)
-<<<<<<< HEAD
->>>>>>> Stashed changes
-=======
->>>>>>> 65eeb245896c7c3793d4ea75f8ef9dc65701b7d0
+
