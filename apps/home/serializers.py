@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import (
     Response, Topic, Category, Subcategory, GeneralFact, News, InterestingTrivia,
-    Opinion, Question, Search
+    Opinion, Question, Search, UpdateMe, Trending, Recommendation
 )
 from apps.profiles.models import Feedback
 from apps.users.models import User
@@ -19,7 +19,8 @@ class SubcategorySerializer(serializers.ModelSerializer):
 class TopicSerializer(serializers.ModelSerializer):
     class Meta:
         model = Topic
-        fields = ['id', 'name', 'topic_tags_id', 'created_at']
+        # fields = ['id', 'name', 'topic_tags', 'created_at']
+        fields = '__all__'
 
 class GeneralFactSerializer(serializers.ModelSerializer):
     class Meta:
@@ -94,3 +95,27 @@ class FeedbackSerializer(serializers.ModelSerializer):
     class Meta:
         model = Feedback
         fields = ['id', 'user', 'search', 'content', 'rating', 'created_at']
+
+
+class UpdateMeSerializer(serializers.ModelSerializer):
+    # category = CategorySerializer(read_only=True, source='category_id')
+    # subcategory = SubcategorySerializer(read_only=True, source='subcategory_id')
+    # topic = TopicSerializer(read_only=True, source='topic_id')
+
+    class Meta:
+        model = UpdateMe
+        # fields = '__all__'
+        exclude = ['user']
+        depth = 1
+
+class TrendingNewsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Trending
+        fields = '__all__'
+        depth = 1
+
+class RecommendationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Recommendation
+        exclude = ['user']
+        depth = 1

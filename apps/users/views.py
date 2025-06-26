@@ -38,7 +38,7 @@ class SignupView(APIView):
             response_data = {
                 "status": status.HTTP_201_CREATED,
                 "success": "true",
-                "message": "User created. OTP sent to email for verification.",
+                "message": f"User created. OTP sent to email for verification. {otp}",
             }
             return Response(response_data, status=status.HTTP_201_CREATED)
         
