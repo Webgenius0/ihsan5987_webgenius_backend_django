@@ -5,7 +5,7 @@ from cloudinary.models import CloudinaryField
 # Create your models here.
 class Post(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="posts")
-    category = models.CharField(max_length=255, null=True, blank=True)
+    category = models.ForeignKey('home.Category', on_delete=models.CASCADE, null=True, blank=True)
     title = models.CharField(max_length=255, null=True, blank=True)
     content = models.TextField()
     image = CloudinaryField('image', null=True, blank=True)
