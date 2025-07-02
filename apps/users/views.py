@@ -339,7 +339,7 @@ class ResetPasswordView(APIView):
         
         send_system_notification(
             recipient=user,
-            title="🔒 Password Changed",
+            title="Password Changed",
             message="Your password has been successfully changed.",
             event_type='password_change',
         )

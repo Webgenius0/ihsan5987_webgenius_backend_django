@@ -1,4 +1,5 @@
 from django.urls import path
+from apps.community_hubs.views import PostList
 from .views import (
     CategoryListAPIView, CategoryDetailAPIView,
     SubcategoryListAPIView, SubcategoryDetailAPIView,
@@ -73,5 +74,8 @@ urlpatterns = [
 
     # preferences 
     path('preferences/set/', PreferencesAPIView.as_view(), name='set-preferences'),
-    
+
+
+    # Community Hubs Post
+    path('posts/', PostList.as_view(), name='community-hubs-post'),
 ]

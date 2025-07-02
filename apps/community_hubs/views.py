@@ -20,7 +20,9 @@ class PostList(APIView):
         posts = Post.objects.all()
 
         if search:
-            posts = posts.filter(Q(title__icontains=search) | Q(category__icontains=search))
+            posts = posts.filter(
+                Q(title__icontains=search) | Q(category__name__icontains=search)
+            )
 
         if sort == "most_commented":
             posts = posts.annotate(num_comments=Count("comments")).order_by("-num_comments")
