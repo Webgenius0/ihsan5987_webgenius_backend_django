@@ -1,12 +1,15 @@
 from django.db import models
 from apps.users.models import User
 from cloudinary.models import CloudinaryField
+from apps.home.models import Category
 
 # Create your models here.
 class Post(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="posts")
+
     category = models.ForeignKey('home.Category', on_delete=models.CASCADE, null=True, blank=True)
     title = models.CharField(max_length=255, null=True, blank=True)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True)
     content = models.TextField()
     image = CloudinaryField('image', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
