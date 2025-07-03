@@ -116,7 +116,7 @@ class VerifyOTPView(APIView):
         }
         send_system_notification(
             recipient=user,
-            title="🎉 Account Setup Complete",
+            title="Account Setup Complete",
             message="Your account has been successfully completed. Welcome aboard!",
             event_type='account_complete',
         )
@@ -187,8 +187,8 @@ class VerifyResetPasswordOTPView(APIView):
         }
         return Response(response_data, status=status.HTTP_200_OK)
 
-#Resend OTP View
-class ResendOTPView(APIView):
+# Resend Verify OTP View
+class ResendVerifyOTPView(APIView):
     def post(self, request):
         email = request.data.get('email')
 
@@ -250,6 +250,77 @@ class ResendOTPView(APIView):
             "message": "OTP resent successfully.",
         }   
         return Response(response_data, status=status.HTTP_200_OK)
+    
+
+# Resend Reset Password OTP View
+class ResendResetOTPView(APIView):
+    def post(self, request):
+        email = request.data.get('email')
+
+        if not email:
+            return Response({
+                "status": status.HTTP_400_BAD_REQUEST,
+                "success": False,
+                "message": "Invalid credentials.",
+                "errors": "Email is required."
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({
+                "status": status.HTTP_400_BAD_REQUEST,
+                "success": False,
+                "message": "Invalid credentials.",
+                "errors": "User does not exist."
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        if EmailOTP.objects.filter(user=user, is_verified=True).exists():
+            return Response({
+                "status": status.HTTP_400_BAD_REQUEST,
+                "success": False,
+                "message": "Invalid request.",
+                "errors": "Forget Password Resend OTP is already verified."
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            # Check if user already has an unverified OTP
+            otp_obj = EmailOTP.objects.filter(user=user, is_verified=False).latest('created_at')
+            # If we find an unverified OTP, consider that the user is not verified yet
+            # So we allow to resend
+        except EmailOTP.DoesNotExist:
+            otp_obj = None
+
+        # Generate a new OTP or update the existing one
+        otp = str(random.randint(1000, 9999))
+        if otp_obj:
+            otp_obj.otp = otp
+            otp_obj.created_at = timezone.now()
+            otp_obj.attempts = 0
+            otp_obj.save()
+        else:
+            EmailOTP.objects.create(
+                user=user,
+                otp=otp,
+                created_at=timezone.now(),
+                attempts=0
+            )
+
+        send_mail(
+            subject="Resend OTP Code",
+            message=f"Your new OTP is {otp}",
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=[user.email],
+        )
+
+        response_data = {
+            "status": status.HTTP_200_OK,
+            "success": True,
+            "message": "OTP resent successfully.",
+        }
+        return Response(response_data, status=status.HTTP_200_OK)
+
+
     
 #Forgot Password View
 class ForgotPasswordView(APIView):
@@ -380,7 +451,7 @@ class LoginView(APIView):
 
                 send_system_notification(
                     recipient=user,
-                    title="🔐 New Device Login",
+                    title="New Device Login",
                     message="Your account was accessed from a new device. If this wasn't you, please secure your account.",
                     event_type='new_device_login',
                 )
@@ -416,6 +487,62 @@ class LoginView(APIView):
             "errors": error_message,
         }
         return Response(response_error, status=status.HTTP_403_FORBIDDEN)
+    
+
+# Change Password View
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        current_password = request.data.get('current_password')
+        new_password = request.data.get('new_password')
+        confirm_password = request.data.get('confirm_password')
+
+        if not current_password or not new_password or not confirm_password:
+            return Response({
+                "status": status.HTTP_400_BAD_REQUEST,
+                "success": False,
+                "message": "Current password, new password, and confirm password are required."
+            }, status = status.HTTP_400_BAD_REQUEST)
+        
+        user = User.objects.get(email=request.user.email)
+        if not user.check_password(current_password):
+            return Response({
+                "status": status.HTTP_400_BAD_REQUEST,
+                "success": False,
+                "message": "Current password is incorrect."
+            }, status = status.HTTP_400_BAD_REQUEST)
+        
+        if new_password != confirm_password:
+            return Response({
+                "status": status.HTTP_400_BAD_REQUEST,
+                "success": False,
+                "message": "Passwords do not match."
+            }, status = status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(email=request.user.email)
+            user.set_password(new_password)
+            user.save()
+        except User.DoesNotExist:
+            return Response({
+                "status": status.HTTP_400_BAD_REQUEST,
+                "success": False,
+                "message": "User not found."
+            }, status = status.HTTP_400_BAD_REQUEST)
+
+        send_system_notification(
+            recipient=user,
+            title="Password Changed",
+            message="Your account password has been successfully changed.",
+            event_type='password_change',
+        )
+
+        return Response({
+            "status": status.HTTP_200_OK,
+            "success": True,
+            "message": "Password changed successfully."
+        }, status=status.HTTP_200_OK)
 
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
