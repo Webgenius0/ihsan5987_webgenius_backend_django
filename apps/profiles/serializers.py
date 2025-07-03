@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from apps.community_hubs.models import Post
 from apps.community_hubs.serializers import UserSerializer
-from .models import Profile, FAQ, FAQCategory, ContactUs, NotificationSetting
+from .models import Profile, FAQ, FAQCategory, ContactUs, NotificationSetting, AppInfo
 
 # Profile Serializer
 class ProfileSerializer(serializers.ModelSerializer):
@@ -92,3 +92,9 @@ class NotificationSettingSerializer(serializers.ModelSerializer):
         data = super().to_representation(instance)
         data['user'] = instance.user.id
         return data
+
+# App information Serializer
+class AppInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AppInfo
+        fields = "__all__"
