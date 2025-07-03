@@ -76,3 +76,21 @@ class Feedback(models.Model):
     content = models.TextField()
     rating = models.IntegerField()
     created_at = models.DateField(auto_now_add=True)
+
+
+# About SmallTalk
+# models.py
+class AppInfo(models.Model):
+    job_vacancy_url = models.URLField(blank=True, null=True)
+    developer_url = models.URLField(blank=True, null=True)
+    partner_url = models.URLField(blank=True, null=True)
+    accessibility_url = models.URLField(blank=True, null=True)
+    privacy_policy_url = models.URLField(blank=True, null=True)
+    community_guidelines_url = models.URLField(blank=True, null=True)
+    feedback_url = models.URLField(blank=True, null=True)
+    rate_us_url = models.URLField(blank=True, null=True)
+    website_url = models.URLField(blank=True, null=True)
+    social_media_url = models.URLField(blank=True, null=True)
+
+    def __str__(self):
+        return "App Information" 
