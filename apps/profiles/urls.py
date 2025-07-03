@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import ProfileView, MyPostList, MyPostDetail, FAQList, FAQCategoryList, ContactUsList, NotificationSettingView
+from .views import ProfileView, MyPostList, MyPostDetail, FAQList, FAQCategoryList, ContactUsList, NotificationSettingView, AppInformationView
 
 urlpatterns = [
     path('profile/', ProfileView.as_view(), name='profile'),
@@ -9,4 +9,5 @@ urlpatterns = [
     path('faq-categories/', FAQCategoryList.as_view(), name='faq-category-list'),
     path('contact-us/', ContactUsList.as_view(), name='contact-us'),
     path('notifiaction/settings/', NotificationSettingView.as_view(), name='notification-settings'),
+    path('app-info/', AppInformationView.as_view(), name='app-info'),
 ]

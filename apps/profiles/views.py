@@ -5,8 +5,8 @@ from apps.community_hubs.models import Post
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
-from .models import Profile, FAQ, FAQCategory, ContactUs, NotificationSetting
-from .serializers import ProfileSerializer, MyPostSerializer, FAQSerializer, FAQCategorySerializer, ContactUsSerializer, NotificationSettingSerializer
+from .models import Profile, FAQ, FAQCategory, ContactUs, NotificationSetting, AppInfo
+from .serializers import ProfileSerializer, MyPostSerializer, FAQSerializer, FAQCategorySerializer, ContactUsSerializer, NotificationSettingSerializer, AppInfoSerializer
 
 # Profile View
 class ProfileView(APIView):
@@ -275,3 +275,29 @@ class NotificationSettingView(APIView):
             "errors": serializer.errors
         }, status=status.HTTP_400_BAD_REQUEST)
 
+# App Information View
+class AppInformationView(APIView):
+    def get(self, request):
+        try:
+            app_info = AppInfo.objects.first()  # Assuming only one AppInfo instance exists
+            if not app_info:
+                return Response({
+                    "status": status.HTTP_404_NOT_FOUND,
+                    "success": False,
+                    "message": "App information not found"
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+            serializer = AppInfoSerializer(app_info)
+            response = {
+                "status": status.HTTP_200_OK,
+                "success": True,
+                "message": "App information retrieved successfully",
+                "data": serializer.data
+            }
+            return Response(response, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({
+                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "success": False,
+                "message": str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
