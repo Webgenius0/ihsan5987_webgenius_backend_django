@@ -1,4 +1,5 @@
 from django.urls import path
+from apps.community_hubs.views import PostList
 from .views import (
     CategoryListAPIView, CategoryDetailAPIView,
     SubcategoryListAPIView, SubcategoryDetailAPIView,
@@ -12,6 +13,9 @@ from .views import (
     ResponseListAPIView, ResponseDetailAPIView,
     SearchListAPIView, SearchDetailAPIView,
     FeedbackListAPIView, FeedbackDetailAPIView,
+    UpdateMeAPIView, TrendingNewsAPIView,
+    RecommendationsAPIView,
+    PreferencesAPIView
 )
 
 urlpatterns = [
@@ -61,4 +65,17 @@ urlpatterns = [
     # Feedbacks
     path('feedbacks/', FeedbackListAPIView.as_view(), name='feedback-list'),
     path('feedbacks/<int:pk>/', FeedbackDetailAPIView.as_view(), name='feedback-detail'),
+
+
+    # badsha
+    path('update-me/', UpdateMeAPIView.as_view(), name='update-me'),
+    path('trending-news/', TrendingNewsAPIView.as_view(), name='trending-news'),
+    path('recommendation-news/', RecommendationsAPIView.as_view(), name='recommendation-news'),
+
+    # preferences 
+    path('preferences/set/', PreferencesAPIView.as_view(), name='set-preferences'),
+
+
+    # Community Hubs Post
+    path('posts/', PostList.as_view(), name='community-hubs-post'),
 ]

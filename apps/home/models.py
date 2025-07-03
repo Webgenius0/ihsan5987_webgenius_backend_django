@@ -6,6 +6,9 @@ class Category(models.Model):
     category_name = models.CharField(max_length=200, default="Unknown-Category")
     created_at = models.DateField(auto_now_add=True)
 
+    def __str__(self):
+        return self.category_name
+
 class Subcategory(models.Model):
     subcategory_name = models.CharField(max_length=200, default="Unknown-SubCategory")
     created_at = models.DateField(auto_now_add=True)
@@ -102,8 +105,13 @@ class Recommendation(models.Model):
     subcategory = models.ForeignKey(Subcategory, on_delete=models.CASCADE, null = True, blank = True)
     topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
     headline = models.TextField()
-    description = models.TextField()
-    content = models.TextField()
+    introduction = models.TextField(blank=True, null=True)
+    key_tips_and_takeaways = models.JSONField(blank=True, null=True)
+    fun_facts = models.TextField(blank=True, null=True)
+    conclusion = models.TextField(blank=True, null=True)
+
+    # description = models.TextField()
+    # content = models.TextField()
     picture_url = models.URLField(blank=True, null=True)
     created_at = models.DateField(auto_now_add=True)
     last_refresh = models.DateField()
@@ -127,7 +135,7 @@ class KeyWord(models.Model):
 
 # Trending
 class Trending(models.Model):
-    key_words = models.ForeignKey(KeyWord, on_delete=models.CASCADE)
+    key_words = models.ForeignKey(KeyWord, on_delete=models.CASCADE, null=True, blank=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null = True, blank = True)
     subcategory = models.ForeignKey(Subcategory, on_delete=models.CASCADE, null = True, blank = True)
     description = models.TextField()
@@ -135,7 +143,7 @@ class Trending(models.Model):
     key_points = models.TextField()
     outlook = models.TextField()
     picture_url = models.URLField(blank=True, null=True)
-    picture_last_refresh = models.DateField()
+    picture_last_refresh = models.DateField(blank=True, null=True)
     created_at = models.DateField(auto_now_add=True)
 
 # User-Interaction Tables
@@ -166,3 +174,6 @@ class Preference(models.Model):
     subcategory = models.ForeignKey(Subcategory, on_delete=models.CASCADE, null = True, blank = True)
     created_at = models.DateField(auto_now_add=True)
 
+    def __str__(self):
+        return self.user.name
+    

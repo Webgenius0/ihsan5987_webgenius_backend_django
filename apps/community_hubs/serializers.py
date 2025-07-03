@@ -10,33 +10,33 @@ from .models import Post, Comment, Like, CommentReport
 class PostlistSerializer(serializers.ModelSerializer):
     comment_count = serializers.SerializerMethodField()
     commented_users = serializers.SerializerMethodField()
+    category = serializers.SerializerMethodField()  # change here
 
     class Meta:
         model = Post
         fields = [
-            'id', 'user', 'title','category', 'image', 'content',
+            'id', 'user', 'title', 'category', 'image', 'content',
             'created_at', 'comment_count', 'commented_users'
         ]
 
     def get_comment_count(self, obj):
-        return obj.comment_count()  # assumes a method in your model
+        return obj.comment_count()
 
     def get_commented_users(self, obj):
-        # Fetch comments with related user and profile data
         comments = obj.comments.select_related('user__profile')
-        
-        # Collect unique users based on user ID
         users_dict = {}
         for comment in comments:
-            user = comment.user
-            users_dict[user.id] = user
-
-        # Limit to 5 users for avatars
+            users_dict[comment.user.id] = comment.user
         user_list = list(users_dict.values())[:5]
-
         return {
             'avatars': UserSerializer(user_list, many=True, context=self.context).data
         }
+
+    def get_category(self, obj):
+        if obj.category:
+            return obj.category.name
+        return None
+
 
 
 class CreatePostSerializer(serializers.ModelSerializer):
