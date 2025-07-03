@@ -1,6 +1,5 @@
 from django.db import models
 from django.conf import settings
-from apps.community_hubs.models import Post
 
 # Category & Subcategory
 class Category(models.Model):
@@ -159,6 +158,8 @@ class RecommendationUser(models.Model):
     clicked_at = models.DateField()
 
 class Bookmark(models.Model):
+    from apps.community_hubs.models import Post
+
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     trending = models.ForeignKey(Trending, on_delete=models.SET_NULL, null=True, blank=True)
     recommendation = models.ForeignKey(Recommendation, on_delete=models.SET_NULL, null=True, blank=True)

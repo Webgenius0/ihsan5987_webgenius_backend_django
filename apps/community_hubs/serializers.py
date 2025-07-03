@@ -34,7 +34,7 @@ class PostlistSerializer(serializers.ModelSerializer):
 
     def get_category(self, obj):
         if obj.category:
-            return obj.category.name
+            return obj.category.category_name
         return None
 
 
