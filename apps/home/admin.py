@@ -115,16 +115,15 @@ class SearchTagAdmin(admin.ModelAdmin):
 # Recommendation
 @admin.register(Recommendation)
 class RecommendationAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'category', 'topic', 'headline', 'created_at', 'last_refresh')
+    list_display = ('topic', 'category', 'headline', 'created_at', 'last_refresh')
     list_filter = ('category', 'topic', 'created_at')
     search_fields = ('headline', 'description', 'content')
     ordering = ('-created_at',)
 
 
-# UpdateMe
 @admin.register(UpdateMe)
 class UpdateMeAdmin(ModelAdmin):
-    list_display = ('id', 'user', 'category', 'subcategory', 'topic', 'created_at', 'interest')
+    list_display = ('id', 'category', 'subcategory', 'topic', 'created_at', 'interest')
     list_filter = ('created_at', 'interest', 'category', 'subcategory', 'topic')
     search_fields = ('short_info', 'background_story', 'reference_url')
     ordering = ('-created_at',)
@@ -172,8 +171,8 @@ class BookmarkAdmin(admin.ModelAdmin):
 
 # Preference
 @admin.register(Preference)
-class PreferenceAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user__name', 'category', 'subcategory', 'created_at')
+class PreferenceAdmin(ModelAdmin):
+    list_display = ('user__name', 'category', 'subcategory', 'created_at')
     list_filter = ('created_at', 'category', 'subcategory')
     search_fields = ('user__username',)
-    list_display_links = ('id', 'user__name', 'category')
+    list_display_links = ('user__name', 'category')

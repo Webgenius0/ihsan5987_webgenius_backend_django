@@ -13,10 +13,16 @@ class Subcategory(models.Model):
     subcategory_name = models.CharField(max_length=200, default="Unknown-SubCategory")
     created_at = models.DateField(auto_now_add=True)
 
+    def __str__(self):
+        return self.subcategory_name
+
 # Topic Tags
 class TopicTag(models.Model):
     tag_names = models.TextField()
     created_at = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        return self.tag_names
 
 # Topic
 class Topic(models.Model):
@@ -100,7 +106,6 @@ class SearchTag(models.Model):
 
 # Recommendations
 class Recommendation(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     subcategory = models.ForeignKey(Subcategory, on_delete=models.CASCADE, null = True, blank = True)
     topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
@@ -109,25 +114,35 @@ class Recommendation(models.Model):
     key_tips_and_takeaways = models.JSONField(blank=True, null=True)
     fun_facts = models.TextField(blank=True, null=True)
     conclusion = models.TextField(blank=True, null=True)
-
     # description = models.TextField()
     # content = models.TextField()
     picture_url = models.URLField(blank=True, null=True)
     created_at = models.DateField(auto_now_add=True)
-    last_refresh = models.DateField()
+    last_refresh = models.DateField(auto_now_add=True)
 
 # Update Me
 class UpdateMe(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null = True, blank = True)
     subcategory = models.ForeignKey(Subcategory, on_delete=models.SET_NULL, null = True, blank = True)
     topic = models.ForeignKey(Topic, on_delete=models.SET_NULL, null=True)
-    short_info = models.JSONField()
-    reference_url = models.JSONField()
-    background_story = models.JSONField()
-    picture_url = models.TextField()
+    short_info = models.JSONField(blank=True, null=True)
+    reference_url = models.JSONField(blank= True, null=True)
+    background_story = models.JSONField(blank=True, null=True)
+    picture_url = models.TextField(blank=True, null=True)
     created_at = models.DateField()
-    interest = models.BooleanField()
+    interest = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.topic.name
+
+
+class UpdateMeUser(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    update_me = models.ForeignKey(UpdateMe, on_delete=models.CASCADE)
+    clicked_at = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        return self.user.name
 
 # Keywords
 class KeyWord(models.Model):
