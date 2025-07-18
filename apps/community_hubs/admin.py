@@ -8,7 +8,8 @@ from unfold.contrib.import_export.forms import ExportForm, ImportForm, Selectabl
 class PostAdmin(ModelAdmin, ImportExportModelAdmin):
     list_display = ("id", "title", "content", "user", "created_at")
     search_fields = ["title", "user__email"]
-    ordering = ["-created_at"]
+    list_per_page = 10
+    ordering = ["id"]
 
     import_form_class = ImportForm
     export_form_class = ExportForm
@@ -17,7 +18,8 @@ class PostAdmin(ModelAdmin, ImportExportModelAdmin):
 class CommentAdmin(ModelAdmin, ImportExportModelAdmin):
     list_display = ("id", "post", "user", "text", "is_active", "created_at")
     search_fields = ["post__title", "user__email"]
-    ordering = ["-created_at"]
+    list_per_page = 10
+    ordering = ["id"]
 
     import_form_class = ImportForm
     export_form_class = ExportForm
@@ -26,7 +28,8 @@ class CommentAdmin(ModelAdmin, ImportExportModelAdmin):
 class LikeAdmin(ModelAdmin, ImportExportModelAdmin):
     list_display = ("comment", "user", "created_at")
     search_fields = ["comment__post__title", "user__email"]
-    ordering = ["-created_at"]
+    list_per_page = 10
+    ordering = ["id"]
 
     import_form_class = ImportForm
     export_form_class = ExportForm
@@ -42,7 +45,8 @@ class CommentReportAdmin(ModelAdmin, ImportExportModelAdmin):
     list_editable = ['status']
 
     # Optional: Add ordering by status and created_at
-    ordering = ['-created_at']
+    list_per_page = 10
+    ordering = ["id"]
 
     def save_model(self, request, obj, form, change):
         if obj.status == 'dismissed':

@@ -12,13 +12,15 @@ from .models import (
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ('id', 'category_name', 'created_at')
     search_fields = ('category_name',)
-    ordering = ('-created_at',)
+    ordering = ('id',)
+    list_per_page = 10
 
 @admin.register(Subcategory)
 class SubcategoryAdmin(admin.ModelAdmin):
     list_display = ('id', 'subcategory_name', 'created_at')
     search_fields = ('subcategory_name',)
-    ordering = ('-created_at',)
+    ordering = ('id',)
+    list_per_page = 10
 
 
 # TopicTag & Topic
@@ -26,14 +28,16 @@ class SubcategoryAdmin(admin.ModelAdmin):
 class TopicTagAdmin(admin.ModelAdmin):
     list_display = ('id', 'tag_names', 'created_at')
     search_fields = ('tag_names',)
-    ordering = ('-created_at',)
+    ordering = ('id',)
+    list_per_page = 10
 
 @admin.register(Topic)
 class TopicAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'topic_tags', 'created_at')
     search_fields = ('name',)
     list_filter = ('topic_tags',)
-    ordering = ('-created_at',)
+    ordering = ('id',)
+    list_per_page = 10
 
 
 # GeneralFact
@@ -41,7 +45,8 @@ class TopicAdmin(admin.ModelAdmin):
 class GeneralFactAdmin(admin.ModelAdmin):
     list_display = ("id", "general_definition", "general_created_at", "key_facts_created_at", "picture_created_at")
     search_fields = ('general_definition', 'general_fun_fact', 'key_facts_text')
-    ordering = ('-general_created_at',)
+    ordering = ('id',)
+    list_per_page = 10
 
 
 # News
@@ -49,7 +54,8 @@ class GeneralFactAdmin(admin.ModelAdmin):
 class NewsAdmin(admin.ModelAdmin):
     list_display = ('id', 'news_oldest_article_date', 'news_newest_article_date', 'news_picture_url')
     search_fields = ('news_text', 'news_fun_facts')
-    ordering = ('-news_newest_article_date',)
+    ordering = ('id',)
+    list_per_page = 10
 
 
 # InterestingTrivia
@@ -57,7 +63,8 @@ class NewsAdmin(admin.ModelAdmin):
 class InterestingTriviaAdmin(admin.ModelAdmin):
     list_display = ('id', 'trivia_text_created_at', 'picture_url')
     search_fields = ('trivia_text', 'trivia_fun_fact')
-    ordering = ('-trivia_text_created_at',)
+    ordering = ('id',)
+    list_per_page = 10
 
 
 # Opinion
@@ -65,7 +72,8 @@ class InterestingTriviaAdmin(admin.ModelAdmin):
 class OpinionAdmin(admin.ModelAdmin):
     list_display = ('id', 'opinions_created_at',)
     search_fields = ('opinions_text', 'opinions_fun_fact')
-    ordering = ('-opinions_created_at',)
+    ordering = ('id',)
+    list_per_page = 10
 
 
 # Question
@@ -73,7 +81,8 @@ class OpinionAdmin(admin.ModelAdmin):
 class QuestionAdmin(admin.ModelAdmin):
     list_display = ('id', 'questions_created_at',)
     search_fields = ('questions_text', 'questions_fun_fact')
-    ordering = ('-questions_created_at',)
+    ordering = ('id',)
+    list_per_page = 10
 
 
 # Response
@@ -85,7 +94,8 @@ class ResponseAdmin(admin.ModelAdmin):
     )
     list_filter = ('category', 'subcategory', 'topic', 'created_at')
     search_fields = ('further_key_words',)
-    ordering = ('-created_at',)
+    ordering = ('id',)
+    list_per_page = 10
 
 
 # Option
@@ -93,7 +103,8 @@ class ResponseAdmin(admin.ModelAdmin):
 class OptionAdmin(admin.ModelAdmin):
     list_display = ('id', 'options', 'selection')
     search_fields = ('options', 'selection')
-
+    ordering = ('id',)
+    list_per_page = 10
 
 # Search
 @admin.register(Search)
@@ -101,7 +112,8 @@ class SearchAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'search_term', 'response', 'created_at')
     list_filter = ('created_at', 'user')
     search_fields = ('search_term',)
-    ordering = ('-created_at',)
+    ordering = ('id',)
+    list_per_page = 10
 
 
 # SearchTag
@@ -109,7 +121,8 @@ class SearchAdmin(admin.ModelAdmin):
 class SearchTagAdmin(admin.ModelAdmin):
     list_display = ('id', 'search', 'tag_names', 'created_at')
     search_fields = ('tag_names',)
-    ordering = ('-created_at',)
+    ordering = ('id',)
+    list_per_page = 10
 
 
 # Recommendation
@@ -118,7 +131,8 @@ class RecommendationAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'category', 'topic', 'headline', 'created_at', 'last_refresh')
     list_filter = ('category', 'topic', 'created_at')
     search_fields = ('headline', 'description', 'content')
-    ordering = ('-created_at',)
+    ordering = ('id',)
+    list_per_page = 10
 
 
 # UpdateMe
@@ -127,7 +141,8 @@ class UpdateMeAdmin(ModelAdmin):
     list_display = ('id', 'user', 'category', 'subcategory', 'topic', 'created_at', 'interest')
     list_filter = ('created_at', 'interest', 'category', 'subcategory', 'topic')
     search_fields = ('short_info', 'background_story', 'reference_url')
-    ordering = ('-created_at',)
+    ordering = ('id',)
+    list_per_page = 10
 
 
 # KeyWord
@@ -135,6 +150,8 @@ class UpdateMeAdmin(ModelAdmin):
 class KeyWordAdmin(admin.ModelAdmin):
     list_display = ('id', 'key_words')
     search_fields = ('key_words',)
+    ordering = ('id',)
+    list_per_page = 10
 
 
 # Trending
@@ -143,7 +160,8 @@ class TrendingAdmin(ModelAdmin):
     list_display = ('id', 'key_words', 'description', 'why_trending', 'picture_url', 'created_at')
     list_filter = ('created_at',)
     search_fields = ('description', 'why_trending', 'key_points', 'outlook')
-    ordering = ('-created_at',)
+    ordering = ('id',)
+    list_per_page = 10
 
 
 # TrendingUser
@@ -152,6 +170,8 @@ class TrendingUserAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'trending', 'clicked_at')
     list_filter = ('clicked_at', 'user')
     search_fields = ('user__username',)
+    ordering = ('id',)
+    list_per_page = 10
 
 
 # RecommendationUser
@@ -160,6 +180,8 @@ class RecommendationUserAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'recommendation', 'clicked_at')
     list_filter = ('clicked_at', 'user')
     search_fields = ('user__username',)
+    ordering = ('id',)
+    list_per_page = 10
 
 
 # Bookmark
@@ -168,6 +190,8 @@ class BookmarkAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'trending', 'recommendation', 'update_me', 'search', 'community_post')
     list_filter = ('user',)
     search_fields = ('user__username',)
+    ordering = ('id',)
+    list_per_page = 10
 
 
 # Preference
@@ -177,3 +201,5 @@ class PreferenceAdmin(admin.ModelAdmin):
     list_filter = ('created_at', 'category', 'subcategory')
     search_fields = ('user__username',)
     list_display_links = ('id', 'user__name', 'category')
+    ordering = ('id',)
+    list_per_page = 10
