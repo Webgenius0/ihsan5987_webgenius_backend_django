@@ -1,0 +1,8 @@
+/* static/css/unfold_custom.css */
+
+.aside-nav a:hover,
+.aside a.group:hover,
+.aside-nav ul > li > a.group:hover {
+    background-color: #4574CA !important;  /* Light blue hover */
+    transition: background-color 0.2s ease;
+}
