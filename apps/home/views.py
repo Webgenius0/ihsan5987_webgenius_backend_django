@@ -179,7 +179,7 @@ class FeedbackDetailAPIView(APIView):
         return Response(serializer.data)
 
 
-from .get_data import get_update_me, get_recommendations
+from .get_data import get_update_me, get_recommendations, get_trending_now
 from .models import UpdateMeUser
 
 from rest_framework.exceptions import ValidationError
@@ -268,6 +268,35 @@ class RecommandationAPI(APIView):
             "data": recommendations
         })
 
+
+class TrendingTopicAPI(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        trending_topics = get_trending_now()
+
+        for trend in trending_topics:
+            try:
+                Trending.objects.create(
+                    category=Category.objects.get_or_create(
+                        category_name__icontains=trend["category"]
+                    )[0],
+                    subcategory=Subcategory.objects.get_or_create(
+                        subcategory_name__icontains=trend["subcategory"]
+                    )[0],
+                    description=trend["description"],
+                    why_trending=trend["why_is_it_trending"],
+                    key_points=trend["key_points"],
+                    outlook=trend["overlook_what_might_happen_next"],
+                    picture_url=trend["picture_url"],
+                )
+                print('New trending news saved to database, successfully!')
+            except Exception as e:
+                print(f"Error saving trending news data: {e}")
+                continue
+
+        response = {"status": "success", "data": trending_topics}
+        return Response(response)
 
 # import requests
 # from rest_framework import status

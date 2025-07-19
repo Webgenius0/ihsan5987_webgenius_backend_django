@@ -5,6 +5,7 @@ from SmallTalk.update_me import *
 import pandas as pd
 from SmallTalk.update_me import generate_update_me_element
 from SmallTalk.recommendation import generate_recommendation
+from SmallTalk.trending import generate_trending_set
 
 categories_file = "Categories.xlsx"
 categories_path = os.path.join(os.path.dirname(__file__), categories_file)
@@ -23,7 +24,7 @@ df = pd.read_excel(categories_path)
 
 def get_update_me (categories):
     update_me = []
-    for subtopic in categories:  # remove the index 2 if need to generate the update_me elemts for all topics
+    for subtopic in categories:
         update_me.append(
             generate_update_me_element(
                 keywords=subtopic,
@@ -45,3 +46,25 @@ def get_recommendations(categories):
         )
     return recommendations
 
+# def get_trending_now():
+#     import concurrent.futures
+#     # categories_file = os.path.join(os.path.dirname(__file__), 'Categories.xlsx')
+#     with concurrent.futures.ThreadPoolExecutor() as executor:
+#         future = executor.submit(generate_trending_set)
+#         data = future.result()  # Waits for the result
+
+#     if data:
+#         print("generated data", data)
+#         return data
+#     return []
+
+import concurrent
+
+def get_trending_now():
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        future = executor.submit(generate_trending_set)
+        data = future.result()  # Waits for the result
+
+    if data:
+        return data
+    return []

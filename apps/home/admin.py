@@ -139,7 +139,7 @@ class KeyWordAdmin(admin.ModelAdmin):
 # Trending
 @admin.register(Trending)
 class TrendingAdmin(ModelAdmin):
-    list_display = ('id', 'key_words', 'description', 'why_trending', 'picture_url', 'created_at')
+    list_display = ('id', 'description', 'why_trending', 'picture_url', 'created_at')
     list_filter = ('created_at',)
     search_fields = ('description', 'why_trending', 'key_points', 'outlook')
     ordering = ('-created_at',)
