@@ -9,7 +9,7 @@ from .models import (
 
 # Category & Subcategory
 @admin.register(Category)
-class CategoryAdmin(admin.ModelAdmin):
+class CategoryAdmin(ModelAdmin):
     list_display = ('id', 'category_name', 'created_at')
     search_fields = ('category_name',)
     ordering = ('id',)
@@ -129,7 +129,7 @@ class SearchTagAdmin(admin.ModelAdmin):
 @admin.register(Recommendation)
 class RecommendationAdmin(admin.ModelAdmin):
     list_display = ('topic', 'category', 'headline', 'created_at', 'last_refresh')
-    list_filter = ('category', 'topic', 'created_at')
+    list_filter = ('category', 'created_at')
     search_fields = ('headline', 'description', 'content')
     ordering = ('id',)
     list_per_page = 10
