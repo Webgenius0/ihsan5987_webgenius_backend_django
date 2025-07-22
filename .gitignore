@@ -28,3 +28,5 @@ db.sqlite3
 
 # apps
 data.json
+
+staticfiles/

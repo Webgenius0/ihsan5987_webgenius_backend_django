@@ -9,7 +9,7 @@ from .models import (
 
 # Category & Subcategory
 @admin.register(Category)
-class CategoryAdmin(admin.ModelAdmin):
+class CategoryAdmin(ModelAdmin):
     list_display = ('id', 'category_name', 'created_at')
     search_fields = ('category_name',)
     ordering = ('id',)
@@ -128,17 +128,16 @@ class SearchTagAdmin(admin.ModelAdmin):
 # Recommendation
 @admin.register(Recommendation)
 class RecommendationAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'category', 'topic', 'headline', 'created_at', 'last_refresh')
-    list_filter = ('category', 'topic', 'created_at')
+    list_display = ('topic', 'category', 'headline', 'created_at', 'last_refresh')
+    list_filter = ('category', 'created_at')
     search_fields = ('headline', 'description', 'content')
     ordering = ('id',)
     list_per_page = 10
 
 
-# UpdateMe
 @admin.register(UpdateMe)
 class UpdateMeAdmin(ModelAdmin):
-    list_display = ('id', 'user', 'category', 'subcategory', 'topic', 'created_at', 'interest')
+    list_display = ('id', 'category', 'subcategory', 'topic', 'created_at', 'interest')
     list_filter = ('created_at', 'interest', 'category', 'subcategory', 'topic')
     search_fields = ('short_info', 'background_story', 'reference_url')
     ordering = ('id',)
@@ -157,7 +156,7 @@ class KeyWordAdmin(admin.ModelAdmin):
 # Trending
 @admin.register(Trending)
 class TrendingAdmin(ModelAdmin):
-    list_display = ('id', 'key_words', 'description', 'why_trending', 'picture_url', 'created_at')
+    list_display = ('id', 'description', 'why_trending', 'picture_url', 'created_at')
     list_filter = ('created_at',)
     search_fields = ('description', 'why_trending', 'key_points', 'outlook')
     ordering = ('id',)
@@ -196,10 +195,8 @@ class BookmarkAdmin(admin.ModelAdmin):
 
 # Preference
 @admin.register(Preference)
-class PreferenceAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user__name', 'category', 'subcategory', 'created_at')
+class PreferenceAdmin(ModelAdmin):
+    list_display = ('user__name', 'category', 'subcategory', 'created_at')
     list_filter = ('created_at', 'category', 'subcategory')
     search_fields = ('user__username',)
-    list_display_links = ('id', 'user__name', 'category')
-    ordering = ('id',)
-    list_per_page = 10
+    list_display_links = ('user__name', 'category')
