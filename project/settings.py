@@ -40,14 +40,14 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
-    'unfold',
+    "unfold",  # before django.contrib.admin
     "unfold.contrib.filters",  # optional, if special filters are needed
     "unfold.contrib.forms",  # optional, if special form elements are needed
     "unfold.contrib.inlines",  # optional, if special inlines are needed
     "unfold.contrib.import_export",  # optional, if django-import-export package is used
     "unfold.contrib.guardian",  # optional, if django-guardian package is used
-    "unfold.contrib.simple_history",
-    'django.contrib.admin',
+    "unfold.contrib.simple_history",  # optional, if django-simple-history package is used
+    "django.contrib.admin",
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -296,19 +296,6 @@ UNFOLD = {
     "SHOW_HISTORY": True,  # show/hide "History" button, default: True
     "SHOW_VIEW_ON_SITE": True,  # show/hide "View on site" button, default: True
     "COLORS": {
-        # "primary": {
-        #     "50": "235 243 255",
-        #     "100": "213 229 255",
-        #     "200": "179 204 255",
-        #     "300": "145 179 252",
-        #     "400": "111 154 241",
-        #     "500": "69 116 202",      
-        #     "600": "54 95 168",
-        #     "700": "42 76 136",
-        #     "800": "34 61 109",
-        #     "900": "28 50 90",
-        #     "950": "15 29 52"
-        # }
         "primary": {
             "50": "255, 248, 235",
             "100": "255, 242, 213",

@@ -122,7 +122,6 @@ class VerifyOTPView(APIView):
         )
         return Response(response_data, status=status.HTTP_200_OK)
 
-
 #Verify Reset Password OTP View
 class VerifyResetPasswordOTPView(APIView):
     authentication_classes = []
@@ -250,7 +249,6 @@ class ResendVerifyOTPView(APIView):
             "message": "OTP resent successfully.",
         }   
         return Response(response_data, status=status.HTTP_200_OK)
-    
 
 # Resend Reset Password OTP View
 class ResendResetOTPView(APIView):
