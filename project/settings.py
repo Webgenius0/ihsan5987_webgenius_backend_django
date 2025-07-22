@@ -60,14 +60,10 @@ INSTALLED_APPS = [
     'apps.home',
     'apps.users',
     'import_export',
-
     'schema_viewer',
     
-
-
     # cloudinary
     'cloudinary',
-
     # my apps
     'apps.profiles.apps.ProfilesConfig',
     'apps.subscription.apps.SubscriptionConfig',  
