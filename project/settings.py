@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
+from .unfold_conf import UNFOLD
 import os
 from pathlib import Path
 from django.urls import reverse_lazy
@@ -46,29 +47,30 @@ INSTALLED_APPS = [
     "unfold.contrib.inlines",  # optional, if special inlines are needed
     "unfold.contrib.import_export",  # optional, if django-import-export package is used
     "unfold.contrib.guardian",  # optional, if django-guardian package is used
-    "unfold.contrib.simple_history",  # optional, if django-simple-history package is used
+    "unfold.contrib.simple_history",
     "django.contrib.admin",
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'corsheaders',
-    'rest_framework',
-    'fcm_django',
-    'rest_framework_simplejwt.token_blacklist',
-    'apps.home',
-    'apps.users',
-    'import_export',
-    'schema_viewer',
-    
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "corsheaders",
+    "rest_framework",
+    "fcm_django",
+    "rest_framework_simplejwt.token_blacklist",
+    "apps.home",
+    "apps.users",
+    "import_export",
+    "schema_viewer",
     # cloudinary
-    'cloudinary',
+    "cloudinary",
+    "django_celery_beat",
+
     # my apps
-    'apps.profiles.apps.ProfilesConfig',
-    'apps.subscription.apps.SubscriptionConfig',  
-    'apps.community_hubs',
-    'apps.notifications'
+    "apps.profiles.apps.ProfilesConfig",
+    "apps.subscription.apps.SubscriptionConfig",
+    "apps.community_hubs",
+    "apps.notifications",
 ]
 
 MIDDLEWARE = [
@@ -183,7 +185,7 @@ REST_FRAMEWORK = {
     ),
 }
 
-#Email sending setup
+# Email sending setup
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'  # or your SMTP provider
 EMAIL_PORT = 587
@@ -194,14 +196,14 @@ EMAIL_HOST_PASSWORD = 'bdui nxzn dogt fqxl'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 ADMIN_EMAIL = 'towhidulislam.mail@gmail.com'
 
-#CORS setup
+# CORS setup
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
     "https://ihsan5987-django.onrender.com",
 ]
 
-#csrf setup
+# csrf setup
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
@@ -209,7 +211,7 @@ CSRF_TRUSTED_ORIGINS = [
     "https://ece4-103-174-189-33.ngrok-free.app",
 ]
 
-#GNEWS_API_KEY
+# GNEWS_API_KEY
 GNEWS_API_KEY = 'c8953ffc8769d9e01b10e01713d86e34'
 # Cloudinary setup
 cloudinary.config( 
@@ -219,7 +221,7 @@ cloudinary.config(
     secure=True
 )
 
-#Simple JWT setup
+# Simple JWT setup
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
@@ -236,9 +238,6 @@ STRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET')
 
 STRIPE_SUCCESS_URL = 'http://127.0.0.1:8000/api/subscriptions/success/'
 STRIPE_CANCEL_URL = 'http://127.0.0.1:8000/api/subscriptions/cancel/'
-
-
-
 
 
 # Unfold Admin Customization
@@ -259,6 +258,10 @@ LOGGING = {
         },
     },
 }
+
+
+CELERY_BROKER_URL = "redis://localhost:6379/0"  # or RabbitMQ if you're using it
+CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 
 
 

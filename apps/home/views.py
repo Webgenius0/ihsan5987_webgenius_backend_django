@@ -14,6 +14,7 @@ from .serializers import (
     QuestionSerializer, UserSerializer, SearchSerializer, FeedbackSerializer
 )
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import AllowAny
 
 class StandardResultsSetPagination(PageNumberPagination):
     page_size = 10
@@ -178,14 +179,124 @@ class FeedbackDetailAPIView(APIView):
         return Response(serializer.data)
 
 
+from .get_data import get_update_me, get_recommendations, get_trending_now
+from .models import UpdateMeUser
+
+from rest_framework.exceptions import ValidationError
 
 
+class UpdateMeAPI(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        my_sub_ctg = ["Football", "Basketball", "Tennis"]
+        data = get_update_me(my_sub_ctg)
+
+        print("update me data", data) 
+
+        # save response into database
+        # check if the same title data already exist in database.
+        for item in data:
+            # if UpdateMe.objects.filter(topic__name=item['topic']).exists():
+            #     print("Update Me data already exists.")
+            #     continue
+            # else:
+            try:
+                update = UpdateMe.objects.create(
+                    category= Category.objects.get_or_create(category_name__icontains=item['category'])[0],
+                    subcategory=Subcategory.objects.get_or_create(subcategory_name__icontains=item['subcategory'])[0],
+                    topic=Topic.objects.get_or_create(name=item['topic'])[0],
+                    short_info=item['short_info'],
+                    reference_url=item['reference_url'],
+                    background_story=item['background_story'],
+                    picture_url=item['picture_url']
+                )
+                # create update me user
+                UpdateMeUser.objects.create(
+                    user=request.user,
+                    update_me=update
+                )
+            except Exception as e:
+                raise ValidationError(e)
+
+            
+            print("Update Me data saved successfully.")
+            
+        return Response({
+            "status": "success",
+            "data": data
+        })
 
 
+class RecommandationAPI(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        my_sub_ctg = ["Football", "Basketball", "Tennis"]
+
+        recommendations = get_recommendations(my_sub_ctg)
+
+        print("recommendations", recommendations)
+
+        # save response into database
+        # check if the same title data already exist in database.
+
+        for item in recommendations:
+            try:
+                recommendation = Recommendation.objects.create(
+                    # user=request.user,
+                    category=Category.objects.get_or_create(
+                        category_name__icontains=item["category"]
+                    )[0],
+                    topic=Topic.objects.get_or_create(name=item["topic"])[0],
+                    headline=item["headline"],
+                    introduction=item["introduction"],
+                    key_tips_and_takeaways=item["key_tips_and_takeaways"],
+                    fun_facts=item["fun_facts"],
+                    conclusion=item["conclusion"],
+                    picture_url=item["image_url"],
+                )
+                # create recommendation user
+                # RecommendationUser.objects.create(
+                #     user=request.user,
+                #     recommendation=recommendation
+                # )
+            except Exception as e:
+                raise ValidationError(e)
+        return Response({
+            "status": "success",
+            "data": recommendations
+        })
 
 
+class TrendingTopicAPI(APIView):
+    permission_classes = [AllowAny]
 
+    def get(self, request):
+        trending_topics = get_trending_now()
 
+        for trend in trending_topics:
+            try:
+                Trending.objects.create(
+                    category=Category.objects.get_or_create(
+                        category_name__icontains=trend["category"]
+                    )[0],
+                    subcategory=Subcategory.objects.get_or_create(
+                        subcategory_name__icontains=trend["subcategory"]
+                    )[0],
+                    description=trend["description"],
+                    why_trending=trend["why_is_it_trending"],
+                    key_points=trend["key_points"],
+                    outlook=trend["overlook_what_might_happen_next"],
+                    picture_url=trend["picture_url"],
+                )
+                print('New trending news saved to database, successfully!')
+            except Exception as e:
+                print(f"Error saving trending news data: {e}")
+                continue
+
+        response = {"status": "success", "data": trending_topics}
+        return Response(response)
 
 # import requests
 # from rest_framework import status
@@ -199,7 +310,6 @@ class FeedbackDetailAPIView(APIView):
 
 
 # # Trending News API
-
 
 
 # #Community Hub API
@@ -241,7 +351,7 @@ class FeedbackDetailAPIView(APIView):
 #                 'success': True,
 #                 'message': 'Search results fetched successfully',
 #                 'data': res.json().get('articles', [])
-#             } 
+#             }
 #             return Response(response_data, status = status.HTTP_200_OK)
 #         else:
 #             response_data = {
@@ -249,7 +359,7 @@ class FeedbackDetailAPIView(APIView):
 #                 'success': False,
 #                 'message': 'Search failed',
 #                 'errors': res.json()
-#             } 
+#             }
 #             return Response(response_data, status = status.HTTP_400_BAD_REQUEST)
 
 # #Update Me API
@@ -258,7 +368,7 @@ class FeedbackDetailAPIView(APIView):
 
 #     def get(self, request):
 #         categories = ['general', 'world', 'nation', 'business', 'technology', 'entertainment', 'sports', 'science', 'health', 'politics']
-    
+
 #         update = []
 
 #         for category in categories:
@@ -266,8 +376,8 @@ class FeedbackDetailAPIView(APIView):
 #                 'token': settings.GNEWS_API_KEY,
 #                 'lang': 'en',
 #                 'country': 'us',
-#                 'max': 10,  
-#                 'q': category  
+#                 'max': 10,
+#                 'q': category
 #             }
 
 #             response = requests.get("https://gnews.io/api/v4/search", params=params)
@@ -293,16 +403,16 @@ class FeedbackDetailAPIView(APIView):
 #             'success': True,
 #             'message': 'Update news fetched successfully',
 #             'data': update
-#         } 
+#         }
 #         return Response(response_data, status=status.HTTP_200_OK)
 
-# #Posts View API   
+# #Posts View API
 # class PostsAPIView(APIView):
 #     permission_classes = [IsAuthenticated]
 
 #     def get(self, request):
 #         query = request.GET.get('q')
-        
+
 #         if query:
 #             # Use search endpoint when query is present
 #             url = "https://gnews.io/api/v4/search"
@@ -408,7 +518,6 @@ class FeedbackDetailAPIView(APIView):
 #             return Response(response_data, status=status.HTTP_400_BAD_REQUEST)
 
 
-
 # #User interests API
 from decouple import config
 from datetime import date
@@ -495,7 +604,6 @@ class UpdateMeAPIView(APIView):
             "success": True,
             "message": "Update Me data saved successfully"
         }, status=status.HTTP_200_OK)
-    
 
 
 class TrendingNewsAPIView(APIView):
@@ -646,7 +754,7 @@ class RecommendationsAPIView(APIView):
             "message": "Recommendations data generated successfully",
             "data": data
         }, status=status.HTTP_200_OK)
-    
+
 class PreferencesAPIView(APIView):
     # permission_classes = [AllowAny]
 
@@ -670,8 +778,3 @@ class PreferencesAPIView(APIView):
             "success": True,
             "message": "Preferences updated successfully"
         }, status=status.HTTP_200_OK)
-    
-        
-            
-
-        
