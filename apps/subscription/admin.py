@@ -8,6 +8,7 @@ from unfold.contrib.import_export.forms import ExportForm, ImportForm, Selectabl
 class PackageAdmin(ModelAdmin, ImportExportModelAdmin):
     list_display = ('id', 'name', 'price', 'description', 'interval', 'stripe_product_id', 'stripe_price_id', 'discount', 'discount_price', 'is_active',)
     list_display_links = ('id', 'name',)
+    ordering = ('id',)
 
     import_form_class = ImportForm
     export_form_class = ExportForm
@@ -16,6 +17,7 @@ class PackageAdmin(ModelAdmin, ImportExportModelAdmin):
 class SubscriptionAdmin(ModelAdmin, ImportExportModelAdmin):
     list_display = ('id', 'user', 'package', 'start_date', 'end_date', 'stripe_subscription_id', 'is_active')
     list_display_links= ('id', 'user', 'package',)
+    ordering = ('id',)
 
     import_form_class = ImportForm
     export_form_class = ExportForm

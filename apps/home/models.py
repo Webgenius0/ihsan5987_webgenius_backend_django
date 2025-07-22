@@ -3,7 +3,7 @@ from django.conf import settings
 
 # Category & Subcategory
 class Category(models.Model):
-    category_name = models.CharField(max_length=200, default="Unknown-Category")
+    category_name = models.CharField(max_length=200)
     created_at = models.DateField(auto_now_add=True)
 
     def __str__(self):
@@ -144,22 +144,28 @@ class UpdateMeUser(models.Model):
     def __str__(self):
         return self.user.name
 
+
 # Keywords
 class KeyWord(models.Model):
     key_words = models.TextField()
 
+
 # Trending
 class Trending(models.Model):
-    key_words = models.ForeignKey(KeyWord, on_delete=models.CASCADE, null=True, blank=True)
+    # key_words = models.ForeignKey(KeyWord, on_delete=models.CASCADE, null=True, blank=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null = True, blank = True)
     subcategory = models.ForeignKey(Subcategory, on_delete=models.CASCADE, null = True, blank = True)
-    description = models.TextField()
-    why_trending = models.TextField()
-    key_points = models.TextField()
-    outlook = models.TextField()
+    description = models.TextField(blank=True, null=True)
+    why_trending = models.TextField(blank=True, null=True)
+    key_points = models.TextField(blank=True, null=True)
+    outlook = models.TextField(blank=True, null=True)
     picture_url = models.URLField(blank=True, null=True)
-    picture_last_refresh = models.DateField(blank=True, null=True)
+    picture_last_refresh = models.DateField(auto_now=True)
     created_at = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        return self.why_trending if self.why_trending else self.description[:20]
+
 
 # User-Interaction Tables
 class TrendingUser(models.Model):
@@ -167,10 +173,12 @@ class TrendingUser(models.Model):
     trending = models.ForeignKey(Trending, on_delete=models.CASCADE)
     clicked_at = models.DateField()
 
+
 class RecommendationUser(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     recommendation = models.ForeignKey(Recommendation, on_delete=models.CASCADE)
     clicked_at = models.DateField()
+
 
 class Bookmark(models.Model):
     from apps.community_hubs.models import Post
@@ -182,6 +190,7 @@ class Bookmark(models.Model):
     search = models.ForeignKey(Search, on_delete=models.SET_NULL, null=True, blank=True)
     community_post = models.ForeignKey(Post, on_delete=models.SET_NULL, null=True, blank=True)
 
+
 # Preferences
 class Preference(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -191,4 +200,4 @@ class Preference(models.Model):
 
     def __str__(self):
         return self.user.name
-    
+

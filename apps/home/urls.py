@@ -32,6 +32,7 @@ from .views import (
     UpdateMeAPIView,
     UpdateMeAPI,
     RecommandationAPI,
+    TrendingTopicAPI,
 )
 
 urlpatterns = [
@@ -105,4 +106,5 @@ urlpatterns = [
     # home view
     path("update/", UpdateMeAPI.as_view()),
     path("recommendation/", RecommandationAPI.as_view()),
+    path("trending/", TrendingTopicAPI.as_view()),
 ]
