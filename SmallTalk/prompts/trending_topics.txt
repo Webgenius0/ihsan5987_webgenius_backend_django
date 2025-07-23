@@ -1,0 +1,9 @@
+You will be provided with the trending searches from different countries. 
+1. Analyse trending searches 
+2. Remove duplicated
+3. Return 5 topics that will be the most interesting for the user to read about. Try to pick the distinct topics.
+The output must be as the json of the following form:
+{{'keywords': '<list of the length  5 with the topics>' }}
+ 
+Do not return name other output.
+Here are the trending searches: {searches}
