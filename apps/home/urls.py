@@ -1,110 +1,67 @@
 from django.urls import path
 from apps.community_hubs.views import PostList
-from .views import (
-    CategoryListAPIView,
-    CategoryDetailAPIView,
-    SubcategoryListAPIView,
-    SubcategoryDetailAPIView,
-    TopicListAPIView,
-    TopicDetailAPIView,
-    GeneralFactListAPIView,
-    GeneralFactDetailAPIView,
-    NewsListAPIView,
-    NewsDetailAPIView,
-    InterestingTriviaListAPIView,
-    InterestingTriviaDetailAPIView,
-    OpinionListAPIView,
-    OpinionDetailAPIView,
-    QuestionListAPIView,
-    QuestionDetailAPIView,
-    UserDetailAPIView,
-    ResponseListAPIView,
-    ResponseDetailAPIView,
-    SearchListAPIView,
-    SearchDetailAPIView,
-    FeedbackListAPIView,
-    FeedbackDetailAPIView,
-    UpdateMeAPIView,
-    TrendingNewsAPIView,
-    RecommendationsAPIView,
-    PreferencesAPIView,
-    # home view
-    UpdateMeAPIView,
-    UpdateMeAPI,
-    RecommandationAPI,
-    TrendingTopicAPI,
-)
+from . import views
 
 urlpatterns = [
     # Categories
-    path("categories/", CategoryListAPIView.as_view(), name="category-list"),
+    path("categories/", views.CategoryListAPIView.as_view(), name="category-list"),
     path(
-        "categories/<int:pk>/", CategoryDetailAPIView.as_view(), name="category-detail"
+        "categories/<int:pk>/", views.CategoryDetailAPIView.as_view(), name="category-detail"
     ),
     # Subcategories
-    path("subcategories/", SubcategoryListAPIView.as_view(), name="subcategory-list"),
+    path("subcategories/", views.SubcategoryListAPIView.as_view(), name="subcategory-list"),
     path(
         "subcategories/<int:pk>/",
-        SubcategoryDetailAPIView.as_view(),
+        views.SubcategoryDetailAPIView.as_view(),
         name="subcategory-detail",
     ),
     # Topics
-    path("topics/", TopicListAPIView.as_view(), name="topic-list"),
-    path("topics/<int:pk>/", TopicDetailAPIView.as_view(), name="topic-detail"),
+    path("topics/", views.TopicListAPIView.as_view(), name="topic-list"),
+    path("topics/<int:pk>/", views.TopicDetailAPIView.as_view(), name="topic-detail"),
     # General Facts
-    path("general-facts/", GeneralFactListAPIView.as_view(), name="generalfact-list"),
+    path("general-facts/", views.GeneralFactListAPIView.as_view(), name="generalfact-list"),
     path(
         "general-facts/<int:pk>/",
-        GeneralFactDetailAPIView.as_view(),
+        views.GeneralFactDetailAPIView.as_view(),
         name="generalfact-detail",
     ),
     # News
-    path("news/", NewsListAPIView.as_view(), name="news-list"),
-    path("news/<int:pk>/", NewsDetailAPIView.as_view(), name="news-detail"),
+    path("news/", views.NewsListAPIView.as_view(), name="news-list"),
+    path("news/<int:pk>/", views.NewsDetailAPIView.as_view(), name="news-detail"),
     # Interesting Trivia
-    path("trivia/", InterestingTriviaListAPIView.as_view(), name="trivia-list"),
+    path("trivia/", views.InterestingTriviaListAPIView.as_view(), name="trivia-list"),
     path(
         "trivia/<int:pk>/",
-        InterestingTriviaDetailAPIView.as_view(),
+        views.InterestingTriviaDetailAPIView.as_view(),
         name="trivia-detail",
     ),
     # Opinions
-    path("opinions/", OpinionListAPIView.as_view(), name="opinion-list"),
-    path("opinions/<int:pk>/", OpinionDetailAPIView.as_view(), name="opinion-detail"),
+    path("opinions/", views.OpinionListAPIView.as_view(), name="opinion-list"),
+    path("opinions/<int:pk>/", views.OpinionDetailAPIView.as_view(), name="opinion-detail"),
     # Questions
-    path("questions/", QuestionListAPIView.as_view(), name="question-list"),
+    path("questions/", views.QuestionListAPIView.as_view(), name="question-list"),
     path(
-        "questions/<int:pk>/", QuestionDetailAPIView.as_view(), name="question-detail"
+        "questions/<int:pk>/", views.QuestionDetailAPIView.as_view(), name="question-detail"
     ),
     # Users
-    path("users/<int:pk>/", UserDetailAPIView.as_view(), name="user-detail"),
+    path("users/<int:pk>/", views.UserDetailAPIView.as_view(), name="user-detail"),
     # Responses
-    path("responses/", ResponseListAPIView.as_view(), name="response-list"),
+    path("responses/", views.ResponseListAPIView.as_view(), name="response-list"),
     path(
-        "responses/<int:pk>/", ResponseDetailAPIView.as_view(), name="response-detail"
+        "responses/<int:pk>/", views.ResponseDetailAPIView.as_view(), name="response-detail"
     ),
     # Searches
-    path("searches/", SearchListAPIView.as_view(), name="search-list"),
-    path("searches/<int:pk>/", SearchDetailAPIView.as_view(), name="search-detail"),
+    path("searches/", views.SearchListAPIView.as_view(), name="search-list"),
+    path("searches/<int:pk>/", views.SearchDetailAPIView.as_view(), name="search-detail"),
     # Feedbacks
-    path("feedbacks/", FeedbackListAPIView.as_view(), name="feedback-list"),
+    path("feedbacks/", views.FeedbackListAPIView.as_view(), name="feedback-list"),
     path(
-        "feedbacks/<int:pk>/", FeedbackDetailAPIView.as_view(), name="feedback-detail"
+        "feedbacks/<int:pk>/", views.FeedbackDetailAPIView.as_view(), name="feedback-detail"
     ),
-    # badsha
-    path("update-me/", UpdateMeAPIView.as_view(), name="update-me"),
-    path("trending-news/", TrendingNewsAPIView.as_view(), name="trending-news"),
-    path(
-        "recommendation-news/",
-        RecommendationsAPIView.as_view(),
-        name="recommendation-news",
-    ),
-    # preferences
-    path("preferences/set/", PreferencesAPIView.as_view(), name="set-preferences"),
     # Community Hubs Post
     path("posts/", PostList.as_view(), name="community-hubs-post"),
-    # home view
-    path("update/", UpdateMeAPI.as_view()),
-    path("recommendation/", RecommandationAPI.as_view()),
-    path("trending/", TrendingTopicAPI.as_view()),
+    
+    # HOME VIEW
+    path("update/", views.UpdateMeAPI.as_view(), name="update-me"),
+
 ]

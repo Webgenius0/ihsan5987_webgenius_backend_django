@@ -152,6 +152,13 @@ class UpdateMe(models.Model):
     def __str__(self):
         return self.topic.name
 
+    class Meta:
+        verbose_name_plural = "Update Me"
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['category', 'subcategory', 'topic']),
+        ]
+
 
 class UpdateMeUser(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
