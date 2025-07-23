@@ -127,12 +127,12 @@ class SearchTagAdmin(admin.ModelAdmin):
 
 # Recommendation
 @admin.register(Recommendation)
-class RecommendationAdmin(admin.ModelAdmin):
+class RecommendationAdmin(ModelAdmin):
     list_display = ('topic', 'category', 'headline', 'created_at', 'last_refresh')
-    list_filter = ('category', 'created_at')
-    search_fields = ('headline', 'description', 'content')
-    ordering = ('id',)
-    list_per_page = 10
+    # list_filter = ('category', 'created_at')
+    # search_fields = ('headline', 'description', 'content')
+    # ordering = ('id',)
+    # list_per_page = 10
 
 
 @admin.register(UpdateMe)
