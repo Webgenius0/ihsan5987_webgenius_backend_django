@@ -24,16 +24,17 @@ class CustomUserManager(BaseUserManager):
         if extra_fields.get("is_superuser") is not True:
             raise ValueError(_("Superuser must have is_superuser=True."))
         return self.create_user(email, name, password, **extra_fields)
-    
+
+
 #CustomUser Model
 class User(AbstractBaseUser, PermissionsMixin):
     name = models.CharField(max_length = 255, default="Anonymous")
     #username = models.CharField(max_length=255, null=True, blank=True)
     email = models.EmailField(unique = True)
 
-    is_staff = models.BooleanField(default = False)
-    is_active = models.BooleanField(default = False)
-    is_superuser = models.BooleanField(default = False)
+    is_staff = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=False)
+    is_superuser = models.BooleanField(default= False)
     is_subscribed = models.BooleanField(default = False)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -47,7 +48,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = ['name']
 
     def __str__(self):
-        return self.email
+        return self.name if self.name else self.email
+
 
 # User Device Model
 class UserDevice(models.Model):

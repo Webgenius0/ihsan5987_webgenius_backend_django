@@ -1,9 +1,6 @@
 from .unfold_conf import UNFOLD
 import os
 from pathlib import Path
-from django.urls import reverse_lazy
-from django.utils.translation import gettext_lazy as _
-from django.templatetags.static import static
 import cloudinary
 from datetime import timedelta
 from dotenv import load_dotenv
@@ -18,14 +15,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-@unv(phjz=6caf$!bew*e01cj9xz*eg-#11x7n=(^sc3aca7k!'
+SECRET_KEY = "django-insecure-@unv(phjz=6caf$!bew*e01cj9xz*eg-#11x7n=(^sc3aca7k!"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-AUTH_USER_MODEL = 'users.User'
+AUTH_USER_MODEL = "users.User"
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ["*"]
 
 # Application definition
 
@@ -54,7 +51,6 @@ INSTALLED_APPS = [
     # cloudinary
     "cloudinary",
     "django_celery_beat",
-
     # my apps
     "apps.profiles.apps.ProfilesConfig",
     "apps.subscription.apps.SubscriptionConfig",
@@ -63,36 +59,38 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # 3d party middleware
+    "whitenoise.middleware.WhiteNoiseMiddleware",
+    "querycount.middleware.QueryCountMiddleware",
 ]
 
-ROOT_URLCONF = 'project.urls'
+ROOT_URLCONF = "project.urls"
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'project.wsgi.application'
+WSGI_APPLICATION = "project.wsgi.application"
 
 
 # Database
@@ -106,15 +104,15 @@ WSGI_APPLICATION = 'project.wsgi.application'
 # }
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
-        'USER': 'postgres.odpilpqlyscsreefmtit',
-        'PASSWORD': 'shcQivH9xxH31J1X1Hxohjbh',
-        'HOST': 'aws-0-eu-central-1.pooler.supabase.com',
-        'PORT': '5432',
-        'OPTIONS': {
-            'sslmode': 'require',
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "postgres",
+        "USER": "postgres.odpilpqlyscsreefmtit",
+        "PASSWORD": "shcQivH9xxH31J1X1Hxohjbh",
+        "HOST": "aws-0-eu-central-1.pooler.supabase.com",
+        "PORT": "5432",
+        "OPTIONS": {
+            "sslmode": "require",
         },
     }
 }
@@ -124,16 +122,16 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
 
@@ -141,9 +139,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = 'Asia/Dhaka'
+TIME_ZONE = "Asia/Dhaka"
 
 USE_I18N = True
 
@@ -153,37 +151,35 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # collectstatic target
-STATICFILES_DIRS = [
-    BASE_DIR / "static"
-]
+STATIC_URL = "/static/"
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")  # collectstatic target
+STATICFILES_DIRS = [BASE_DIR / "static"]
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.TokenAuthentication',
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework.authentication.TokenAuthentication",
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
 }
 
 # Email sending setup
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'  # or your SMTP provider
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"  # or your SMTP provider
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'towhidulislam.mail@gmail.com'
-EMAIL_HOST_PASSWORD = 'bdui nxzn dogt fqxl'
+EMAIL_HOST_USER = "towhidulislam.mail@gmail.com"
+EMAIL_HOST_PASSWORD = "bdui nxzn dogt fqxl"
 
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-ADMIN_EMAIL = 'towhidulislam.mail@gmail.com'
+ADMIN_EMAIL = "towhidulislam.mail@gmail.com"
 
 # CORS setup
 CORS_ALLOWED_ORIGINS = [
@@ -201,32 +197,31 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 # GNEWS_API_KEY
-GNEWS_API_KEY = 'c8953ffc8769d9e01b10e01713d86e34'
+GNEWS_API_KEY = "c8953ffc8769d9e01b10e01713d86e34"
 # Cloudinary setup
-cloudinary.config( 
-    cloud_name = "dt99uhnhh", 
-    api_key = "441948348178278", 
-    api_secret = "OAgOpdxpTDNw9LvMzvDekZdweSI",
-    secure=True
+cloudinary.config(
+    cloud_name="dt99uhnhh",
+    api_key="441948348178278",
+    api_secret="OAgOpdxpTDNw9LvMzvDekZdweSI",
+    secure=True,
 )
 
 # Simple JWT setup
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
-
     # Refresh Token Rotation
     "ROTATE_REFRESH_TOKENS": True,  # generates a new refresh token when used
     "BLACKLIST_AFTER_ROTATION": True,
 }
 
 # Stripe settings
-STRIPE_PUBLISHABLE_KEY = os.getenv('STRIPE_PUBLISHABLE_KEY')
-STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
-STRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET')
+STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
 
-STRIPE_SUCCESS_URL = 'http://127.0.0.1:8000/api/subscriptions/success/'
-STRIPE_CANCEL_URL = 'http://127.0.0.1:8000/api/subscriptions/cancel/'
+STRIPE_SUCCESS_URL = "http://127.0.0.1:8000/api/subscriptions/success/"
+STRIPE_CANCEL_URL = "http://127.0.0.1:8000/api/subscriptions/cancel/"
 
 
 # Unfold Admin Customization

@@ -4,9 +4,10 @@ from .models import User
 from import_export.admin import ImportExportModelAdmin
 from unfold.contrib.import_export.forms import ExportForm, ImportForm
 
+
 @admin.register(User)
 class UserAdmin(ModelAdmin, ImportExportModelAdmin):
-    list_display = ("id", "name", "email", "is_staff", "is_active",)
+    list_display = ("name", "email", "is_staff", "is_active",)
     list_filter = ("email", "is_staff", "is_active",)
     list_per_page = 10
     fieldsets = (
@@ -20,8 +21,7 @@ class UserAdmin(ModelAdmin, ImportExportModelAdmin):
             "fields": ("name", "email", "password", "is_staff", "is_active", "groups", "user_permissions"),
         }),
     )
-    search_fields = ["email"]
-    ordering = ["id"]
+    search_fields = ["email", "name"]
 
     import_form_class = ImportForm
     export_form_class = ExportForm

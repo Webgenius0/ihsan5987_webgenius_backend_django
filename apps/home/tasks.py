@@ -32,7 +32,7 @@ except Exception as e:
 def recommandation_task():
     print("get recommandation task started")
     recommendations = []
-    for subcat in subcategories[:3]:
+    for subcat in subcategories[:]:
         try:
             recommendations.append(
                 generate_recommendation(
@@ -78,7 +78,7 @@ def recommandation_task():
 def updateme_task():
     print("update me task started in time")
     update_me = []
-    for subtopic in subcategories[:3]:
+    for subtopic in subcategories[:10]:
         try:
             update_me.append(
                 generate_update_me_element(
@@ -124,6 +124,8 @@ def updateme_task():
         except Exception as e:
             print(f"Error saving UpdateMe: {e}")
             continue
+
+        # generate update me user
 
 
 @shared_task
