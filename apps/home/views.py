@@ -14,7 +14,8 @@ from .models import (
     Question,
     Search,
     UpdateMe,
-    Preference
+    Preference,
+    Trending,
 )
 from apps.users.models import User
 from apps.profiles.models import Feedback
@@ -220,24 +221,59 @@ class FeedbackDetailAPIView(APIView):
         serializer = FeedbackSerializer(feedback)
         return Response(serializer.data)
 
+
 # Views for Home Page
 
 
-class UpdateMeAPI(APIView):
+class TrendingNowAPI(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         user = request.user
-        user_preferences = Preference.objects.filter(user=user).values_list('category__category_name', flat=True)
-        print("user preferences", user_preferences)
-        # get letest 3 updateme objects
-        updateme_last3 = UpdateMe.objects.order_by('-created_at')[:3]
-        print("updateme_last3", updateme_last3)
-        updateme_preferences = UpdateMe.objects.filter(subcategory__subcategory_name__in=user_preferences).order_by('-created_at').exclude(id__in=[um.id for um in updateme_last3])[:2]
-        print("updateme_preferences", updateme_preferences)
+        sub_ctg = user.preferences.all().values_list("subcategory__id")
+        trending_now = Trending.objects.filter(subcategory__in=sub_ctg)
+        print("trending now ", trending_now)
+        data = []
+        for trendig in trending_now:
+            obj = {
+                "id": trendig.id,
+                "category": trendig.category.category_name,
+                "subcategory": trendig.subcategory.subcategory_name,
+                "description": trendig.description,
+                "why_trending": trendig.why_trending,
+                "key_points": trendig.key_points,
+                "outlook": trendig.outlook,
+                "picture_url": trendig.picture_url,
+                "created_at": trendig.created_at,
+            }
+            data.append(obj)
 
-        response_data = {
-            "code": 200,
-            "message": "Success",
-        }
-        return Response(response_data, status=status.HTTP_200_OK)
+        response = {"code": status.HTTP_200_OK, "success": True, "data": data}
+        return Response(response, status=status.HTTP_200_OK)
+
+
+class UpdatemeAPI(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # user = request.user
+        # sub_ctg = user.preferences.all().values_list('subcategory__id')
+        updame_me = UpdateMe.objects.order_by("-created_at")
+
+        data = []
+        for update in updame_me:
+            obj = {
+                "id": update.id,
+                "category": update.category.category_name,
+                "subcategory": update.subcategory.subcategory_name,
+                "topic": update.topic.name,
+                "short_info": update.short_info,
+                "reference_url": update.reference_url,
+                "background_story": update.background_story,
+                "picture_url": update.picture_url,
+                "created_at": update.created_at,
+            }
+            data.append(obj)
+
+        response = {"code": status.HTTP_200_OK, "success": True, "data": data}
+        return Response(response, status=status.HTTP_200_OK)

@@ -62,6 +62,8 @@ urlpatterns = [
     path("posts/", PostList.as_view(), name="community-hubs-post"),
     
     # HOME VIEW
-    path("update/", views.UpdateMeAPI.as_view(), name="update-me"),
+    path("update/", views.UpdatemeAPI.as_view(), name="update-me"),
+    path("trending-now/", views.TrendingNowAPI.as_view()),
+
 
 ]
