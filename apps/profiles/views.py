@@ -113,7 +113,9 @@ class MyPostList(APIView):
 
     def get(self, request):
         user = request.user
-        posts = Post.objects.filter(user=user).order_by('-created_at')
+        posts = Post.objects.filter(user=user).select_related('user__profile', 'category').prefetch_related(
+            'comments__user__profile'
+        ).order_by('-created_at')
         serializer = MyPostSerializer(posts, many=True)
         response = {
             "status": status.HTTP_200_OK,
@@ -130,7 +132,9 @@ class MyPostDetail(APIView):
 
     def get(self, request, pk):
         try:
-            post = Post.objects.get(pk=pk, user=request.user)
+            post = Post.objects.select_related('user__profile', 'category').prefetch_related(
+                'comments__user__profile'
+            ).get(pk=pk, user=request.user)
         except Post.DoesNotExist:
             return Response({
                 "status": status.HTTP_404_NOT_FOUND,
