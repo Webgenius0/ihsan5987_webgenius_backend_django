@@ -128,13 +128,23 @@ class Recommendation(models.Model):
     headline = models.TextField(blank=True, null=True)
     introduction = models.TextField(blank=True, null=True)
     key_tips_and_takeaways = models.JSONField(blank=True, null=True)
-    fun_facts = models.TextField(blank=True, null=True)
+    fun_facts = models.JSONField(blank=True, null=True)
     conclusion = models.TextField(blank=True, null=True)
     # description = models.TextField()
     # content = models.TextField()
     picture_url = models.URLField(blank=True, null=True)
     created_at = models.DateField(auto_now_add=True)
-    last_refresh = models.DateField(auto_now_add=True)
+    last_refresh = models.DateField(auto_now=True)
+
+    def __str__(self):
+        return self.topic.name
+    
+    class Meta:
+        verbose_name_plural = "Recommendations"
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['category', 'subcategory', 'topic']),
+        ]
 
 
 # Update Me

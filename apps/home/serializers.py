@@ -117,5 +117,4 @@ class TrendingNewsSerializer(serializers.ModelSerializer):
 class RecommendationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recommendation
-        exclude = ['user']
-        depth = 1
+        fields = '__all__'

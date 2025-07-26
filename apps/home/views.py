@@ -16,6 +16,7 @@ from .models import (
     UpdateMe,
     # Preference,
     Trending,
+    Recommendation
 )
 from apps.users.models import User
 from apps.profiles.models import Feedback
@@ -32,6 +33,7 @@ from .serializers import (
     UserSerializer,
     SearchSerializer,
     FeedbackSerializer,
+    RecommendationSerializer
 )
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
@@ -228,11 +230,29 @@ class FeedbackDetailAPIView(APIView):
 class TrendingNowAPI(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
+    def get(self, request, pk=None):
         user = request.user
         sub_ctg = user.preferences.all().values_list("subcategory__id")
-        trending_now = Trending.objects.filter(subcategory__in=sub_ctg)
-        print("trending now ", trending_now)
+        if pk:
+            trending_now = Trending.objects.filter(id=pk).first()
+            if trending_now:
+                obj = {
+                    "id": trending_now.id,
+                    "category": trending_now.category.category_name,
+                    "subcategory": trending_now.subcategory.subcategory_name,
+                    "description": trending_now.description,
+                    "why_trending": trending_now.why_trending,
+                    "key_points": trending_now.key_points,
+                    "outlook": trending_now.outlook,
+                    "picture_url": trending_now.picture_url,
+                    "created_at": trending_now.created_at,
+                }
+                response = {"code": status.HTTP_200_OK, "success": True, "data": obj}
+                return Response(response, status=status.HTTP_200_OK)
+
+        else:
+            # trending_now = Trending.objects.filter(subcategory__in=sub_ctg)
+            trending_now = Trending.objects.all().order_by("-created_at")
         data = []
         for trendig in trending_now:
             obj = {
@@ -277,3 +297,18 @@ class UpdatemeAPI(APIView):
 
         response = {"code": status.HTTP_200_OK, "success": True, "data": data}
         return Response(response, status=status.HTTP_200_OK)
+
+
+class RecommendationAPI(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk=None):
+        user = request.user
+        # sub_ctg = user.preferences.all().values_list("subcategory__id")
+        if pk:
+            recommendation = get_object_or_404(Recommendation, pk=pk)
+            serializer = RecommendationSerializer(recommendation)
+            return Response(serializer.data)
+        recommendations = Recommendation.objects.all().order_by("-created_at")
+        serializer = RecommendationSerializer(recommendations, many=True)
+        return Response(serializer.data)
