@@ -14,7 +14,7 @@ from .models import (
     Question,
     Search,
     UpdateMe,
-    Preference,
+    # Preference,
     Trending,
 )
 from apps.users.models import User
