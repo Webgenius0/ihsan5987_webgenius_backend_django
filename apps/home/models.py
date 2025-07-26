@@ -188,7 +188,7 @@ class Trending(models.Model):
     created_at = models.DateField(auto_now_add=True)
 
     def __str__(self):
-        return self.why_trending if self.why_trending else self.description[:20]
+        return f"Trending - {self.description[:20]}"
 
 
 # User-Interaction Tables
