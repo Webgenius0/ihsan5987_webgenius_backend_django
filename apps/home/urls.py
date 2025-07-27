@@ -68,5 +68,8 @@ urlpatterns = [
     path("recommendations/", views.RecommendationAPI.as_view()),
     path("recommendations/<int:pk>/", views.RecommendationAPI.as_view()),
 
+    # preferences 
+    path("preferences/", views.PreferenceAPI.as_view(), name="preference-list"),
+
 
 ]

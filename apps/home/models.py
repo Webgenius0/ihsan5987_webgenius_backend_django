@@ -227,10 +227,11 @@ class Bookmark(models.Model):
 
 # Preferences
 class Preference(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='preferences')
-    category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True)
-    subcategory = models.ForeignKey(Subcategory, on_delete=models.CASCADE, null=True, blank=True)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='preferences')
+    category = models.ManyToManyField(Category, blank=True)
+    subcategory = models.ManyToManyField(Subcategory, blank=True)
     created_at = models.DateField(auto_now_add=True)
+    updated_at = models.DateField(auto_now=True)
 
     def __str__(self):
         return self.user.name
