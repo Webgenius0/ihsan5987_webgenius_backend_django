@@ -166,7 +166,7 @@ class SearchTagAdmin(admin.ModelAdmin):
 # Recommendation
 @admin.register(Recommendation)
 class RecommendationAdmin(ModelAdmin):
-    list_display = ("topic", "category", "headline", "created_at", "last_refresh")
+    list_display = ("topic", "category","subcategory", "headline", "created_at", "last_refresh")
     # list_filter = ('category', 'created_at')
     # search_fields = ('headline', 'description', 'content')
     # ordering = ('id',)
@@ -242,7 +242,5 @@ class BookmarkAdmin(admin.ModelAdmin):
 # Preference
 @admin.register(Preference)
 class PreferenceAdmin(ModelAdmin):
-    list_display = ("user__name", "category", "subcategory", "created_at")
-    list_filter = ("created_at", "category", "subcategory")
+    list_display = ("user__name", "created_at")
     search_fields = ("user__username",)
-    list_display_links = ("user__name", "category")

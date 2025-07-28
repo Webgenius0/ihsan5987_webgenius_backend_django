@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import (
     Response, Topic, Category, Subcategory, GeneralFact, News, InterestingTrivia,
-    Opinion, Question, Search, UpdateMe, Trending, Recommendation
+    Opinion, Question, Search, UpdateMe, Trending, Recommendation, Preference
 )
 from apps.profiles.models import Feedback
 from apps.users.models import User
@@ -9,12 +9,12 @@ from apps.users.models import User
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ['id', 'category_name', 'created_at']
+        fields = ['id', 'category_name']
 
 class SubcategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Subcategory
-        fields = ['id', 'subcategory_name', 'created_at']
+        fields = ['id', 'subcategory_name']
 
 class TopicSerializer(serializers.ModelSerializer):
     class Meta:
@@ -118,3 +118,23 @@ class RecommendationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recommendation
         fields = '__all__'
+
+class PreferenceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Preference
+        fields = '__all__'
+        read_only_fields = ['created_at', 'updated_at', 'user']
+    
+    def create(self, validated_data):
+        user = self.context['request'].user
+        category = validated_data.pop('category')
+        subcategory = validated_data.pop('subcategory')
+        
+        # get or create user preferences
+        preference, created = Preference.objects.get_or_create(user=user)
+        if category:
+            preference.category.set(category)
+        if subcategory:
+            preference.subcategory.set(subcategory)
+        preference.save()
+        return preference

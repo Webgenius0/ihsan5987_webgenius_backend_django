@@ -1,5 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.validators import ValidationError
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 from .models import (
@@ -33,7 +34,8 @@ from .serializers import (
     UserSerializer,
     SearchSerializer,
     FeedbackSerializer,
-    RecommendationSerializer
+    RecommendationSerializer,
+    PreferenceSerializer
 )
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
@@ -232,7 +234,7 @@ class TrendingNowAPI(APIView):
 
     def get(self, request, pk=None):
         user = request.user
-        sub_ctg = user.preferences.all().values_list("subcategory__id")
+        # sub_ctg = user.preferences.all().values_list("subcategory__id")
         if pk:
             trending_now = Trending.objects.filter(id=pk).first()
             if trending_now:
@@ -249,10 +251,22 @@ class TrendingNowAPI(APIView):
                 }
                 response = {"code": status.HTTP_200_OK, "success": True, "data": obj}
                 return Response(response, status=status.HTTP_200_OK)
+            else:
+                response = {
+                    "code": status.HTTP_404_NOT_FOUND,
+                    "success": False,
+                    "message": "Trending news not found"
+                }
+                return Response(response, status=status.HTTP_404_NOT_FOUND)
+            
 
         else:
-            # trending_now = Trending.objects.filter(subcategory__in=sub_ctg)
-            trending_now = Trending.objects.all().order_by("-created_at")
+            # check query params for all
+            # check if queryparams all is to true
+            if request.query_params.get("all") == "true":
+                trending_now = Trending.objects.all().order_by("-created_at")
+            else:
+                trending_now = Trending.objects.select_related("category", "subcategory").order_by("-created_at")[:4]
         data = []
         for trendig in trending_now:
             obj = {
@@ -300,15 +314,70 @@ class UpdatemeAPI(APIView):
 
 
 class RecommendationAPI(APIView):
+    """
+    RESPONSE CONTAINS RECOMMENDATIONS BASED ON USER PREFERENCES (CATEGORY)
+    DEFAULT LIMIT IS 4 RECOMMENDATIONS
+    IF ALL IS TRUE IN QUERY PARAMS, THEN ALL RECOMMENDATIONS ARE RETURNED
+    """
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk=None):
         user = request.user
-        # sub_ctg = user.preferences.all().values_list("subcategory__id")
         if pk:
             recommendation = get_object_or_404(Recommendation, pk=pk)
             serializer = RecommendationSerializer(recommendation)
-            return Response(serializer.data)
-        recommendations = Recommendation.objects.all().order_by("-created_at")
+            response = {
+                "code": status.HTTP_200_OK,
+                "success": True,
+                "message": "Recommendation fetched successfully",
+                "data": serializer.data
+            }
+            return Response(response, status=status.HTTP_200_OK)
+        
+        category = user.preferences.category.all()
+
+        # check query params 
+        if request.query_params.get("all") == "true":
+            recommendations = Recommendation.objects.filter(category__in=category).select_related("category", "topic").order_by("-created_at")
+        else:
+            recommendations = Recommendation.objects.filter(category__in=category).select_related("category", "topic").order_by("-created_at")[:4]
         serializer = RecommendationSerializer(recommendations, many=True)
-        return Response(serializer.data)
+        response = {
+            "code": status.HTTP_200_OK,
+            "success": True,
+            "message": "Recommendations fetched successfully",
+            "data": serializer.data
+        }
+        return Response(response, status=status.HTTP_200_OK)
+    
+
+class PreferenceAPI(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        categories = Category.objects.all()
+        subcateories = Subcategory.objects.all()
+
+        response_data = {
+            "code": status.HTTP_200_OK,
+            "success": True,
+            "message": "Preferences fetched successfully",
+            "data": {
+            "categories": CategorySerializer(categories, many=True).data,
+            "subcategories": SubcategorySerializer(subcateories, many=True).data
+            }
+        }
+        return Response(response_data, status=status.HTTP_200_OK)
+    
+    def post(self, request):
+        serializer = PreferenceSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            response_data = {
+                "code": status.HTTP_200_OK,
+                "success": True,
+                "message": "Preferences updated successfully"
+            }
+            return Response(response_data, status=status.HTTP_200_OK)
+        else:
+            raise ValidationError("Invalid data")
