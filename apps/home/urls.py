@@ -63,7 +63,9 @@ urlpatterns = [
     
     # HOME VIEW
     path("update/", views.UpdatemeAPI.as_view(), name="update-me"),
-    path("trending-now/", views.TrendingNowAPI.as_view()),
+    path("trending-now/", views.TrendingNowAPI.as_view(), name="trending-now"),
+    path("trending-now/<int:pk>/", views.TrendingNowAPI.as_view(), name="trending-now-details"),
 
-
+    path("recommendation-news/", views.RecommendationAPI.as_view(), name="recommendation-news"),
+    path("recommendation-news/<int:pk>/", views.RecommendationAPI.as_view(), name="recommendation-news-details"),
 ]
