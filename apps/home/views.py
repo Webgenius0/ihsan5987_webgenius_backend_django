@@ -233,8 +233,6 @@ class TrendingNowAPI(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk=None):
-        user = request.user
-        # sub_ctg = user.preferences.all().values_list("subcategory__id")
         if pk:
             trending_now = Trending.objects.filter(id=pk).first()
             if trending_now:
@@ -258,8 +256,6 @@ class TrendingNowAPI(APIView):
                     "message": "Trending news not found"
                 }
                 return Response(response, status=status.HTTP_404_NOT_FOUND)
-            
-
         else:
             # check query params for all
             # check if queryparams all is to true
@@ -289,13 +285,39 @@ class TrendingNowAPI(APIView):
 class UpdatemeAPI(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        # user = request.user
-        # sub_ctg = user.preferences.all().values_list('subcategory__id')
-        updame_me = UpdateMe.objects.order_by("-created_at")
+    def get(self, request, id=None):
+
+        if id:
+            update_me = get_object_or_404(UpdateMe, pk=id)
+            data = {
+                "id": update_me.id,
+                "category": update_me.category.category_name,
+                "subcategory": update_me.subcategory.subcategory_name,
+                "topic": update_me.topic.name,
+                "short_info": update_me.short_info,
+                "reference_url": update_me.reference_url,
+                "background_story": update_me.background_story,
+                "picture_url": update_me.picture_url,
+                "created_at": update_me.created_at,
+            }
+            response = {
+                "code": status.HTTP_200_OK,
+                "success": True,
+                "message": "UpdateMe fetched successfully",
+                "data": data
+            }
+            return Response(response, status=status.HTTP_200_OK)
+
+        user = request.user
+        sub_ctg = user.preferences.subcategory.all()
+        upate_me_last3 = UpdateMe.objects.order_by("-created_at")[:3]
+        update_for_me = UpdateMe.objects.filter(subcategory__in=sub_ctg).select_related("category", "subcategory", "topic").order_by("-created_at")[:2]
+
+        # merge two querysets
+        update_me = list(update_for_me) + list(upate_me_last3)
 
         data = []
-        for update in updame_me:
+        for update in update_me:
             obj = {
                 "id": update.id,
                 "category": update.category.category_name,
@@ -333,7 +355,7 @@ class RecommendationAPI(APIView):
                 "data": serializer.data
             }
             return Response(response, status=status.HTTP_200_OK)
-        
+
         category = user.preferences.category.all()
 
         # check query params 
@@ -349,7 +371,7 @@ class RecommendationAPI(APIView):
             "data": serializer.data
         }
         return Response(response, status=status.HTTP_200_OK)
-    
+
 
 class PreferenceAPI(APIView):
     permission_classes = [IsAuthenticated]
@@ -363,12 +385,12 @@ class PreferenceAPI(APIView):
             "success": True,
             "message": "Preferences fetched successfully",
             "data": {
-            "categories": CategorySerializer(categories, many=True).data,
-            "subcategories": SubcategorySerializer(subcateories, many=True).data
+                "categories": CategorySerializer(categories, many=True).data,
+                "subcategories": SubcategorySerializer(subcateories, many=True).data
             }
         }
         return Response(response_data, status=status.HTTP_200_OK)
-    
+
     def post(self, request):
         serializer = PreferenceSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
@@ -381,3 +403,10 @@ class PreferenceAPI(APIView):
             return Response(response_data, status=status.HTTP_200_OK)
         else:
             raise ValidationError("Invalid data")
+
+
+class BookmarkAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        pass
