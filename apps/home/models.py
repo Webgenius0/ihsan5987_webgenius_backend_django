@@ -1,6 +1,10 @@
 from django.db import models
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.auth import get_user_model
 
+User = get_user_model()
 
 # Category & Subcategory
 class Category(models.Model):
@@ -214,16 +218,25 @@ class RecommendationUser(models.Model):
     clicked_at = models.DateField()
 
 
+# class Bookmark(models.Model):
+#     from apps.community_hubs.models import Post
+
+#     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+#     trending = models.ForeignKey(Trending, on_delete=models.SET_NULL, null=True, blank=True)
+#     recommendation = models.ForeignKey(Recommendation, on_delete=models.SET_NULL, null=True, blank=True)
+#     update_me = models.ForeignKey(UpdateMe, on_delete=models.CASCADE, null=True)
+#     search = models.ForeignKey(Search, on_delete=models.SET_NULL, null=True, blank=True)
+#     community_post = models.ForeignKey(Post, on_delete=models.SET_NULL, null=True, blank=True)
+
 class Bookmark(models.Model):
-    from apps.community_hubs.models import Post
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True)
+    object_id = models.PositiveIntegerField(null=True)
+    obj = GenericForeignKey('content_type', 'object_id')
+    created_at = models.DateTimeField(auto_now_add=True)
 
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    trending = models.ForeignKey(Trending, on_delete=models.SET_NULL, null=True, blank=True)
-    recommendation = models.ForeignKey(Recommendation, on_delete=models.SET_NULL, null=True, blank=True)
-    update_me = models.ForeignKey(UpdateMe, on_delete=models.CASCADE, null=True)
-    search = models.ForeignKey(Search, on_delete=models.SET_NULL, null=True, blank=True)
-    community_post = models.ForeignKey(Post, on_delete=models.SET_NULL, null=True, blank=True)
-
+    def __str__(self):
+        return f'Bookmark'
 
 # Preferences
 class Preference(models.Model):
