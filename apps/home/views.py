@@ -351,6 +351,8 @@ class RecommendationAPI(APIView):
 
     def get(self, request, pk=None):
         user = request.user
+        category = user.preferences.category.all().values_list('id', flat=True)
+        print('user preferences category:', category)
         if pk:
             recommendation = get_object_or_404(Recommendation, pk=pk)
             serializer = RecommendationSerializer(recommendation)
@@ -362,13 +364,12 @@ class RecommendationAPI(APIView):
             }
             return Response(response, status=status.HTTP_200_OK)
 
-        category = user.preferences.category.all()
-
         # check query params 
         if request.query_params.get("all") == "true":
             recommendations = Recommendation.objects.filter(category__in=category).select_related("category", "topic").order_by("-created_at")
         else:
-            recommendations = Recommendation.objects.filter(category__in=category).select_related("category", "topic").order_by("-created_at")[:4]
+            recommendations = Recommendation.objects.filter(category__id__in=category).select_related("category", "topic").order_by("-created_at")[:4]
+            print('recommendations:', recommendations)
         serializer = RecommendationSerializer(recommendations, many=True)
         response = {
             "code": status.HTTP_200_OK,
@@ -414,8 +415,29 @@ class PreferenceAPI(APIView):
 class BookmarkAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self, request):
-        pass
+    def post(self, request, pk=None):
+        user = request.user
+        data = request.data
+
+        try:
+            content_type = ContentType.objects.get(model=data["obj_type"])
+            model_class = content_type.model_class()
+            obj = model_class.objects.get(pk=data["obj_id"])
+        except ContentType.DoesNotExist:
+            raise ValidationError("Invalid content_type")
+        except model_class.DoesNotExist:
+            raise ValidationError("Invalid object_id")
+        
+        bookmark,created = Bookmark.objects.get_or_create(user=user, content_type=content_type, object_id=data["obj_id"])
+        if created:
+            response_data = {
+                "code": status.HTTP_201_CREATED,
+                "success": True,
+                "message": "Bookmark created successfully",
+            }
+            return Response(response_data, status=status.HTTP_201_CREATED)
+    
+    
 
     def get(self, request):
         user = request.user

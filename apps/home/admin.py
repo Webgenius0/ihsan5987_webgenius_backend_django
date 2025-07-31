@@ -229,6 +229,6 @@ class BookmarkAdmin(ModelAdmin):
 
 # Preference
 @admin.register(Preference)
-class PreferenceAdmin(ModelAdmin):
+class PreferenceAdmin(admin.ModelAdmin):
     list_display = ("user__name", "created_at")
     search_fields = ("user__username",)

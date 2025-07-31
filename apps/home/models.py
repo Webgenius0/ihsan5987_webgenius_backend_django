@@ -238,6 +238,7 @@ class Bookmark(models.Model):
     def __str__(self):
         return f'Bookmark'
 
+
 # Preferences
 class Preference(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='preferences')
