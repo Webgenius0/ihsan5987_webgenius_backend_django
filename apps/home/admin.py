@@ -223,24 +223,12 @@ class RecommendationUserAdmin(admin.ModelAdmin):
 
 # Bookmark
 @admin.register(Bookmark)
-class BookmarkAdmin(admin.ModelAdmin):
-    list_display = (
-        "id",
-        "user",
-        "trending",
-        "recommendation",
-        "update_me",
-        "search",
-        "community_post",
-    )
-    list_filter = ("user",)
-    search_fields = ("user__username",)
-    ordering = ("id",)
-    list_per_page = 10
+class BookmarkAdmin(ModelAdmin):
+    pass
 
 
 # Preference
 @admin.register(Preference)
-class PreferenceAdmin(ModelAdmin):
+class PreferenceAdmin(admin.ModelAdmin):
     list_display = ("user__name", "created_at")
     search_fields = ("user__username",)

@@ -2,7 +2,11 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.validators import ValidationError
 from rest_framework import status
+
 from django.shortcuts import get_object_or_404
+from django.contrib.contenttypes.models import ContentType
+
+
 from .models import (
     Response as ResponseModel,
     Topic,
@@ -15,10 +19,12 @@ from .models import (
     Question,
     Search,
     UpdateMe,
+    Bookmark,
     # Preference,
     Trending,
     Recommendation
 )
+from apps.community_hubs.models import Post
 from apps.users.models import User
 from apps.profiles.models import Feedback
 from .serializers import (
@@ -233,8 +239,6 @@ class TrendingNowAPI(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk=None):
-        user = request.user
-        # sub_ctg = user.preferences.all().values_list("subcategory__id")
         if pk:
             trending_now = Trending.objects.filter(id=pk).first()
             if trending_now:
@@ -258,8 +262,6 @@ class TrendingNowAPI(APIView):
                     "message": "Trending news not found"
                 }
                 return Response(response, status=status.HTTP_404_NOT_FOUND)
-            
-
         else:
             # check query params for all
             # check if queryparams all is to true
@@ -289,13 +291,39 @@ class TrendingNowAPI(APIView):
 class UpdatemeAPI(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        # user = request.user
-        # sub_ctg = user.preferences.all().values_list('subcategory__id')
-        updame_me = UpdateMe.objects.order_by("-created_at")
+    def get(self, request, id=None):
+
+        if id:
+            update_me = get_object_or_404(UpdateMe, pk=id)
+            data = {
+                "id": update_me.id,
+                "category": update_me.category.category_name,
+                "subcategory": update_me.subcategory.subcategory_name,
+                "topic": update_me.topic.name,
+                "short_info": update_me.short_info,
+                "reference_url": update_me.reference_url,
+                "background_story": update_me.background_story,
+                "picture_url": update_me.picture_url,
+                "created_at": update_me.created_at,
+            }
+            response = {
+                "code": status.HTTP_200_OK,
+                "success": True,
+                "message": "UpdateMe fetched successfully",
+                "data": data
+            }
+            return Response(response, status=status.HTTP_200_OK)
+
+        user = request.user
+        sub_ctg = user.preferences.subcategory.all()
+        upate_me_last3 = UpdateMe.objects.order_by("-created_at")[:3]
+        update_for_me = UpdateMe.objects.filter(subcategory__in=sub_ctg).select_related("category", "subcategory", "topic").order_by("-created_at")[:2]
+
+        # merge two querysets
+        update_me = list(update_for_me) + list(upate_me_last3)
 
         data = []
-        for update in updame_me:
+        for update in update_me:
             obj = {
                 "id": update.id,
                 "category": update.category.category_name,
@@ -323,6 +351,8 @@ class RecommendationAPI(APIView):
 
     def get(self, request, pk=None):
         user = request.user
+        category = user.preferences.category.all().values_list('id', flat=True)
+        print('user preferences category:', category)
         if pk:
             recommendation = get_object_or_404(Recommendation, pk=pk)
             serializer = RecommendationSerializer(recommendation)
@@ -333,14 +363,13 @@ class RecommendationAPI(APIView):
                 "data": serializer.data
             }
             return Response(response, status=status.HTTP_200_OK)
-        
-        category = user.preferences.category.all()
 
         # check query params 
         if request.query_params.get("all") == "true":
             recommendations = Recommendation.objects.filter(category__in=category).select_related("category", "topic").order_by("-created_at")
         else:
-            recommendations = Recommendation.objects.filter(category__in=category).select_related("category", "topic").order_by("-created_at")[:4]
+            recommendations = Recommendation.objects.filter(category__id__in=category).select_related("category", "topic").order_by("-created_at")[:4]
+            print('recommendations:', recommendations)
         serializer = RecommendationSerializer(recommendations, many=True)
         response = {
             "code": status.HTTP_200_OK,
@@ -349,7 +378,7 @@ class RecommendationAPI(APIView):
             "data": serializer.data
         }
         return Response(response, status=status.HTTP_200_OK)
-    
+
 
 class PreferenceAPI(APIView):
     permission_classes = [IsAuthenticated]
@@ -363,12 +392,12 @@ class PreferenceAPI(APIView):
             "success": True,
             "message": "Preferences fetched successfully",
             "data": {
-            "categories": CategorySerializer(categories, many=True).data,
-            "subcategories": SubcategorySerializer(subcateories, many=True).data
+                "categories": CategorySerializer(categories, many=True).data,
+                "subcategories": SubcategorySerializer(subcateories, many=True).data
             }
         }
         return Response(response_data, status=status.HTTP_200_OK)
-    
+
     def post(self, request):
         serializer = PreferenceSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
@@ -381,3 +410,101 @@ class PreferenceAPI(APIView):
             return Response(response_data, status=status.HTTP_200_OK)
         else:
             raise ValidationError("Invalid data")
+
+
+class BookmarkAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk=None):
+        user = request.user
+        data = request.data
+
+        try:
+            content_type = ContentType.objects.get(model=data["obj_type"])
+            model_class = content_type.model_class()
+            obj = model_class.objects.get(pk=data["obj_id"])
+        except ContentType.DoesNotExist:
+            raise ValidationError("Invalid content_type")
+        except model_class.DoesNotExist:
+            raise ValidationError("Invalid object_id")
+        
+        bookmark,created = Bookmark.objects.get_or_create(user=user, content_type=content_type, object_id=data["obj_id"])
+        if created:
+            response_data = {
+                "code": status.HTTP_201_CREATED,
+                "success": True,
+                "message": "Bookmark created successfully",
+            }
+            return Response(response_data, status=status.HTTP_201_CREATED)
+    
+    
+
+    def get(self, request):
+        user = request.user
+        bookmarks = user.bookmark_set.all()
+
+        trending_data = []
+        community_post = []
+        recommendation_data = []
+        updateme_data = []
+
+        base_url = request.build_absolute_uri("/")
+        print(base_url)
+
+        for bookmark in bookmarks:
+            content_type = bookmark.content_type.model
+            obj = bookmark.obj
+
+            if isinstance(obj, Trending):
+                trending_data.append({
+                    "id": obj.id,
+                    "category": obj.category.category_name,
+                    "subcategory": obj.subcategory.subcategory_name,
+                    "picture_url": obj.picture_url,
+                    "created_at": obj.created_at,
+                    "details_url": base_url + 'api/home/trending-now/' + str(obj.id) + '/'
+
+                })
+            elif isinstance(obj, Post):
+                community_post.append({
+                    "id": obj.id,
+                    "category": obj.category.category_name if obj.category else None,
+                    "title": obj.title,
+                    "image_url": obj.image.url if obj.image else None,
+                    "created_at": obj.created_at,
+                })
+            elif isinstance(obj, Recommendation):
+                recommendation_data.append({
+                    "id": obj.id,
+                    "category": obj.category.category_name,
+                    "subcategory": obj.subcategory.subcategory_name if obj.subcategory else None,
+                    "topic": obj.topic.name,
+                    "headline": obj.headline,
+                    "picture_url": obj.picture_url,
+                    "created_at": obj.created_at,
+                })
+            elif isinstance(obj, UpdateMe):
+                updateme_data.append({
+                    "id": obj.id,
+                    "category": obj.category.category_name,
+                    "subcategory": obj.subcategory.subcategory_name,
+                    "topic": obj.topic.name,
+                    "picture_url": obj.picture_url,
+                    "created_at": obj.created_at,
+                })
+            else:
+                pass
+
+        response_data = {
+            "code": status.HTTP_200_OK,
+            "success": True,
+            "message": "Bookmarks fetched successfully",
+            "data": {
+                "trending": trending_data,
+                "community_post": community_post,
+                "recommendation": recommendation_data,
+                "updateme": updateme_data
+            }
+        }
+        return Response(response_data, status=status.HTTP_200_OK)
+
