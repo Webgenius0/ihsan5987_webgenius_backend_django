@@ -20,10 +20,18 @@ class PostlistSerializer(serializers.ModelSerializer):
         ]
 
     def get_comment_count(self, obj):
-        return obj.comment_count()
+        # Use cached property if available, otherwise count
+        if hasattr(obj, '_prefetched_objects_cache') and 'comments' in obj._prefetched_objects_cache:
+            return len(obj._prefetched_objects_cache['comments'])
+        return obj.comments.count()
 
     def get_commented_users(self, obj):
-        comments = obj.comments.select_related('user__profile')
+        # Use prefetched comments if available
+        if hasattr(obj, '_prefetched_objects_cache') and 'comments' in obj._prefetched_objects_cache:
+            comments = obj._prefetched_objects_cache['comments']
+        else:
+            comments = obj.comments.select_related('user__profile')
+        
         users_dict = {}
         for comment in comments:
             users_dict[comment.user.id] = comment.user
@@ -78,6 +86,9 @@ class CommentSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'text', 'create_time', 'like_count',]
 
     def get_like_count(self, obj):
+        # Use cached property if available, otherwise count
+        if hasattr(obj, '_prefetched_objects_cache') and 'likes' in obj._prefetched_objects_cache:
+            return len(obj._prefetched_objects_cache['likes'])
         return obj.likes.count()
 
     def get_create_time(self, obj):
@@ -111,4 +122,4 @@ class PostDetailSerializer(serializers.ModelSerializer):
             'content': representation['content'],
             'comments': representation['comments'],
         }
-        return ordered_data 
+        return ordered_data

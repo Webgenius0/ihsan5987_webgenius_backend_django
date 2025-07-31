@@ -1,0 +1,57 @@
+{
+    "further_key_words": "Formula 1, Racing, Oscar Piastri, Lando Norris, Max Verstappen",
+    "category": {
+        "categorie_name": "Sports"
+    },
+    "subcatetgory": {
+        "subcatetgory_name": "Motorsports"
+    },
+    "topic": {
+        "name": "Formula 1 Racing",
+        "topic_tags": {
+            "tag_names": "F1, Racing, Motorsports"
+        }
+    },
+    "general_facts": {
+        "general_definition": "Formula 1 Racing is a premier international auto racing championship featuring the fastest cars and most skilled drivers.",
+        "general_points": {
+            "Multi-Race Events": "Consists of a series of races (Grands Prix) held worldwide on purpose-built circuits and public roads.",
+            "High-Speed Thrills": "Cars can reach speeds over 200 mph, navigating complex turns and straights with precision.",
+            "Team Dynamics": "Each team has two drivers who compete for individual and team championships, with strategists and engineers playing crucial roles."
+        },
+        "general_fun_fact": "The Monaco Grand Prix is one of the most prestigious and challenging races on the F1 calendar, held on the narrow streets of Monte Carlo.",
+        "key_facts_text": [
+            "Oscar Piastri and Lando Norris lead McLaren in 2025, while Max Verstappen races for Red Bull Racing.",
+            "Physical Demands: Drivers face intense g-forces and extreme cockpit temperatures, requiring top fitness levels.",
+            "Emerging Talents: Young drivers like Arvid Lindblad are being groomed for future participation in F1."
+        ],
+        "key_facts_fun_fact": "F1 drivers can lose up to 4 kg (8.8 lbs) in sweat during a race due to the extreme physical demands and cockpit temperatures.",
+        "picture_url": "https://cdn-2.formula1.com/images/14553/s-race-hamilton.jpg"
+    },
+    "news": {
+        "news_text": [
+            "The 2025 Formula 1 season sees a competitive battle with Oscar Piastri and Lando Norris leading for McLaren, while Max Verstappen races for Red Bull Racing.",
+            "Emerging talents like 17-year-old Arvid Lindblad from the Red Bull Junior Team are being groomed for future F1 participation, with recent activities at iconic venues like Silverstone.",
+            "Physical demands remain intense for drivers, who endure high g-forces on tracks and extreme cockpit temperatures, requiring top cardiovascular fitness and strength."
+        ],
+        "news_fun_facts": "Formula 1 drivers can experience forces up to 6.5 times their body weight while cornering, and the cockpit temperature can reach as high as 60 °C (140 °F) during a race.",
+        "picture_url": "https://cdn-2.formula1.com/images/14553/s-race-hamilton.jpg"
+    },
+    "interesting_trivia": {
+        "trivia_text": [
+            "Monza's Parabolica: Known for its challenging and iconic turn, testing driver skill and precision.",
+            "Fastest Lap Record: Held by Lewis Hamilton at the Circuit de Spa-Francorchamps in Belgium.",
+            "Strategic Tire Choices: Teams must decide on tire compounds during races, affecting performance and pit stop strategies."
+        ],
+        "trivia_fun_fact": "F1 cars can generate enough downforce to drive upside down on the roof of a tunnel, showcasing the incredible aerodynamic design of the vehicles.",
+        "picture_url": "https://cdn-2.formula1.com/images/14553/s-race-hamilton.jpg"
+    },
+    "opinions": {
+        "opinions_text": "Fans and experts praise McLaren's strong showing in 2025 with Oscar Piastri and Lando Norris, highlighting the resurgence of the team, while Red Bull's focus on youth development with drivers like Arvid Lindblad is seen as a smart move for future dominance.",
+        "opinions_fun_fact": "Many F1 fans believe the physical demands on drivers make them some of the fittest athletes in the world, often comparing their endurance to top marathon runners."
+    },
+    "questions": {
+        "questions_text": "Which F1 team are you rooting for in the 2025 season?",
+        "questions_fun_fact": "F1 cars can go from 0 to 100 mph and back to 0 in just 5 seconds, showcasing their incredible acceleration and braking capabilities."
+    }
+}

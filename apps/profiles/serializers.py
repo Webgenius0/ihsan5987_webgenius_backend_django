@@ -46,9 +46,13 @@ class MyPostSerializer(serializers.ModelSerializer):
         fields = ['id', 'image', 'title', 'category', 'content', 'created_at', 'comment_count', 'commented_users']
 
     def get_commented_users(self, obj):
-        # Get the list of users who have commented on this post
-        comments = obj.comments.filter(post=obj).select_related('user__profile')
-        users = {comments.user.id: comments.user for comments in comments}.values()
+        # Use prefetched comments if available
+        if hasattr(obj, '_prefetched_objects_cache') and 'comments' in obj._prefetched_objects_cache:
+            comments = obj._prefetched_objects_cache['comments']
+        else:
+            comments = obj.comments.select_related('user__profile')
+        
+        users = {comment.user.id: comment.user for comment in comments}.values()
     
         # Limit to 5 for avatars (you can make this dynamic or full list based on your UI)
         max_users = 5
@@ -60,7 +64,10 @@ class MyPostSerializer(serializers.ModelSerializer):
         }
 
     def get_comment_count(self, obj):
-        return obj.comment_count()
+        # Use cached property if available, otherwise count
+        if hasattr(obj, '_prefetched_objects_cache') and 'comments' in obj._prefetched_objects_cache:
+            return len(obj._prefetched_objects_cache['comments'])
+        return obj.comments.count()
     
 # FAQ Serializer
 class FAQSerializer(serializers.ModelSerializer):
