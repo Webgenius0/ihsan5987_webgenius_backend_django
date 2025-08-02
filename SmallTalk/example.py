@@ -3,11 +3,11 @@
 from .search_bar import search_bar
 
 search_bar = search_bar('Formula 1', allow_options = True) # the options output can be shown  
-search_bar_obj = search_bar('Formula 1, Racing', allow_options = False) 
+# search_bar_obj = search_bar('Formula 1, Racing', allow_options = False) 
 
 # exit()
 #Generate recommendation output 
-from .recommendation import *
+# from .recommendation import *
 
 #only one output json
 # recommendation = generate_recommendation('home office', prompt_version='v02')
@@ -40,24 +40,24 @@ from .recommendation import *
 
 #geberate set of 3 update me news 
 
-from .update_me import *
+# from .update_me import *
 # set = generate_update_me_news_set() # news set, 3 news, list of dictionaries
 
 
 
 #generate output for each topic 
 
-categories_file = 'Categories.xlsx'
-df = pd.read_excel(categories_file)
-subcategories = df['Subcategory'].dropna().tolist()
+# categories_file = 'Categories.xlsx'
+# df = pd.read_excel(categories_file)
+# subcategories = df['Subcategory'].dropna().tolist()
 
-update_me = []
+# update_me = []
 
-update_me = []
+# update_me = []
 
-for subtopic in subcategories[:2]:  #remove the index 2 if need to generate the update_me elemts for all topics 
-        update_me.append(generate_update_me_element(keywords = subtopic, 
-                                                    prompt_type = 'update_me_general', 
-                                                    categories_file = categories_file,  
-                                                    prompt_version='v01'))     
+# for subtopic in subcategories[:2]:  #remove the index 2 if need to generate the update_me elemts for all topics 
+#         update_me.append(generate_update_me_element(keywords = subtopic, 
+#                                                     prompt_type = 'update_me_general', 
+#                                                     categories_file = categories_file,  
+#                                                     prompt_version='v01'))     
 
