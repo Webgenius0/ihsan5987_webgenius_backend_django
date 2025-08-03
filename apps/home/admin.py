@@ -11,7 +11,8 @@ from .models import (
     Opinion,
     Question,
     Response,
-    Option,
+    SearchOption,
+    SearchHistory,
     Search,
     SearchTag,
     Recommendation,
@@ -52,7 +53,7 @@ class TopicAdmin(ModelAdmin):
     list_filter = ("topic_tags",)
 
 
-# GeneralFact
+GeneralFact
 @admin.register(GeneralFact)
 class GeneralFactAdmin(admin.ModelAdmin):
     list_display = (
@@ -67,7 +68,7 @@ class GeneralFactAdmin(admin.ModelAdmin):
     list_per_page = 10
 
 
-# News
+News
 @admin.register(News)
 class NewsAdmin(admin.ModelAdmin):
     list_display = (
@@ -81,7 +82,7 @@ class NewsAdmin(admin.ModelAdmin):
     list_per_page = 10
 
 
-# InterestingTrivia
+InterestingTrivia
 @admin.register(InterestingTrivia)
 class InterestingTriviaAdmin(admin.ModelAdmin):
     list_display = ("id", "trivia_text_created_at", "picture_url")
@@ -90,7 +91,7 @@ class InterestingTriviaAdmin(admin.ModelAdmin):
     list_per_page = 10
 
 
-# Opinion
+Opinion
 @admin.register(Opinion)
 class OpinionAdmin(admin.ModelAdmin):
     list_display = (
@@ -102,7 +103,7 @@ class OpinionAdmin(admin.ModelAdmin):
     list_per_page = 10
 
 
-# Question
+Question
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
     list_display = (
@@ -114,7 +115,7 @@ class QuestionAdmin(admin.ModelAdmin):
     list_per_page = 10
 
 
-# Response
+Response
 @admin.register(Response)
 class ResponseAdmin(admin.ModelAdmin):
     list_display = (
@@ -136,12 +137,9 @@ class ResponseAdmin(admin.ModelAdmin):
 
 
 # Option
-@admin.register(Option)
-class OptionAdmin(admin.ModelAdmin):
-    list_display = ("id", "options", "selection")
-    search_fields = ("options", "selection")
-    ordering = ("id",)
-    list_per_page = 10
+@admin.register(SearchOption)
+class SearchOptionAdmin(admin.ModelAdmin):
+    pass
 
 
 # Search
@@ -157,10 +155,7 @@ class SearchAdmin(admin.ModelAdmin):
 # SearchTag
 @admin.register(SearchTag)
 class SearchTagAdmin(admin.ModelAdmin):
-    list_display = ("id", "search", "tag_names", "created_at")
-    search_fields = ("tag_names",)
-    ordering = ("id",)
-    list_per_page = 10
+    pass
 
 
 # Recommendation

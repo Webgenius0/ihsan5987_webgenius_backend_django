@@ -508,3 +508,64 @@ class BookmarkAPIView(APIView):
         }
         return Response(response_data, status=status.HTTP_200_OK)
 
+
+# import transaction atomic
+from django.db import transaction
+from apps.home.models import SearchTag, SearchOption
+from SmallTalk.search_bar import search_bar
+class SearchAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        data = request.data
+        search_term = data["search_term"]
+        print(f"Search term received: {search_term}")
+        # get or create search_term
+        search_tag = SearchTag.objects.get_or_create(tag_name=search_term)[0]
+        print(f"Search tag created: {search_tag}")
+        # filter search tag into search options
+        if  search_tag:
+            # find search options with this tag
+            
+            if search_tag.options.exists():
+                # return search options 
+                data = []
+                for option in search_tag.options.all():
+                    data.append({
+                        "search_tag": search_tag.tag_name,
+                        "option": option.option
+                    })
+                return Response(data, status=status.HTTP_200_OK)
+            else:
+                # create search options
+                try:
+                    generate_options = search_bar(search_term, allow_options=True)[1]
+                    print(f"Generated search options: {generate_options} its type {type(generate_options)}")
+                    if generate_options:
+                        options = []
+                        for option in generate_options.values():
+                            print(option["key_words"])
+                            print(option["category"])
+                            SearchOption.objects.create(
+                                search_tag=search_tag,
+                                keyword=option["key_words"],
+                                category=option["category"],
+                                subcategory=option["subcatetgory"],
+                            )
+                            
+
+                        response_data = {
+                            "code": status.HTTP_201_CREATED,
+                            "success": True,
+                            "message": "Search options created successfully",
+                            "data": {
+                                "search_tag": search_tag.tag_name,
+                                "search_options": generate_options
+                            }
+                        }
+                        return Response(response_data, status=status.HTTP_201_CREATED)
+                except Exception as e:
+                    print(f"Error generating search options: {e}")
+
+        else:
+            raise ValidationError("Something went wrong")

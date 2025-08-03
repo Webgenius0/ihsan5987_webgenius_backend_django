@@ -76,5 +76,6 @@ urlpatterns = [
     # bookmarks
     path("bookmarks/", views.BookmarkAPIView.as_view(), name="bookmark-list"),
 
-
+    # search bar
+    path("search-bar/", views.SearchAPIView.as_view(), name="search-bar"),
 ]

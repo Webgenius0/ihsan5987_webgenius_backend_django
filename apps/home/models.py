@@ -102,26 +102,45 @@ class Response(models.Model):
     created_at = models.DateField(auto_now_add=True)
 
 
-# Options
-class Option(models.Model):
-    options = models.TextField()
-    selection = models.TextField()
-
 
 # Search
 class Search(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='searches')
     search_term = models.TextField()
     response = models.ForeignKey(Response, on_delete=models.SET_NULL, null=True)
-    options = models.ForeignKey(Option, on_delete=models.SET_NULL, null=True)
+    # options = models.ForeignKey(Option, on_delete=models.SET_NULL, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
 
 # Search Tags
 class SearchTag(models.Model):
-    search = models.ForeignKey(Search, on_delete=models.CASCADE)
-    tag_names = models.TextField()
+    # search = models.ForeignKey(Search, on_delete=models.CASCADE)
+    tag_name = models.CharField(max_length=200) 
     created_at = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        return self.tag_name
+
+
+class SearchOption(models.Model):
+    search_tag = models.ForeignKey(SearchTag, on_delete=models.CASCADE, related_name='options')
+    keyword = models.CharField(max_length=200)
+    category = models.CharField(max_length=200, blank=True, null=True)
+    subcategory = models.CharField(max_length=200, blank=True, null=True)
+    created_at = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        return f'Option for {self.search_tag.tag_name} - {self.keyword}'
+
+
+class SearchHistory(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='search_history')
+    search_term = models.CharField(max_length=200)
+    is_delete = models.BooleanField(default=False)
+    created_at = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        return f'Search History for {self.user.username} - {self.search_term}'
 
 
 # Recommendations

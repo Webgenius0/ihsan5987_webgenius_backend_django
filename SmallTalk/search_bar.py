@@ -86,7 +86,7 @@ def search_bar(
     while not validated and iterations < 3:
         llm_response = get_llm_response(prompt)
         need_choise, json_output = verify_and_fix_json(llm_response)
-        print(json_output)
+        # print(json_output)
         validated = validate_search_bar_output(json_output)[0]
         iterations += 1
     if validated:
