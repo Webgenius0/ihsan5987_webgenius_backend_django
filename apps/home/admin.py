@@ -5,12 +5,6 @@ from .models import (
     Subcategory,
     TopicTag,
     Topic,
-    GeneralFact,
-    News,
-    InterestingTrivia,
-    Opinion,
-    Question,
-    Response,
     SearchOption,
     SearchHistory,
     Search,
@@ -53,89 +47,6 @@ class TopicAdmin(ModelAdmin):
     list_filter = ("topic_tags",)
 
 
-GeneralFact
-@admin.register(GeneralFact)
-class GeneralFactAdmin(admin.ModelAdmin):
-    list_display = (
-        "id",
-        "general_definition",
-        "general_created_at",
-        "key_facts_created_at",
-        "picture_created_at",
-    )
-    search_fields = ("general_definition", "general_fun_fact", "key_facts_text")
-    ordering = ("id",)
-    list_per_page = 10
-
-
-News
-@admin.register(News)
-class NewsAdmin(admin.ModelAdmin):
-    list_display = (
-        "id",
-        "news_oldest_article_date",
-        "news_newest_article_date",
-        "news_picture_url",
-    )
-    search_fields = ("news_text", "news_fun_facts")
-    ordering = ("id",)
-    list_per_page = 10
-
-
-InterestingTrivia
-@admin.register(InterestingTrivia)
-class InterestingTriviaAdmin(admin.ModelAdmin):
-    list_display = ("id", "trivia_text_created_at", "picture_url")
-    search_fields = ("trivia_text", "trivia_fun_fact")
-    ordering = ("id",)
-    list_per_page = 10
-
-
-Opinion
-@admin.register(Opinion)
-class OpinionAdmin(admin.ModelAdmin):
-    list_display = (
-        "id",
-        "opinions_created_at",
-    )
-    search_fields = ("opinions_text", "opinions_fun_fact")
-    ordering = ("id",)
-    list_per_page = 10
-
-
-Question
-@admin.register(Question)
-class QuestionAdmin(admin.ModelAdmin):
-    list_display = (
-        "id",
-        "questions_created_at",
-    )
-    search_fields = ("questions_text", "questions_fun_fact")
-    ordering = ("id",)
-    list_per_page = 10
-
-
-Response
-@admin.register(Response)
-class ResponseAdmin(admin.ModelAdmin):
-    list_display = (
-        "id",
-        "category",
-        "subcategory",
-        "topic",
-        "general_fact",
-        "news",
-        "interesting_trivia",
-        "opinion",
-        "question",
-        "created_at",
-    )
-    list_filter = ("category", "subcategory", "topic", "created_at")
-    search_fields = ("further_key_words",)
-    ordering = ("id",)
-    list_per_page = 10
-
-
 # Option
 @admin.register(SearchOption)
 class SearchOptionAdmin(admin.ModelAdmin):
@@ -145,11 +56,7 @@ class SearchOptionAdmin(admin.ModelAdmin):
 # Search
 @admin.register(Search)
 class SearchAdmin(admin.ModelAdmin):
-    list_display = ("id", "user", "search_term", "response", "created_at")
-    list_filter = ("created_at", "user")
-    search_fields = ("search_term",)
-    ordering = ("id",)
-    list_per_page = 10
+    pass
 
 
 # SearchTag
