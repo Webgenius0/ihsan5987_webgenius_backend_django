@@ -19,40 +19,11 @@ urlpatterns = [
     path("topics/", views.TopicListAPIView.as_view(), name="topic-list"),
     path("topics/<int:pk>/", views.TopicDetailAPIView.as_view(), name="topic-detail"),
     # General Facts
-    path("general-facts/", views.GeneralFactListAPIView.as_view(), name="generalfact-list"),
-    path(
-        "general-facts/<int:pk>/",
-        views.GeneralFactDetailAPIView.as_view(),
-        name="generalfact-detail",
-    ),
-    # News
-    path("news/", views.NewsListAPIView.as_view(), name="news-list"),
-    path("news/<int:pk>/", views.NewsDetailAPIView.as_view(), name="news-detail"),
-    # Interesting Trivia
-    path("trivia/", views.InterestingTriviaListAPIView.as_view(), name="trivia-list"),
-    path(
-        "trivia/<int:pk>/",
-        views.InterestingTriviaDetailAPIView.as_view(),
-        name="trivia-detail",
-    ),
-    # Opinions
-    path("opinions/", views.OpinionListAPIView.as_view(), name="opinion-list"),
-    path("opinions/<int:pk>/", views.OpinionDetailAPIView.as_view(), name="opinion-detail"),
-    # Questions
-    path("questions/", views.QuestionListAPIView.as_view(), name="question-list"),
-    path(
-        "questions/<int:pk>/", views.QuestionDetailAPIView.as_view(), name="question-detail"
-    ),
+  
     # Users
     path("users/<int:pk>/", views.UserDetailAPIView.as_view(), name="user-detail"),
     # Responses
-    path("responses/", views.ResponseListAPIView.as_view(), name="response-list"),
-    path(
-        "responses/<int:pk>/", views.ResponseDetailAPIView.as_view(), name="response-detail"
-    ),
-    # Searches
-    path("searches/", views.SearchListAPIView.as_view(), name="search-list"),
-    path("searches/<int:pk>/", views.SearchDetailAPIView.as_view(), name="search-detail"),
+    
     # Feedbacks
     path("feedbacks/", views.FeedbackListAPIView.as_view(), name="feedback-list"),
     path(
@@ -76,5 +47,6 @@ urlpatterns = [
     # bookmarks
     path("bookmarks/", views.BookmarkAPIView.as_view(), name="bookmark-list"),
 
-
+    # search bar
+    path("search-bar/", views.SearchAPIView.as_view(), name="search-bar"),
 ]

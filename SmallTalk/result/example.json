@@ -1,0 +1,27 @@
+{
+    "search1": {
+        "category": "Sports & Training",
+        "key_words": "World Cup Soccer",
+        "subcatetgory": "Football"
+    },
+    "search2": {
+        "category": "Sports & Training",
+        "key_words": "World Cup 2026",
+        "subcatetgory": "Football"
+    },
+    "search3": {
+        "category": "Sports & Training",
+        "key_words": "FIFA World Cup",
+        "subcatetgory": "Football"
+    },
+    "search4": {
+        "category": "Sports & Training",
+        "key_words": "Canada World Cup 2026",
+        "subcatetgory": "Football"
+    },
+    "search5": {
+        "category": "Sports & Training",
+        "key_words": "Soccer World Cup North America",
+        "subcatetgory": "Football"
+    }
+}

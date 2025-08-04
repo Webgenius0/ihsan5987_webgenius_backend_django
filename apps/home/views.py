@@ -4,44 +4,32 @@ from rest_framework.validators import ValidationError
 from rest_framework import status
 
 from django.shortcuts import get_object_or_404
+from django.forms.models import model_to_dict
 from django.contrib.contenttypes.models import ContentType
 
 
 from .models import (
-    Response as ResponseModel,
     Topic,
     Category,
     Subcategory,
-    GeneralFact,
-    News,
-    InterestingTrivia,
-    Opinion,
-    Question,
     Search,
     UpdateMe,
     Bookmark,
     # Preference,
     Trending,
-    Recommendation
+    Recommendation,
 )
 from apps.community_hubs.models import Post
 from apps.users.models import User
 from apps.profiles.models import Feedback
 from .serializers import (
-    ResponseSerializer,
     TopicSerializer,
     CategorySerializer,
     SubcategorySerializer,
-    GeneralFactSerializer,
-    NewsSerializer,
-    InterestingTriviaSerializer,
-    OpinionSerializer,
-    QuestionSerializer,
     UserSerializer,
-    SearchSerializer,
     FeedbackSerializer,
     RecommendationSerializer,
-    PreferenceSerializer
+    PreferenceSerializer,
 )
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
@@ -96,121 +84,11 @@ class TopicDetailAPIView(APIView):
         return Response(serializer.data)
 
 
-class GeneralFactListAPIView(APIView):
-    def get(self, request):
-        facts = GeneralFact.objects.all()
-        serializer = GeneralFactSerializer(facts, many=True)
-        return Response(serializer.data)
-
-
-class GeneralFactDetailAPIView(APIView):
-    def get(self, request, pk):
-        fact = get_object_or_404(GeneralFact, pk=pk)
-        serializer = GeneralFactSerializer(fact)
-        return Response(serializer.data)
-
-
-class NewsListAPIView(APIView):
-    def get(self, request):
-        news = News.objects.all()
-        serializer = NewsSerializer(news, many=True)
-        return Response(serializer.data)
-
-
-class NewsDetailAPIView(APIView):
-    def get(self, request, pk):
-        news_item = get_object_or_404(News, pk=pk)
-        serializer = NewsSerializer(news_item)
-        return Response(serializer.data)
-
-
-class InterestingTriviaListAPIView(APIView):
-    def get(self, request):
-        trivia = InterestingTrivia.objects.all()
-        serializer = InterestingTriviaSerializer(trivia, many=True)
-        return Response(serializer.data)
-
-
-class InterestingTriviaDetailAPIView(APIView):
-    def get(self, request, pk):
-        trivia = get_object_or_404(InterestingTrivia, pk=pk)
-        serializer = InterestingTriviaSerializer(trivia)
-        return Response(serializer.data)
-
-
-class OpinionListAPIView(APIView):
-    def get(self, request):
-        opinions = Opinion.objects.all()
-        serializer = OpinionSerializer(opinions, many=True)
-        return Response(serializer.data)
-
-
-class OpinionDetailAPIView(APIView):
-    def get(self, request, pk):
-        opinion = get_object_or_404(Opinion, pk=pk)
-        serializer = OpinionSerializer(opinion)
-        return Response(serializer.data)
-
-
-class QuestionListAPIView(APIView):
-    def get(self, request):
-        questions = Question.objects.all()
-        serializer = QuestionSerializer(questions, many=True)
-        return Response(serializer.data)
-
-
-class QuestionDetailAPIView(APIView):
-    def get(self, request, pk):
-        question = get_object_or_404(Question, pk=pk)
-        serializer = QuestionSerializer(question)
-        return Response(serializer.data)
-
 
 class UserDetailAPIView(APIView):
     def get(self, request, pk):
         user = get_object_or_404(User, pk=pk)
         serializer = UserSerializer(user)
-        return Response(serializer.data)
-
-
-class ResponseListAPIView(APIView, StandardResultsSetPagination):
-    def get(self, request):
-        responses = ResponseModel.objects.all()
-        category_id = request.query_params.get("category_id")
-        topic_id = request.query_params.get("topic_id")
-
-        if category_id:
-            responses = responses.filter(category_id=category_id)
-        if topic_id:
-            responses = responses.filter(topic_id=topic_id)
-
-        results = self.paginate_queryset(responses, request, view=self)
-        serializer = ResponseSerializer(results, many=True)
-        return self.get_paginated_response(serializer.data)
-
-
-class ResponseDetailAPIView(APIView):
-    def get(self, request, pk):
-        response = get_object_or_404(ResponseModel, pk=pk)
-        serializer = ResponseSerializer(response)
-        return Response(serializer.data)
-
-
-class SearchListAPIView(APIView, StandardResultsSetPagination):
-    def get(self, request):
-        searches = Search.objects.all()
-        user_id = request.query_params.get("user_id")
-        if user_id:
-            searches = searches.filter(user_id=user_id)
-        results = self.paginate_queryset(searches, request, view=self)
-        serializer = SearchSerializer(results, many=True)
-        return self.get_paginated_response(serializer.data)
-
-
-class SearchDetailAPIView(APIView):
-    def get(self, request, pk):
-        search = get_object_or_404(Search, pk=pk)
-        serializer = SearchSerializer(search)
         return Response(serializer.data)
 
 
@@ -259,7 +137,7 @@ class TrendingNowAPI(APIView):
                 response = {
                     "code": status.HTTP_404_NOT_FOUND,
                     "success": False,
-                    "message": "Trending news not found"
+                    "message": "Trending news not found",
                 }
                 return Response(response, status=status.HTTP_404_NOT_FOUND)
         else:
@@ -268,7 +146,9 @@ class TrendingNowAPI(APIView):
             if request.query_params.get("all") == "true":
                 trending_now = Trending.objects.all().order_by("-created_at")
             else:
-                trending_now = Trending.objects.select_related("category", "subcategory").order_by("-created_at")[:4]
+                trending_now = Trending.objects.select_related(
+                    "category", "subcategory"
+                ).order_by("-created_at")[:4]
         data = []
         for trendig in trending_now:
             obj = {
@@ -310,14 +190,18 @@ class UpdatemeAPI(APIView):
                 "code": status.HTTP_200_OK,
                 "success": True,
                 "message": "UpdateMe fetched successfully",
-                "data": data
+                "data": data,
             }
             return Response(response, status=status.HTTP_200_OK)
 
         user = request.user
         sub_ctg = user.preferences.subcategory.all()
         upate_me_last3 = UpdateMe.objects.order_by("-created_at")[:3]
-        update_for_me = UpdateMe.objects.filter(subcategory__in=sub_ctg).select_related("category", "subcategory", "topic").order_by("-created_at")[:2]
+        update_for_me = (
+            UpdateMe.objects.filter(subcategory__in=sub_ctg)
+            .select_related("category", "subcategory", "topic")
+            .order_by("-created_at")[:2]
+        )
 
         # merge two querysets
         update_me = list(update_for_me) + list(upate_me_last3)
@@ -347,12 +231,13 @@ class RecommendationAPI(APIView):
     DEFAULT LIMIT IS 4 RECOMMENDATIONS
     IF ALL IS TRUE IN QUERY PARAMS, THEN ALL RECOMMENDATIONS ARE RETURNED
     """
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk=None):
         user = request.user
-        category = user.preferences.category.all().values_list('id', flat=True)
-        print('user preferences category:', category)
+        category = user.preferences.category.all().values_list("id", flat=True)
+        print("user preferences category:", category)
         if pk:
             recommendation = get_object_or_404(Recommendation, pk=pk)
             serializer = RecommendationSerializer(recommendation)
@@ -360,22 +245,30 @@ class RecommendationAPI(APIView):
                 "code": status.HTTP_200_OK,
                 "success": True,
                 "message": "Recommendation fetched successfully",
-                "data": serializer.data
+                "data": serializer.data,
             }
             return Response(response, status=status.HTTP_200_OK)
 
-        # check query params 
+        # check query params
         if request.query_params.get("all") == "true":
-            recommendations = Recommendation.objects.filter(category__in=category).select_related("category", "topic").order_by("-created_at")
+            recommendations = (
+                Recommendation.objects.filter(category__in=category)
+                .select_related("category", "topic")
+                .order_by("-created_at")
+            )
         else:
-            recommendations = Recommendation.objects.filter(category__id__in=category).select_related("category", "topic").order_by("-created_at")[:4]
-            print('recommendations:', recommendations)
+            recommendations = (
+                Recommendation.objects.filter(category__id__in=category)
+                .select_related("category", "topic")
+                .order_by("-created_at")[:4]
+            )
+            print("recommendations:", recommendations)
         serializer = RecommendationSerializer(recommendations, many=True)
         response = {
             "code": status.HTTP_200_OK,
             "success": True,
             "message": "Recommendations fetched successfully",
-            "data": serializer.data
+            "data": serializer.data,
         }
         return Response(response, status=status.HTTP_200_OK)
 
@@ -393,19 +286,21 @@ class PreferenceAPI(APIView):
             "message": "Preferences fetched successfully",
             "data": {
                 "categories": CategorySerializer(categories, many=True).data,
-                "subcategories": SubcategorySerializer(subcateories, many=True).data
-            }
+                "subcategories": SubcategorySerializer(subcateories, many=True).data,
+            },
         }
         return Response(response_data, status=status.HTTP_200_OK)
 
     def post(self, request):
-        serializer = PreferenceSerializer(data=request.data, context={'request': request})
+        serializer = PreferenceSerializer(
+            data=request.data, context={"request": request}
+        )
         if serializer.is_valid():
             serializer.save()
             response_data = {
                 "code": status.HTTP_200_OK,
                 "success": True,
-                "message": "Preferences updated successfully"
+                "message": "Preferences updated successfully",
             }
             return Response(response_data, status=status.HTTP_200_OK)
         else:
@@ -427,8 +322,10 @@ class BookmarkAPIView(APIView):
             raise ValidationError("Invalid content_type")
         except model_class.DoesNotExist:
             raise ValidationError("Invalid object_id")
-        
-        bookmark,created = Bookmark.objects.get_or_create(user=user, content_type=content_type, object_id=data["obj_id"])
+
+        bookmark, created = Bookmark.objects.get_or_create(
+            user=user, content_type=content_type, object_id=data["obj_id"]
+        )
         if created:
             response_data = {
                 "code": status.HTTP_201_CREATED,
@@ -436,8 +333,6 @@ class BookmarkAPIView(APIView):
                 "message": "Bookmark created successfully",
             }
             return Response(response_data, status=status.HTTP_201_CREATED)
-    
-    
 
     def get(self, request):
         user = request.user
@@ -456,42 +351,58 @@ class BookmarkAPIView(APIView):
             obj = bookmark.obj
 
             if isinstance(obj, Trending):
-                trending_data.append({
-                    "id": obj.id,
-                    "category": obj.category.category_name,
-                    "subcategory": obj.subcategory.subcategory_name,
-                    "picture_url": obj.picture_url,
-                    "created_at": obj.created_at,
-                    "details_url": base_url + 'api/home/trending-now/' + str(obj.id) + '/'
-
-                })
+                trending_data.append(
+                    {
+                        "id": obj.id,
+                        "category": obj.category.category_name,
+                        "subcategory": obj.subcategory.subcategory_name,
+                        "picture_url": obj.picture_url,
+                        "created_at": obj.created_at,
+                        "details_url": base_url
+                        + "api/home/trending-now/"
+                        + str(obj.id)
+                        + "/",
+                    }
+                )
             elif isinstance(obj, Post):
-                community_post.append({
-                    "id": obj.id,
-                    "category": obj.category.category_name if obj.category else None,
-                    "title": obj.title,
-                    "image_url": obj.image.url if obj.image else None,
-                    "created_at": obj.created_at,
-                })
+                community_post.append(
+                    {
+                        "id": obj.id,
+                        "category": (
+                            obj.category.category_name if obj.category else None
+                        ),
+                        "title": obj.title,
+                        "image_url": obj.image.url if obj.image else None,
+                        "created_at": obj.created_at,
+                    }
+                )
             elif isinstance(obj, Recommendation):
-                recommendation_data.append({
-                    "id": obj.id,
-                    "category": obj.category.category_name,
-                    "subcategory": obj.subcategory.subcategory_name if obj.subcategory else None,
-                    "topic": obj.topic.name,
-                    "headline": obj.headline,
-                    "picture_url": obj.picture_url,
-                    "created_at": obj.created_at,
-                })
+                recommendation_data.append(
+                    {
+                        "id": obj.id,
+                        "category": obj.category.category_name,
+                        "subcategory": (
+                            obj.subcategory.subcategory_name
+                            if obj.subcategory
+                            else None
+                        ),
+                        "topic": obj.topic.name,
+                        "headline": obj.headline,
+                        "picture_url": obj.picture_url,
+                        "created_at": obj.created_at,
+                    }
+                )
             elif isinstance(obj, UpdateMe):
-                updateme_data.append({
-                    "id": obj.id,
-                    "category": obj.category.category_name,
-                    "subcategory": obj.subcategory.subcategory_name,
-                    "topic": obj.topic.name,
-                    "picture_url": obj.picture_url,
-                    "created_at": obj.created_at,
-                })
+                updateme_data.append(
+                    {
+                        "id": obj.id,
+                        "category": obj.category.category_name,
+                        "subcategory": obj.subcategory.subcategory_name,
+                        "topic": obj.topic.name,
+                        "picture_url": obj.picture_url,
+                        "created_at": obj.created_at,
+                    }
+                )
             else:
                 pass
 
@@ -503,8 +414,154 @@ class BookmarkAPIView(APIView):
                 "trending": trending_data,
                 "community_post": community_post,
                 "recommendation": recommendation_data,
-                "updateme": updateme_data
-            }
+                "updateme": updateme_data,
+            },
         }
         return Response(response_data, status=status.HTTP_200_OK)
 
+
+# import transaction atomic
+from django.db import transaction
+from apps.home.models import SearchTag, SearchOption
+from SmallTalk.search_bar import search_bar
+
+
+class SearchAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        data = request.data
+        get_news = data.get("get_news", False)
+        print(f"get_news: {get_news}")
+        search_term = data["search_term"]
+        print(f"Search term received: {search_term}")
+        # get or create search_term
+        search_tag = SearchTag.objects.get_or_create(tag_name=search_term)[0]
+        print(f"Search tag created: {search_tag}")
+        # filter search tag into search options
+        if search_tag and get_news == False:
+            # find search options with this tag
+
+            if search_tag.options.exists():
+                # return search options
+                data = []
+                for option in search_tag.options.all():
+                    data.append(
+                        {
+                            "search_tag": search_tag.tag_name,
+                            "keyword": option.keyword,
+                            "category": option.category,
+                            "subcategory": option.subcategory,
+                        }
+                    )
+                return Response(data, status=status.HTTP_200_OK)
+            else:
+                # create search options
+                try:
+                    generate_options = search_bar(search_term, allow_options=True)[1]
+                    print(
+                        f"Generated search options: {generate_options} its type {type(generate_options)}"
+                    )
+                    if generate_options:
+                        options = []
+                        for option in generate_options.values():
+                            print(option["key_words"])
+                            print(option["category"])
+                            SearchOption.objects.create(
+                                search_tag=search_tag,
+                                keyword=option["key_words"],
+                                category=option["category"],
+                                subcategory=option["subcatetgory"],
+                            )
+
+                        response_data = {
+                            "code": status.HTTP_201_CREATED,
+                            "success": True,
+                            "message": "Search options created successfully",
+                            "data": {
+                                "search_tag": search_tag.tag_name,
+                                "search_options": generate_options,
+                            },
+                        }
+                        return Response(response_data, status=status.HTTP_201_CREATED)
+                except Exception as e:
+                    print(f"Error generating search options: {e}")
+
+        elif search_tag and get_news == True:
+            # generate news
+            get_news = search_bar(search_term, allow_options=False)[1]
+            print(f"get_news: {get_news}")
+
+            # get_news: (
+            #     {
+            #         "further_key_words": "FIFA World Cup, 2026, Canada, Mexico, USA",
+            #         "category": {"categorie_name": "Sports"},
+            #         "subcatetgory": {"subcatetgory_name": "Football"},
+            #         "topic": {
+            #             "name": "FIFA World Cup 2026",
+            #             "topic_tags": {
+            #                 "tag_names": "Football, Soccer, FIFA, World Cup"
+            #             },
+            #         },
+            #         "general_facts": {
+            #             "general_definition": "The FIFA World Cup is an international soccer tournament held every four years, showcasing the world's top national teams.",
+            #             "general_points": {
+            #                 "Expansion and Joint Hosting": "The 2026 edition will feature 48 teams, up from 32, and will be hosted jointly by Canada, Mexico, and the USA.",
+            #                 "Dates and Locations": "Scheduled from June 11 to July 19, 2026, the final will take place in New Jersey, USA, with matches in 16 host cities.",
+            #                 "Significance": "The largest World Cup ever, with 104 matches, aims to promote unity across North America and enhance soccer's popularity.",
+            #             },
+            #             "general_fun_fact": "The 2026 World Cup trophy will be the same iconic one contested in 2023, connecting past and future tournaments.",
+            #             "key_facts_text": [
+            #                 "48-Team Format: Increases team participation by 50% compared to previous editions.",
+            #                 "First-Ever Men's Match in Canada: Toronto hosts six matches, showcasing soccer on Canadian soil.",
+            #                 "Historic Final: New York/New Jersey chosen for the final, linking the event to a global metropolitan area.",
+            #             ],
+            #             "key_facts_fun_fact": "The expanded team format brings more nations into the spotlight, fostering diversity and competition.",
+            #             "picture_url": "http://www.bing.com/th?id=OVFT.Kk9FEz6qLjfZp2AoRqMG3i&pid=News",
+            #         },
+            #         "news": {
+            #             "news_text": "The FIFA World Cup 2026 will be the first edition hosted jointly by three countries: Canada, Mexico, and the USA, and the first to feature 48 teams instead of 32. The tournament will take place from June 11 to July 19, 2026, with the final match scheduled for July 19 in New Jersey, USA. Toronto is one of the 16 host cities and will hold six matches, including the first-ever men's FIFA World Cup match played on Canadian soil.",
+            #             "news_fun_facts": "This edition will have 104 matches, making it the largest World Cup ever in number of games played.",
+            #             "picture_url": "http://www.bing.com/th?id=OVFT.mv_cGo90a5D-Im5ORfqGFC&pid=News",
+            #         },
+            #         "interesting_trivia": {
+            #             "trivia_text": "The FIFA World Cup Trophy unveiled in May 2023 will be the same iconic trophy contested in 2026. The USA has selected New York/New Jersey area to host the final, linking the event to one of the world's largest metropolitan areas. For the first time, the tournament’s scale is significantly expanded, increasing team participation by 50% from previous editions.",
+            #             "trivia_fun_fact": "By including 48 teams, the 2026 World Cup brings more nations into the global football spotlight, increasing diversity and competition.",
+            #             "picture_url": "http://www.bing.com/th?id=OVFT._9_ayVK63x4m-PzmPC1MCi&pid=News",
+            #         },
+            #         "opinions": {
+            #             "opinions_text": "Many football fans see the 48-team expansion as a great opportunity to showcase emerging football nations, though some worry about the tournament becoming too long. Experts praise the joint hosting for promoting unity across North America and boosting soccer's popularity in Canada and Mexico.",
+            #             "opinions_fun_fact": "Despite concerns, tournaments with more teams have historically led to exciting underdog stories, creating more memorable World Cup moments.",
+            #         },
+            #         "questions": {
+            #             "questions_text": "What do you think about the 48-team format for the FIFA World Cup 2026? Which host city are you most excited to see matches in? How do you feel about the joint hosting by Canada, Mexico, and the USA?",
+            #             "questions_fun_fact": "The 2026 World Cup aims to be inclusive by expanding team participation, potentially leading to unexpected outcomes and exciting matches.",
+            #         },
+            #     },
+            # )
+            # save the news to database
+            category, created = Category.objects.get_or_create(category_name=get_news["category"]["categorie_name"])
+            subcategory, created = Subcategory.objects.get_or_create(subcategory_name=get_news["subcatetgory"]["subcatetgory_name"])
+            topic, created = Topic.objects.get_or_create(name=get_news["topic"]["name"])
+
+            search_news = Search.objects.create(
+                category=category,
+                subcategory=subcategory,
+                general_fact=get_news["general_facts"],
+                topic=topic,
+                news=get_news["news"],
+                interesting_trivia=get_news["interesting_trivia"],
+                opinion=get_news["opinions"],
+                question=get_news["questions"],
+                further_key_words=get_news["further_key_words"],
+
+            )
+
+            response_data = {
+                "code": status.HTTP_200_OK,
+                "success": True,
+                "message": "News fetched successfully",
+                "data": model_to_dict(search_news),
+            }
+            return Response(response_data, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_404_NOT_FOUND)
