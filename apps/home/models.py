@@ -131,6 +131,10 @@ class SearchTag(models.Model):
 
     def __str__(self):
         return self.tag_name
+    
+    def save(self, *args, **kwargs):
+        self.tag_name = self.tag_name.lower()
+        super(SearchTag, self).save(*args, **kwargs)
 
 
 class SearchOption(models.Model):
