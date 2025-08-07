@@ -32,7 +32,7 @@ except Exception as e:
 def recommandation_task():
     print("get recommandation task started")
     recommendations = []
-    for subcat in subcategories[:]:
+    for subcat in subcategories:
         try:
             recommendations.append(
                 generate_recommendation(

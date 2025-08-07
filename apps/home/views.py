@@ -1,5 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.validators import ValidationError
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 from .models import (
@@ -14,7 +15,7 @@ from .models import (
     Question,
     Search,
     UpdateMe,
-    Preference,
+    # Preference,
     Trending,
     Recommendation
 )
@@ -33,6 +34,8 @@ from .serializers import (
     UserSerializer,
     SearchSerializer,
     FeedbackSerializer,
+    RecommendationSerializer,
+    PreferenceSerializer
 )
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
@@ -231,45 +234,56 @@ class TrendingNowAPI(APIView):
 
     def get(self, request, pk=None):
         user = request.user
-        sub_ctg = user.preferences.all().values_list("subcategory__id")
-        
+        # sub_ctg = user.preferences.all().values_list("subcategory__id")
         if pk:
-            try:
-                trendig = Trending.objects.get(subcategory__in=sub_ctg, id=pk)
+            trending_now = Trending.objects.filter(id=pk).first()
+            if trending_now:
                 obj = {
-                    "id": trendig.id,
-                    "category": trendig.category.category_name,
-                    "subcategory": trendig.subcategory.subcategory_name,
-                    "description": trendig.description,
-                    "why_trending": trendig.why_trending,
-                    "key_points": trendig.key_points,
-                    "outlook": trendig.outlook,
-                    "picture_url": trendig.picture_url,
-                    "created_at": trendig.created_at,
+                    "id": trending_now.id,
+                    "category": trending_now.category.category_name,
+                    "subcategory": trending_now.subcategory.subcategory_name,
+                    "description": trending_now.description,
+                    "why_trending": trending_now.why_trending,
+                    "key_points": trending_now.key_points,
+                    "outlook": trending_now.outlook,
+                    "picture_url": trending_now.picture_url,
+                    "created_at": trending_now.created_at,
                 }
                 response = {"code": status.HTTP_200_OK, "success": True, "data": obj}
                 return Response(response, status=status.HTTP_200_OK)
-            except Trending.DoesNotExist:
-                return Response({"code": 404, "success": False, "message": "Trending item not found"}, status=404)
-        else:
-            trending_now = Trending.objects.filter(subcategory__in=sub_ctg)
-            data = []
-            for trendig in trending_now:
-                obj = {
-                    "id": trendig.id,
-                    "category": trendig.category.category_name,
-                    "subcategory": trendig.subcategory.subcategory_name,
-                    "description": trendig.description,
-                    "why_trending": trendig.why_trending,
-                    "key_points": trendig.key_points,
-                    "outlook": trendig.outlook,
-                    "picture_url": trendig.picture_url,
-                    "created_at": trendig.created_at,
+            else:
+                response = {
+                    "code": status.HTTP_404_NOT_FOUND,
+                    "success": False,
+                    "message": "Trending news not found"
                 }
-                data.append(obj)
+                return Response(response, status=status.HTTP_404_NOT_FOUND)
+            
 
-            response = {"code": status.HTTP_200_OK, "success": True, "data": data}
-            return Response(response, status=status.HTTP_200_OK)
+        else:
+            # check query params for all
+            # check if queryparams all is to true
+            if request.query_params.get("all") == "true":
+                trending_now = Trending.objects.all().order_by("-created_at")
+            else:
+                trending_now = Trending.objects.select_related("category", "subcategory").order_by("-created_at")[:4]
+        data = []
+        for trendig in trending_now:
+            obj = {
+                "id": trendig.id,
+                "category": trendig.category.category_name,
+                "subcategory": trendig.subcategory.subcategory_name,
+                "description": trendig.description,
+                "why_trending": trendig.why_trending,
+                "key_points": trendig.key_points,
+                "outlook": trendig.outlook,
+                "picture_url": trendig.picture_url,
+                "created_at": trendig.created_at,
+            }
+            data.append(obj)
+
+        response = {"code": status.HTTP_200_OK, "success": True, "data": data}
+        return Response(response, status=status.HTTP_200_OK)
 
 
 class UpdatemeAPI(APIView):
@@ -299,52 +313,71 @@ class UpdatemeAPI(APIView):
         return Response(response, status=status.HTTP_200_OK)
 
 
-
 class RecommendationAPI(APIView):
+    """
+    RESPONSE CONTAINS RECOMMENDATIONS BASED ON USER PREFERENCES (CATEGORY)
+    DEFAULT LIMIT IS 4 RECOMMENDATIONS
+    IF ALL IS TRUE IN QUERY PARAMS, THEN ALL RECOMMENDATIONS ARE RETURNED
+    """
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk=None):
         user = request.user
-        sub_ctg = user.preferences.all().values_list('subcategory__id')
-        
         if pk:
-            try:
-                recommendation = Recommendation.objects.get(subcategory__in=sub_ctg, id=pk)
-                obj = {
-                    "id": recommendation.id,
-                    "category": recommendation.category.category_name,
-                    "subcategory": recommendation.subcategory.subcategory_name,
-                    "topic": recommendation.topic.name,
-                    "headline": recommendation.headline,
-                    "introduction": recommendation.introduction,
-                    "key_tips_and_takeaways": recommendation.key_tips_and_takeaways,
-                    "fun_facts": recommendation.fun_facts,
-                    "conclusion": recommendation.conclusion,
-                    "picture_url": recommendation.picture_url,
-                    "created_at": recommendation.created_at,
-                }
-                response = {"code": status.HTTP_200_OK, "success": True, "data": obj}
-                return Response(response, status=status.HTTP_200_OK)
-            except Recommendation.DoesNotExist:
-                return Response({"code": 404, "success": False, "message": "Recommendation item not found"}, status=404)
-        else:
-            recommendations = Recommendation.objects.filter(subcategory__in=sub_ctg)
-            data = []
-            for recommendation in recommendations:
-                obj = {
-                    "id": recommendation.id,
-                    "category": recommendation.category.category_name,
-                    "subcategory": recommendation.subcategory.subcategory_name,
-                    "topic": recommendation.topic.name,
-                    "headline": recommendation.headline,
-                    "introduction": recommendation.introduction,
-                    "key_tips_and_takeaways": recommendation.key_tips_and_takeaways,
-                    "fun_facts": recommendation.fun_facts,
-                    "conclusion": recommendation.conclusion,
-                    "picture_url": recommendation.picture_url,
-                    "created_at": recommendation.created_at,
-                }
-                data.append(obj)
-
-            response = {"code": status.HTTP_200_OK, "success": True, "data": data}
+            recommendation = get_object_or_404(Recommendation, pk=pk)
+            serializer = RecommendationSerializer(recommendation)
+            response = {
+                "code": status.HTTP_200_OK,
+                "success": True,
+                "message": "Recommendation fetched successfully",
+                "data": serializer.data
+            }
             return Response(response, status=status.HTTP_200_OK)
+        
+        category = user.preferences.category.all()
+
+        # check query params 
+        if request.query_params.get("all") == "true":
+            recommendations = Recommendation.objects.filter(category__in=category).select_related("category", "topic").order_by("-created_at")
+        else:
+            recommendations = Recommendation.objects.filter(category__in=category).select_related("category", "topic").order_by("-created_at")[:4]
+        serializer = RecommendationSerializer(recommendations, many=True)
+        response = {
+            "code": status.HTTP_200_OK,
+            "success": True,
+            "message": "Recommendations fetched successfully",
+            "data": serializer.data
+        }
+        return Response(response, status=status.HTTP_200_OK)
+    
+
+class PreferenceAPI(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        categories = Category.objects.all()
+        subcateories = Subcategory.objects.all()
+
+        response_data = {
+            "code": status.HTTP_200_OK,
+            "success": True,
+            "message": "Preferences fetched successfully",
+            "data": {
+            "categories": CategorySerializer(categories, many=True).data,
+            "subcategories": SubcategorySerializer(subcateories, many=True).data
+            }
+        }
+        return Response(response_data, status=status.HTTP_200_OK)
+    
+    def post(self, request):
+        serializer = PreferenceSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            response_data = {
+                "code": status.HTTP_200_OK,
+                "success": True,
+                "message": "Preferences updated successfully"
+            }
+            return Response(response_data, status=status.HTTP_200_OK)
+        else:
+            raise ValidationError("Invalid data")

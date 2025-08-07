@@ -202,6 +202,8 @@ class ResendVerifyOTPView(APIView):
 
         try:
             user = User.objects.get(email=email)
+            otp_obj = EmailOTP.objects.filter(user=user, is_verified=False).latest('created_at')
+
             if user.is_active:
                 return Response({
                     "status": status.HTTP_400_BAD_REQUEST,
@@ -209,6 +211,15 @@ class ResendVerifyOTPView(APIView):
                     "message": "Invalid credentials.",
                     "errors": "User is already verified."
                 }, status=status.HTTP_400_BAD_REQUEST)
+
+            if not otp_obj.is_expired():
+                return Response({
+                    "status": status.HTTP_400_BAD_REQUEST,
+                    "success": False,
+                    "message": "Invalid credentials.",
+                    "errors": "OTP has not expired."
+                }, status=status.HTTP_400_BAD_REQUEST)
+
         except User.DoesNotExist:
             return Response({
                 "status": status.HTTP_400_BAD_REQUEST,

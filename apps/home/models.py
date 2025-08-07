@@ -125,16 +125,26 @@ class Recommendation(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     subcategory = models.ForeignKey(Subcategory, on_delete=models.CASCADE, null=True, blank=True)
     topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
-    headline = models.TextField()
+    headline = models.TextField(blank=True, null=True)
     introduction = models.TextField(blank=True, null=True)
     key_tips_and_takeaways = models.JSONField(blank=True, null=True)
-    fun_facts = models.TextField(blank=True, null=True)
+    fun_facts = models.JSONField(blank=True, null=True)
     conclusion = models.TextField(blank=True, null=True)
     # description = models.TextField()
     # content = models.TextField()
     picture_url = models.URLField(blank=True, null=True)
     created_at = models.DateField(auto_now_add=True)
-    last_refresh = models.DateField(auto_now_add=True)
+    last_refresh = models.DateField(auto_now=True)
+
+    def __str__(self):
+        return self.topic.name
+    
+    class Meta:
+        verbose_name_plural = "Recommendations"
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['category', 'subcategory', 'topic']),
+        ]
 
 
 # Update Me
@@ -180,15 +190,15 @@ class Trending(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True)
     subcategory = models.ForeignKey(Subcategory, on_delete=models.CASCADE, null=True, blank=True)
     description = models.TextField(blank=True, null=True)
-    why_trending = models.TextField(blank=True, null=True)
-    key_points = models.TextField(blank=True, null=True)
-    outlook = models.TextField(blank=True, null=True)
+    why_trending = models.JSONField(blank=True, null=True)
+    key_points = models.JSONField(blank=True, null=True)
+    outlook = models.JSONField(blank=True, null=True)
     picture_url = models.URLField(blank=True, null=True)
     picture_last_refresh = models.DateField(auto_now=True)
     created_at = models.DateField(auto_now_add=True)
 
     def __str__(self):
-        return self.why_trending if self.why_trending else self.description[:20]
+        return f"Trending - {self.description[:20]}"
 
 
 # User-Interaction Tables
@@ -217,10 +227,11 @@ class Bookmark(models.Model):
 
 # Preferences
 class Preference(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='preferences')
-    category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True)
-    subcategory = models.ForeignKey(Subcategory, on_delete=models.CASCADE, null=True, blank=True)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='preferences')
+    category = models.ManyToManyField(Category, blank=True)
+    subcategory = models.ManyToManyField(Subcategory, blank=True)
     created_at = models.DateField(auto_now_add=True)
+    updated_at = models.DateField(auto_now=True)
 
     def __str__(self):
         return self.user.name

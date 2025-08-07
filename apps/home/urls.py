@@ -65,6 +65,13 @@ urlpatterns = [
     path("update/", views.UpdatemeAPI.as_view(), name="update-me"),
     path("trending-now/", views.TrendingNowAPI.as_view(), name="trending-now"),
     path("trending-now/<int:pk>/", views.TrendingNowAPI.as_view(), name="trending-now-details"),
+    path("trending-now/", views.TrendingNowAPI.as_view()),
+    path("trending-now/<int:pk>/", views.TrendingNowAPI.as_view()),
+    path("recommendations/", views.RecommendationAPI.as_view()),
+    path("recommendations/<int:pk>/", views.RecommendationAPI.as_view()),
+
+    # preferences 
+    path("preferences/", views.PreferenceAPI.as_view(), name="preference-list"),
 
     path("recommendation-news/", views.RecommendationAPI.as_view(), name="recommendation-news"),
     path("recommendation-news/<int:pk>/", views.RecommendationAPI.as_view(), name="recommendation-news-details"),

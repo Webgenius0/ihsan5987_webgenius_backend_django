@@ -17,7 +17,9 @@ class PostList(APIView):
         sort = request.GET.get("sort", "latest")
         search = request.GET.get("search")
 
-        posts = Post.objects.all()
+        posts = Post.objects.select_related('user__profile', 'category').prefetch_related(
+            'comments__user__profile'
+        )
 
         if search:
             posts = posts.filter(
@@ -64,7 +66,9 @@ class PostDetail(APIView):
 
     def get(self, request, post_id):
         try:
-            post = Post.objects.get(id=post_id)
+            post = Post.objects.select_related('user__profile', 'category').prefetch_related(
+                'comments__user__profile', 'comments__likes'
+            ).get(id=post_id)
         except Post.DoesNotExist:
             return Response({
                 "status": status.HTTP_404_NOT_FOUND,
@@ -85,7 +89,7 @@ class CommentView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, post_id):
-        comments = Comment.objects.filter(post_id=post_id, is_active=True).order_by("-created_at")
+        comments = Comment.objects.filter(post_id=post_id, is_active=True).select_related('user__profile').prefetch_related('likes').order_by("-created_at")
         serializer = CommentSerializer(comments, many=True)
         return Response({
             "status": status.HTTP_200_OK,
