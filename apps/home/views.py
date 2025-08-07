@@ -433,10 +433,15 @@ class SearchAPIView(APIView):
         data = request.data
         get_news = data.get("get_news", False)
         print(f"get_news: {get_news}")
-        search_term = data["search_term"]
+        search_term = data["search_term"].lower()
         print(f"Search term received: {search_term}")
         # get or create search_term
-        search_tag = SearchTag.objects.get_or_create(tag_name=search_term)[0]
+        try:
+            search_tag = SearchTag.objects.get(tag_name__iexact=search_term)
+        except SearchTag.DoesNotExist:
+            search_tag = SearchTag.objects.create(tag_name=search_term)
+        except SearchTag.MultipleObjectsReturned:
+            search_tag = SearchTag.objects.filter(tag_name__iexact=search_term).first()
         print(f"Search tag created: {search_tag}")
         # filter search tag into search options
         if search_tag and get_news == False:
@@ -454,7 +459,13 @@ class SearchAPIView(APIView):
                             "subcategory": option.subcategory,
                         }
                     )
-                return Response(data, status=status.HTTP_200_OK)
+                response_data = {
+                    "code": status.HTTP_200_OK,
+                    "success": True,
+                    "message": "Search options fetched successfully",
+                    "data": data,
+                }
+                return Response(response_data, status=status.HTTP_200_OK)
             else:
                 # create search options
                 try:
@@ -463,7 +474,6 @@ class SearchAPIView(APIView):
                         f"Generated search options: {generate_options} its type {type(generate_options)}"
                     )
                     if generate_options:
-                        options = []
                         for option in generate_options.values():
                             print(option["key_words"])
                             print(option["category"])
@@ -473,17 +483,20 @@ class SearchAPIView(APIView):
                                 category=option["category"],
                                 subcategory=option["subcatetgory"],
                             )
-
+                        generated_data = [{
+                            "search_tag": search_tag.tag_name,
+                            "keyword": option.keyword,
+                            "category": option.category,
+                            "subcategory": option.subcategory,
+                        } for option in search_tag.options.all()]
+                        print("all the generated data: ", generated_data)
                         response_data = {
                             "code": status.HTTP_201_CREATED,
                             "success": True,
                             "message": "Search options created successfully",
-                            "data": {
-                                "search_tag": search_tag.tag_name,
-                                "search_options": generate_options,
-                            },
+                            "data": generated_data,
                         }
-                        return Response(response_data, status=status.HTTP_201_CREATED)
+                        return Response(response_data, status=status.HTTP_200_OK)
                 except Exception as e:
                     print(f"Error generating search options: {e}")
 
@@ -491,54 +504,6 @@ class SearchAPIView(APIView):
             # generate news
             get_news = search_bar(search_term, allow_options=False)[1]
             print(f"get_news: {get_news}")
-
-            # get_news: (
-            #     {
-            #         "further_key_words": "FIFA World Cup, 2026, Canada, Mexico, USA",
-            #         "category": {"categorie_name": "Sports"},
-            #         "subcatetgory": {"subcatetgory_name": "Football"},
-            #         "topic": {
-            #             "name": "FIFA World Cup 2026",
-            #             "topic_tags": {
-            #                 "tag_names": "Football, Soccer, FIFA, World Cup"
-            #             },
-            #         },
-            #         "general_facts": {
-            #             "general_definition": "The FIFA World Cup is an international soccer tournament held every four years, showcasing the world's top national teams.",
-            #             "general_points": {
-            #                 "Expansion and Joint Hosting": "The 2026 edition will feature 48 teams, up from 32, and will be hosted jointly by Canada, Mexico, and the USA.",
-            #                 "Dates and Locations": "Scheduled from June 11 to July 19, 2026, the final will take place in New Jersey, USA, with matches in 16 host cities.",
-            #                 "Significance": "The largest World Cup ever, with 104 matches, aims to promote unity across North America and enhance soccer's popularity.",
-            #             },
-            #             "general_fun_fact": "The 2026 World Cup trophy will be the same iconic one contested in 2023, connecting past and future tournaments.",
-            #             "key_facts_text": [
-            #                 "48-Team Format: Increases team participation by 50% compared to previous editions.",
-            #                 "First-Ever Men's Match in Canada: Toronto hosts six matches, showcasing soccer on Canadian soil.",
-            #                 "Historic Final: New York/New Jersey chosen for the final, linking the event to a global metropolitan area.",
-            #             ],
-            #             "key_facts_fun_fact": "The expanded team format brings more nations into the spotlight, fostering diversity and competition.",
-            #             "picture_url": "http://www.bing.com/th?id=OVFT.Kk9FEz6qLjfZp2AoRqMG3i&pid=News",
-            #         },
-            #         "news": {
-            #             "news_text": "The FIFA World Cup 2026 will be the first edition hosted jointly by three countries: Canada, Mexico, and the USA, and the first to feature 48 teams instead of 32. The tournament will take place from June 11 to July 19, 2026, with the final match scheduled for July 19 in New Jersey, USA. Toronto is one of the 16 host cities and will hold six matches, including the first-ever men's FIFA World Cup match played on Canadian soil.",
-            #             "news_fun_facts": "This edition will have 104 matches, making it the largest World Cup ever in number of games played.",
-            #             "picture_url": "http://www.bing.com/th?id=OVFT.mv_cGo90a5D-Im5ORfqGFC&pid=News",
-            #         },
-            #         "interesting_trivia": {
-            #             "trivia_text": "The FIFA World Cup Trophy unveiled in May 2023 will be the same iconic trophy contested in 2026. The USA has selected New York/New Jersey area to host the final, linking the event to one of the world's largest metropolitan areas. For the first time, the tournament’s scale is significantly expanded, increasing team participation by 50% from previous editions.",
-            #             "trivia_fun_fact": "By including 48 teams, the 2026 World Cup brings more nations into the global football spotlight, increasing diversity and competition.",
-            #             "picture_url": "http://www.bing.com/th?id=OVFT._9_ayVK63x4m-PzmPC1MCi&pid=News",
-            #         },
-            #         "opinions": {
-            #             "opinions_text": "Many football fans see the 48-team expansion as a great opportunity to showcase emerging football nations, though some worry about the tournament becoming too long. Experts praise the joint hosting for promoting unity across North America and boosting soccer's popularity in Canada and Mexico.",
-            #             "opinions_fun_fact": "Despite concerns, tournaments with more teams have historically led to exciting underdog stories, creating more memorable World Cup moments.",
-            #         },
-            #         "questions": {
-            #             "questions_text": "What do you think about the 48-team format for the FIFA World Cup 2026? Which host city are you most excited to see matches in? How do you feel about the joint hosting by Canada, Mexico, and the USA?",
-            #             "questions_fun_fact": "The 2026 World Cup aims to be inclusive by expanding team participation, potentially leading to unexpected outcomes and exciting matches.",
-            #         },
-            #     },
-            # )
             # save the news to database
             category, created = Category.objects.get_or_create(category_name=get_news["category"]["categorie_name"])
             subcategory, created = Subcategory.objects.get_or_create(subcategory_name=get_news["subcatetgory"]["subcatetgory_name"])
