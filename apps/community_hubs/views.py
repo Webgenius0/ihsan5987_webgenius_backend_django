@@ -18,7 +18,7 @@ class PostList(APIView):
         search = request.GET.get("search")
 
         posts = Post.objects.select_related('user__profile', 'category').prefetch_related(
-            'comments__user__profile'
+            'comments__user__profile', 'comments__likes'
         )
 
         if search:
