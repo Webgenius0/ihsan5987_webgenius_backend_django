@@ -71,6 +71,11 @@ class SearchTagAdmin(admin.ModelAdmin):
     pass
 
 
+@admin.register(SearchHistory)
+class SearchHistoryAdmin(admin.ModelAdmin):
+    pass
+
+
 # Recommendation
 @admin.register(Recommendation)
 class RecommendationAdmin(ModelAdmin):
