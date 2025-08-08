@@ -1,11 +1,18 @@
 from .api_utils import *
 from .llm_utils import *
+import os
+
+category_file = "Categories.xlsx"
+category_path = os.path.join(os.path.dirname(__file__), category_file)
 
 
-
-
-
-def search_bar(keywords,  allow_options = True,  prompt_version="v01", categories_file = 'Categories.xlsx', **model_params):
+def search_bar(
+    keywords,
+    allow_options=True,
+    prompt_version="v01",
+    categories_file=category_path,
+    **model_params,
+):
     """
     Retrieves news based on the given `input` keyword(s), constructs a prompt
     for the LLM, requests a JSON response, and verifies the JSON structure.
@@ -49,44 +56,82 @@ def search_bar(keywords,  allow_options = True,  prompt_version="v01", categorie
                 (need_choise, json_output)
                 where `need_choise` (bool) indicates whether the JSON was initially valid
                 or had to be fixed, and `json_output` is the resulting parsed JSON dict.
-            - If the JSON could not be validated in 3 attempts: 
+            - If the JSON could not be validated in 3 attempts:
                 "The Error is not fixed"
 
 
     """
     df = pd.read_excel(categories_file)
     if allow_options:
-        prompt_type = 'search_bar'
+        prompt_type = "search_bar"
     else:
-        prompt_type = 'search_bar_no_opt'
+        prompt_type = "search_bar_no_opt"
     df = pd.read_excel(categories_file)
     news_str = generate_search_bar_news_perplexity(keywords)
     # Build the prompt using the keywords and fetched news.
-    prompt = build_prompt(prompt_type = prompt_type, 
-                          prompt_version = prompt_version,
-                            keywords=keywords, 
-                            news=news_str, 
-                            article_text= "",
-                            reference_url = '',
-                            subcategories = df['Subcategory'].dropna().tolist(),
-                            allow_options = allow_options)
+    prompt = build_prompt(
+        prompt_type=prompt_type,
+        prompt_version=prompt_version,
+        keywords=keywords,
+        news=news_str,
+        article_text="",
+        reference_url="",
+        subcategories=df["Subcategory"].dropna().tolist(),
+        allow_options=allow_options,
+    )
     validated = False
     iterations = 0
-    while not validated and iterations != 1:
-        # Get the response from the LLM.
+    json_output = None
+    need_choise = False
+    while not validated and iterations < 3:
         llm_response = get_llm_response(prompt)
         need_choise, json_output = verify_and_fix_json(llm_response)
-        print(json_output)
+        # print(json_output)
         validated = validate_search_bar_output(json_output)[0]
         iterations += 1
     if validated:
-        json_output['general_facts']['picture_url'] = get_image(json_output['topic']['name'].replace(" ", "-"))
-        json_output['news']['picture_url'] = get_image(json_output['news']['news_text'][:50].replace(" ", "-"))
-        json_output['interesting_trivia']['picture_url'] = get_image(json_output['interesting_trivia']['trivia_text'][:20].replace(" ", "-"))
+        # Only add images if output matches the distinct schema
+        if (
+            isinstance(json_output, dict)
+            and all(
+                k in json_output
+                for k in ["topic", "general_facts", "news", "interesting_trivia"]
+            )
+            and isinstance(json_output["topic"], dict)
+            and isinstance(json_output["general_facts"], dict)
+            and isinstance(json_output["news"], dict)
+            and isinstance(json_output["interesting_trivia"], dict)
+        ):
+            # Ensure the value is a string before calling replace
+            topic_name = json_output["topic"].get("name", "")
+            if isinstance(topic_name, list):
+                topic_name = "-".join(str(x) for x in topic_name)
+            else:
+                topic_name = str(topic_name)
+            json_output["general_facts"]["picture_url"] = get_image(
+                topic_name.replace(" ", "-")
+            )
+
+            news_text = json_output["news"].get("news_text", "")
+            if isinstance(news_text, list):
+                news_text = " ".join(str(x) for x in news_text)
+            else:
+                news_text = str(news_text)
+            json_output["news"]["picture_url"] = get_image(
+                news_text[:50].replace(" ", "-")
+            )
+
+            trivia_text = json_output["interesting_trivia"].get("trivia_text", "")
+            if isinstance(trivia_text, list):
+                trivia_text = " ".join(str(x) for x in trivia_text)
+            else:
+                trivia_text = str(trivia_text)
+            json_output["interesting_trivia"]["picture_url"] = get_image(
+                trivia_text[:20].replace(" ", "-")
+            )
         return need_choise, json_output
     else:
         return "The Error is not fixed"
-  
 
 
 def validate_search_bar_output(json_data):
@@ -171,13 +216,13 @@ def validate_search_bar_output(json_data):
             "news",
             "interesting_trivia",
             "opinions",
-            "questions"
+            "questions",
         }
         return required_top_keys.issubset(obj.keys())
 
     def validate_distinct_topic(obj):
         """Validate the detailed structure if it's a single, distinct topic.
-           Return True if valid, otherwise False, and append errors to `errors`.
+        Return True if valid, otherwise False, and append errors to `errors`.
         """
         if not has_distinct_topic_keys(obj):
             missing = {
@@ -189,9 +234,11 @@ def validate_search_bar_output(json_data):
                 "news",
                 "interesting_trivia",
                 "opinions",
-                "questions"
+                "questions",
             } - set(obj.keys())
-            errors.append(f"Missing required top-level fields for distinct schema: {missing}")
+            errors.append(
+                f"Missing required top-level fields for distinct schema: {missing}"
+            )
             return False
 
         # Check data types / sub-objects:
@@ -231,8 +278,14 @@ def validate_search_bar_output(json_data):
         if not isinstance(gf, dict):
             errors.append("`general_facts` should be an object.")
             return False
-        gf_required = {"general_definition", "general_points", "general_fun_fact",
-                       "key_facts_text", "key_facts_fun_fact", "picture_url"}
+        gf_required = {
+            "general_definition",
+            "general_points",
+            "general_fun_fact",
+            "key_facts_text",
+            "key_facts_fun_fact",
+            "picture_url",
+        }
         missing_gf = gf_required - set(gf.keys())
         if missing_gf:
             errors.append(f"`general_facts` is missing fields: {missing_gf}")
@@ -294,16 +347,22 @@ def validate_search_bar_output(json_data):
         top_keys = set(obj.keys())
 
         distinct_keys = {
-            "further_key_words", "category", "subcatetgory",
-            "topic", "general_facts", "news", "interesting_trivia",
-            "opinions", "questions"
+            "further_key_words",
+            "category",
+            "subcatetgory",
+            "topic",
+            "general_facts",
+            "news",
+            "interesting_trivia",
+            "opinions",
+            "questions",
         }
         # If there's intersection with distinct schema keys, it's not purely ambiguous
         if distinct_keys.intersection(top_keys):
             return False
 
         # If no key matches 'search\d*' => not ambiguous
-        if not any(re.match(r'^search\d*$', k) for k in top_keys):
+        if not any(re.match(r"^search\d*$", k) for k in top_keys):
             return False
 
         return True
@@ -319,8 +378,10 @@ def validate_search_bar_output(json_data):
         """
         for key, val in obj.items():
             # Key must match "search\d*"
-            if not re.match(r'^search\d*$', key):
-                errors.append(f"Unexpected key at top level: '{key}' (expected 'searchN').")
+            if not re.match(r"^search\d*$", key):
+                errors.append(
+                    f"Unexpected key at top level: '{key}' (expected 'searchN')."
+                )
                 return False
 
             if not isinstance(val, dict):
@@ -355,15 +416,23 @@ def validate_search_bar_output(json_data):
     errors.append("JSON does not match single-topic or ambiguous schema.")
     return False, errors
 
+
 def extract_text_from_search_bar_json(json_data):
     texts = []
-    if not isinstance(json_data, dict) or "general_facts" not in json_data: # Only for distinct schema
+    if (
+        not isinstance(json_data, dict) or "general_facts" not in json_data
+    ):  # Only for distinct schema
         return ""
     if json_data.get("general_facts") and isinstance(json_data["general_facts"], dict):
         texts.append(json_data["general_facts"].get("general_definition", ""))
         texts.append(json_data["general_facts"].get("general_points", ""))
         texts.append(json_data["general_facts"].get("key_facts_text", ""))
-    if json_data.get("news") and isinstance(json_data["news"], dict): texts.append(json_data["news"].get("news_text", ""))
-    if json_data.get("interesting_trivia") and isinstance(json_data["interesting_trivia"], dict): texts.append(json_data["interesting_trivia"].get("trivia_text", ""))
-    if json_data.get("opinions") and isinstance(json_data["opinions"], dict): texts.append(json_data["opinions"].get("opinions_text", ""))
+    if json_data.get("news") and isinstance(json_data["news"], dict):
+        texts.append(json_data["news"].get("news_text", ""))
+    if json_data.get("interesting_trivia") and isinstance(
+        json_data["interesting_trivia"], dict
+    ):
+        texts.append(json_data["interesting_trivia"].get("trivia_text", ""))
+    if json_data.get("opinions") and isinstance(json_data["opinions"], dict):
+        texts.append(json_data["opinions"].get("opinions_text", ""))
     return "\n".join(filter(None, texts)).strip()

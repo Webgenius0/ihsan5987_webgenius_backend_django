@@ -5,13 +5,8 @@ from .models import (
     Subcategory,
     TopicTag,
     Topic,
-    GeneralFact,
-    News,
-    InterestingTrivia,
-    Opinion,
-    Question,
-    Response,
-    Option,
+    SearchOption,
+    SearchHistory,
     Search,
     SearchTag,
     Recommendation,
@@ -56,110 +51,24 @@ class TopicAdmin(ModelAdmin):
     list_display = ("name", "topic_tags", "created_at")
     search_fields = ("name", "topic_tags")
     list_filter = ("topic_tags",)
-    ordering = ("-created_at",)
-    list_per_page = 20
-
-
-# GeneralFact
-@admin.register(GeneralFact)
-class GeneralFactAdmin(ModelAdmin):
-    list_display = (
-        "general_definition",
-        "general_created_at",
-        "key_facts_created_at",
-        "picture_created_at",
-    )
-    search_fields = ("general_definition", "general_fun_fact", "key_facts_text")
-    list_per_page = 20
-
-
-# News
-@admin.register(News)
-class NewsAdmin(ModelAdmin):
-    list_display = (
-        "news_oldest_article_date",
-        "news_newest_article_date",
-        "news_picture_url",
-    )
-    search_fields = ("news_text", "news_fun_facts")
-    list_per_page = 20
-
-
-# InterestingTrivia
-@admin.register(InterestingTrivia)
-class InterestingTriviaAdmin(ModelAdmin):
-    list_display = ("trivia_text_created_at", "picture_url")
-    search_fields = ("trivia_text", "trivia_fun_fact")
-    list_per_page = 20
-
-
-# Opinion
-@admin.register(Opinion)
-class OpinionAdmin(ModelAdmin):
-    list_display = (
-        "id",
-        "opinions_created_at",
-    )
-    search_fields = ("opinions_text", "opinions_fun_fact")
-    list_per_page = 20
-
-
-# Question
-@admin.register(Question)
-class QuestionAdmin(ModelAdmin):
-    list_display = (
-        "id",
-        "questions_created_at",
-    )
-    search_fields = ("questions_text", "questions_fun_fact")
-    list_per_page = 20
-
-
-# Response
-@admin.register(Response)
-class ResponseAdmin(ModelAdmin):
-    list_display = (
-        "category",
-        "subcategory",
-        "topic",
-        "general_fact",
-        "news",
-        "interesting_trivia",
-        "opinion",
-        "question",
-        "created_at",
-    )
-    list_filter = ("category", "subcategory", "topic", "created_at")
-    search_fields = ("further_key_words",)
-    ordering = ("-created_at",)
-    list_per_page = 20
 
 
 # Option
-@admin.register(Option)
-class OptionAdmin(ModelAdmin):
-    list_display = ("options", "selection")
-    search_fields = ("options", "selection")
-    list_per_page = 20
+@admin.register(SearchOption)
+class SearchOptionAdmin(admin.ModelAdmin):
+    pass
 
 
 # Search
 @admin.register(Search)
-class SearchAdmin(ModelAdmin):
-    list_display = ("user", "search_term", "response", "created_at")
-    list_filter = ("created_at", "user")
-    search_fields = ("search_term",)
-    ordering = ("-created_at",)
-    list_per_page = 20
+class SearchAdmin(admin.ModelAdmin):
+    pass
 
 
 # SearchTag
 @admin.register(SearchTag)
-class SearchTagAdmin(ModelAdmin):
-    list_display = ("search", "tag_names", "created_at")
-    search_fields = ("tag_names",)
-    ordering = ("-created_at",)
-    list_per_page = 20
+class SearchTagAdmin(admin.ModelAdmin):
+    pass
 
 
 # Recommendation
@@ -219,22 +128,12 @@ class RecommendationUserAdmin(ModelAdmin):
 # Bookmark
 @admin.register(Bookmark)
 class BookmarkAdmin(ModelAdmin):
-    list_display = (
-        "user",
-        "trending",
-        "recommendation",
-        "update_me",
-        "search",
-        "community_post",
-    )
-    list_filter = ("user",)
-    search_fields = ("user__username",)
-    list_per_page = 20
+    pass
 
 
 # Preference
 @admin.register(Preference)
-class PreferenceAdmin(ModelAdmin):
+class PreferenceAdmin(admin.ModelAdmin):
     list_display = ("user__name", "created_at")
     search_fields = ("user__username",)
     ordering = ("-created_at",)

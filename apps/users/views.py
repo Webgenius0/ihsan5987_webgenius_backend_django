@@ -11,6 +11,7 @@ from .models import User, EmailOTP, UserDevice
 from django.conf import settings
 from .serializers import SignupSerializer, LoginSerializer
 
+
 # Signup View
 class SignupView(APIView):
     def post(self, request, *args, **kwargs):
@@ -49,7 +50,8 @@ class SignupView(APIView):
         }
         return Response(response_data, status=status.HTTP_400_BAD_REQUEST)
 
-#Verify OTP View
+
+# Verify OTP View
 class VerifyOTPView(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]
@@ -109,10 +111,16 @@ class VerifyOTPView(APIView):
         otp_obj.is_verified = True
         otp_obj.delete()
 
+        # generate new access token
+        refresh = RefreshToken.for_user(user)
+        access_token = str(refresh.access_token)
+
         response_data = {
             "status": status.HTTP_200_OK,
             "success": "true",
             "message": "OTP verified successfully.",
+            "token_type": "Bearer",
+            "token": access_token,
         }
         send_system_notification(
             recipient=user,
@@ -122,7 +130,8 @@ class VerifyOTPView(APIView):
         )
         return Response(response_data, status=status.HTTP_200_OK)
 
-#Verify Reset Password OTP View
+
+# Verify Reset Password OTP View
 class VerifyResetPasswordOTPView(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]
@@ -157,8 +166,7 @@ class VerifyResetPasswordOTPView(APIView):
                 "message": "OTP has expired. Please resend OTP.",
             }
             return Response(response_data, status=status.HTTP_400_BAD_REQUEST)
-        
-        
+
         if not otp_obj.has_attempts_left():
             otp_obj.delete()
             return Response({
@@ -185,6 +193,7 @@ class VerifyResetPasswordOTPView(APIView):
             "message": "Reset Password OTP verified successfully.",
         }
         return Response(response_data, status=status.HTTP_200_OK)
+
 
 # Resend Verify OTP View
 class ResendVerifyOTPView(APIView):
@@ -261,6 +270,7 @@ class ResendVerifyOTPView(APIView):
         }   
         return Response(response_data, status=status.HTTP_200_OK)
 
+
 # Resend Reset Password OTP View
 class ResendResetOTPView(APIView):
     def post(self, request):
@@ -283,7 +293,7 @@ class ResendResetOTPView(APIView):
                 "message": "Invalid credentials.",
                 "errors": "User does not exist."
             }, status=status.HTTP_400_BAD_REQUEST)
-        
+
         if EmailOTP.objects.filter(user=user, is_verified=True).exists():
             return Response({
                 "status": status.HTTP_400_BAD_REQUEST,
@@ -330,8 +340,7 @@ class ResendResetOTPView(APIView):
         return Response(response_data, status=status.HTTP_200_OK)
 
 
-    
-#Forgot Password View
+# Forgot Password View
 class ForgotPasswordView(APIView):
     permission_classes = [AllowAny]
 
@@ -343,7 +352,7 @@ class ForgotPasswordView(APIView):
                 "status": status.HTTP_400_BAD_REQUEST,
                 "success": False,
                 "message": "Email is required."
-            }, status = status.HTTP_400_BAD_REQUEST)
+            }, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             user = User.objects.get(email=email)
@@ -375,9 +384,10 @@ class ForgotPasswordView(APIView):
             "status": status.HTTP_200_OK,
             "success": True,
             "message": "OTP sent to your email."
-        }, status = status.HTTP_200_OK)
+        }, status=status.HTTP_200_OK)
 
-#Reset Password View
+
+# Reset Password View
 class ResetPasswordView(APIView):
     permission_classes = [AllowAny]
 

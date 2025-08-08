@@ -2,40 +2,34 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.validators import ValidationError
 from rest_framework import status
+
 from django.shortcuts import get_object_or_404
+from django.forms.models import model_to_dict
+from django.contrib.contenttypes.models import ContentType
+
+
 from .models import (
-    Response as ResponseModel,
     Topic,
     Category,
     Subcategory,
-    GeneralFact,
-    News,
-    InterestingTrivia,
-    Opinion,
-    Question,
     Search,
     UpdateMe,
+    Bookmark,
     # Preference,
     Trending,
-    Recommendation
+    Recommendation,
 )
+from apps.community_hubs.models import Post
 from apps.users.models import User
 from apps.profiles.models import Feedback
 from .serializers import (
-    ResponseSerializer,
     TopicSerializer,
     CategorySerializer,
     SubcategorySerializer,
-    GeneralFactSerializer,
-    NewsSerializer,
-    InterestingTriviaSerializer,
-    OpinionSerializer,
-    QuestionSerializer,
     UserSerializer,
-    SearchSerializer,
     FeedbackSerializer,
     RecommendationSerializer,
-    PreferenceSerializer
+    PreferenceSerializer,
 )
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
@@ -90,121 +84,11 @@ class TopicDetailAPIView(APIView):
         return Response(serializer.data)
 
 
-class GeneralFactListAPIView(APIView):
-    def get(self, request):
-        facts = GeneralFact.objects.all()
-        serializer = GeneralFactSerializer(facts, many=True)
-        return Response(serializer.data)
-
-
-class GeneralFactDetailAPIView(APIView):
-    def get(self, request, pk):
-        fact = get_object_or_404(GeneralFact, pk=pk)
-        serializer = GeneralFactSerializer(fact)
-        return Response(serializer.data)
-
-
-class NewsListAPIView(APIView):
-    def get(self, request):
-        news = News.objects.all()
-        serializer = NewsSerializer(news, many=True)
-        return Response(serializer.data)
-
-
-class NewsDetailAPIView(APIView):
-    def get(self, request, pk):
-        news_item = get_object_or_404(News, pk=pk)
-        serializer = NewsSerializer(news_item)
-        return Response(serializer.data)
-
-
-class InterestingTriviaListAPIView(APIView):
-    def get(self, request):
-        trivia = InterestingTrivia.objects.all()
-        serializer = InterestingTriviaSerializer(trivia, many=True)
-        return Response(serializer.data)
-
-
-class InterestingTriviaDetailAPIView(APIView):
-    def get(self, request, pk):
-        trivia = get_object_or_404(InterestingTrivia, pk=pk)
-        serializer = InterestingTriviaSerializer(trivia)
-        return Response(serializer.data)
-
-
-class OpinionListAPIView(APIView):
-    def get(self, request):
-        opinions = Opinion.objects.all()
-        serializer = OpinionSerializer(opinions, many=True)
-        return Response(serializer.data)
-
-
-class OpinionDetailAPIView(APIView):
-    def get(self, request, pk):
-        opinion = get_object_or_404(Opinion, pk=pk)
-        serializer = OpinionSerializer(opinion)
-        return Response(serializer.data)
-
-
-class QuestionListAPIView(APIView):
-    def get(self, request):
-        questions = Question.objects.all()
-        serializer = QuestionSerializer(questions, many=True)
-        return Response(serializer.data)
-
-
-class QuestionDetailAPIView(APIView):
-    def get(self, request, pk):
-        question = get_object_or_404(Question, pk=pk)
-        serializer = QuestionSerializer(question)
-        return Response(serializer.data)
-
 
 class UserDetailAPIView(APIView):
     def get(self, request, pk):
         user = get_object_or_404(User, pk=pk)
         serializer = UserSerializer(user)
-        return Response(serializer.data)
-
-
-class ResponseListAPIView(APIView, StandardResultsSetPagination):
-    def get(self, request):
-        responses = ResponseModel.objects.all()
-        category_id = request.query_params.get("category_id")
-        topic_id = request.query_params.get("topic_id")
-
-        if category_id:
-            responses = responses.filter(category_id=category_id)
-        if topic_id:
-            responses = responses.filter(topic_id=topic_id)
-
-        results = self.paginate_queryset(responses, request, view=self)
-        serializer = ResponseSerializer(results, many=True)
-        return self.get_paginated_response(serializer.data)
-
-
-class ResponseDetailAPIView(APIView):
-    def get(self, request, pk):
-        response = get_object_or_404(ResponseModel, pk=pk)
-        serializer = ResponseSerializer(response)
-        return Response(serializer.data)
-
-
-class SearchListAPIView(APIView, StandardResultsSetPagination):
-    def get(self, request):
-        searches = Search.objects.all()
-        user_id = request.query_params.get("user_id")
-        if user_id:
-            searches = searches.filter(user_id=user_id)
-        results = self.paginate_queryset(searches, request, view=self)
-        serializer = SearchSerializer(results, many=True)
-        return self.get_paginated_response(serializer.data)
-
-
-class SearchDetailAPIView(APIView):
-    def get(self, request, pk):
-        search = get_object_or_404(Search, pk=pk)
-        serializer = SearchSerializer(search)
         return Response(serializer.data)
 
 
@@ -233,8 +117,6 @@ class TrendingNowAPI(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk=None):
-        user = request.user
-        # sub_ctg = user.preferences.all().values_list("subcategory__id")
         if pk:
             trending_now = Trending.objects.filter(id=pk).first()
             if trending_now:
@@ -255,18 +137,18 @@ class TrendingNowAPI(APIView):
                 response = {
                     "code": status.HTTP_404_NOT_FOUND,
                     "success": False,
-                    "message": "Trending news not found"
+                    "message": "Trending news not found",
                 }
                 return Response(response, status=status.HTTP_404_NOT_FOUND)
-            
-
         else:
             # check query params for all
             # check if queryparams all is to true
             if request.query_params.get("all") == "true":
                 trending_now = Trending.objects.all().order_by("-created_at")
             else:
-                trending_now = Trending.objects.select_related("category", "subcategory").order_by("-created_at")[:4]
+                trending_now = Trending.objects.select_related(
+                    "category", "subcategory"
+                ).order_by("-created_at")[:4]
         data = []
         for trendig in trending_now:
             obj = {
@@ -289,13 +171,43 @@ class TrendingNowAPI(APIView):
 class UpdatemeAPI(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        # user = request.user
-        # sub_ctg = user.preferences.all().values_list('subcategory__id')
-        updame_me = UpdateMe.objects.order_by("-created_at")
+    def get(self, request, id=None):
+
+        if id:
+            update_me = get_object_or_404(UpdateMe, pk=id)
+            data = {
+                "id": update_me.id,
+                "category": update_me.category.category_name,
+                "subcategory": update_me.subcategory.subcategory_name,
+                "topic": update_me.topic.name,
+                "short_info": update_me.short_info,
+                "reference_url": update_me.reference_url,
+                "background_story": update_me.background_story,
+                "picture_url": update_me.picture_url,
+                "created_at": update_me.created_at,
+            }
+            response = {
+                "code": status.HTTP_200_OK,
+                "success": True,
+                "message": "UpdateMe fetched successfully",
+                "data": data,
+            }
+            return Response(response, status=status.HTTP_200_OK)
+
+        user = request.user
+        sub_ctg = user.preferences.subcategory.all()
+        upate_me_last3 = UpdateMe.objects.order_by("-created_at")[:3]
+        update_for_me = (
+            UpdateMe.objects.filter(subcategory__in=sub_ctg)
+            .select_related("category", "subcategory", "topic")
+            .order_by("-created_at")[:2]
+        )
+
+        # merge two querysets
+        update_me = list(update_for_me) + list(upate_me_last3)
 
         data = []
-        for update in updame_me:
+        for update in update_me:
             obj = {
                 "id": update.id,
                 "category": update.category.category_name,
@@ -319,10 +231,13 @@ class RecommendationAPI(APIView):
     DEFAULT LIMIT IS 4 RECOMMENDATIONS
     IF ALL IS TRUE IN QUERY PARAMS, THEN ALL RECOMMENDATIONS ARE RETURNED
     """
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk=None):
         user = request.user
+        category = user.preferences.category.all().values_list("id", flat=True)
+        print("user preferences category:", category)
         if pk:
             recommendation = get_object_or_404(Recommendation, pk=pk)
             serializer = RecommendationSerializer(recommendation)
@@ -330,26 +245,33 @@ class RecommendationAPI(APIView):
                 "code": status.HTTP_200_OK,
                 "success": True,
                 "message": "Recommendation fetched successfully",
-                "data": serializer.data
+                "data": serializer.data,
             }
             return Response(response, status=status.HTTP_200_OK)
-        
-        category = user.preferences.category.all()
 
-        # check query params 
+        # check query params
         if request.query_params.get("all") == "true":
-            recommendations = Recommendation.objects.filter(category__in=category).select_related("category", "topic").order_by("-created_at")
+            recommendations = (
+                Recommendation.objects.filter(category__in=category)
+                .select_related("category", "topic")
+                .order_by("-created_at")
+            )
         else:
-            recommendations = Recommendation.objects.filter(category__in=category).select_related("category", "topic").order_by("-created_at")[:4]
+            recommendations = (
+                Recommendation.objects.filter(category__id__in=category)
+                .select_related("category", "topic")
+                .order_by("-created_at")[:4]
+            )
+            print("recommendations:", recommendations)
         serializer = RecommendationSerializer(recommendations, many=True)
         response = {
             "code": status.HTTP_200_OK,
             "success": True,
             "message": "Recommendations fetched successfully",
-            "data": serializer.data
+            "data": serializer.data,
         }
         return Response(response, status=status.HTTP_200_OK)
-    
+
 
 class PreferenceAPI(APIView):
     permission_classes = [IsAuthenticated]
@@ -363,21 +285,248 @@ class PreferenceAPI(APIView):
             "success": True,
             "message": "Preferences fetched successfully",
             "data": {
-            "categories": CategorySerializer(categories, many=True).data,
-            "subcategories": SubcategorySerializer(subcateories, many=True).data
-            }
+                "categories": CategorySerializer(categories, many=True).data,
+                "subcategories": SubcategorySerializer(subcateories, many=True).data,
+            },
         }
         return Response(response_data, status=status.HTTP_200_OK)
-    
+
     def post(self, request):
-        serializer = PreferenceSerializer(data=request.data, context={'request': request})
+        serializer = PreferenceSerializer(
+            data=request.data, context={"request": request}
+        )
         if serializer.is_valid():
             serializer.save()
             response_data = {
                 "code": status.HTTP_200_OK,
                 "success": True,
-                "message": "Preferences updated successfully"
+                "message": "Preferences updated successfully",
             }
             return Response(response_data, status=status.HTTP_200_OK)
         else:
             raise ValidationError("Invalid data")
+
+
+class BookmarkAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk=None):
+        user = request.user
+        data = request.data
+
+        try:
+            content_type = ContentType.objects.get(model=data["obj_type"])
+            model_class = content_type.model_class()
+            obj = model_class.objects.get(pk=data["obj_id"])
+        except ContentType.DoesNotExist:
+            raise ValidationError("Invalid content_type")
+        except model_class.DoesNotExist:
+            raise ValidationError("Invalid object_id")
+
+        bookmark, created = Bookmark.objects.get_or_create(
+            user=user, content_type=content_type, object_id=data["obj_id"]
+        )
+        if created:
+            response_data = {
+                "code": status.HTTP_201_CREATED,
+                "success": True,
+                "message": "Bookmark created successfully",
+            }
+            return Response(response_data, status=status.HTTP_201_CREATED)
+
+    def get(self, request):
+        user = request.user
+        bookmarks = user.bookmark_set.all()
+
+        trending_data = []
+        community_post = []
+        recommendation_data = []
+        updateme_data = []
+
+        base_url = request.build_absolute_uri("/")
+        print(base_url)
+
+        for bookmark in bookmarks:
+            content_type = bookmark.content_type.model
+            obj = bookmark.obj
+
+            if isinstance(obj, Trending):
+                trending_data.append(
+                    {
+                        "id": obj.id,
+                        "category": obj.category.category_name,
+                        "subcategory": obj.subcategory.subcategory_name,
+                        "picture_url": obj.picture_url,
+                        "created_at": obj.created_at,
+                        "details_url": base_url
+                        + "api/home/trending-now/"
+                        + str(obj.id)
+                        + "/",
+                    }
+                )
+            elif isinstance(obj, Post):
+                community_post.append(
+                    {
+                        "id": obj.id,
+                        "category": (
+                            obj.category.category_name if obj.category else None
+                        ),
+                        "title": obj.title,
+                        "image_url": obj.image.url if obj.image else None,
+                        "created_at": obj.created_at,
+                    }
+                )
+            elif isinstance(obj, Recommendation):
+                recommendation_data.append(
+                    {
+                        "id": obj.id,
+                        "category": obj.category.category_name,
+                        "subcategory": (
+                            obj.subcategory.subcategory_name
+                            if obj.subcategory
+                            else None
+                        ),
+                        "topic": obj.topic.name,
+                        "headline": obj.headline,
+                        "picture_url": obj.picture_url,
+                        "created_at": obj.created_at,
+                    }
+                )
+            elif isinstance(obj, UpdateMe):
+                updateme_data.append(
+                    {
+                        "id": obj.id,
+                        "category": obj.category.category_name,
+                        "subcategory": obj.subcategory.subcategory_name,
+                        "topic": obj.topic.name,
+                        "picture_url": obj.picture_url,
+                        "created_at": obj.created_at,
+                    }
+                )
+            else:
+                pass
+
+        response_data = {
+            "code": status.HTTP_200_OK,
+            "success": True,
+            "message": "Bookmarks fetched successfully",
+            "data": {
+                "trending": trending_data,
+                "community_post": community_post,
+                "recommendation": recommendation_data,
+                "updateme": updateme_data,
+            },
+        }
+        return Response(response_data, status=status.HTTP_200_OK)
+
+
+# import transaction atomic
+from django.db import transaction
+from apps.home.models import SearchTag, SearchOption
+from SmallTalk.search_bar import search_bar
+
+
+class SearchAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        data = request.data
+        get_news = data.get("get_news", False)
+        print(f"get_news: {get_news}")
+        search_term = data["search_term"].lower()
+        print(f"Search term received: {search_term}")
+        # get or create search_term
+        try:
+            search_tag = SearchTag.objects.get(tag_name__iexact=search_term)
+        except SearchTag.DoesNotExist:
+            search_tag = SearchTag.objects.create(tag_name=search_term)
+        except SearchTag.MultipleObjectsReturned:
+            search_tag = SearchTag.objects.filter(tag_name__iexact=search_term).first()
+        print(f"Search tag created: {search_tag}")
+        # filter search tag into search options
+        if search_tag and get_news == False:
+            # find search options with this tag
+
+            if search_tag.options.exists():
+                # return search options
+                data = []
+                for option in search_tag.options.all():
+                    data.append(
+                        {
+                            "search_tag": search_tag.tag_name,
+                            "keyword": option.keyword,
+                            "category": option.category,
+                            "subcategory": option.subcategory,
+                        }
+                    )
+                response_data = {
+                    "code": status.HTTP_200_OK,
+                    "success": True,
+                    "message": "Search options fetched successfully",
+                    "data": data,
+                }
+                return Response(response_data, status=status.HTTP_200_OK)
+            else:
+                # create search options
+                try:
+                    generate_options = search_bar(search_term, allow_options=True)[1]
+                    print(
+                        f"Generated search options: {generate_options} its type {type(generate_options)}"
+                    )
+                    if generate_options:
+                        for option in generate_options.values():
+                            print(option["key_words"])
+                            print(option["category"])
+                            SearchOption.objects.create(
+                                search_tag=search_tag,
+                                keyword=option["key_words"],
+                                category=option["category"],
+                                subcategory=option["subcatetgory"],
+                            )
+                        generated_data = [{
+                            "search_tag": search_tag.tag_name,
+                            "keyword": option.keyword,
+                            "category": option.category,
+                            "subcategory": option.subcategory,
+                        } for option in search_tag.options.all()]
+                        print("all the generated data: ", generated_data)
+                        response_data = {
+                            "code": status.HTTP_201_CREATED,
+                            "success": True,
+                            "message": "Search options created successfully",
+                            "data": generated_data,
+                        }
+                        return Response(response_data, status=status.HTTP_200_OK)
+                except Exception as e:
+                    print(f"Error generating search options: {e}")
+
+        elif search_tag and get_news == True:
+            # generate news
+            get_news = search_bar(search_term, allow_options=False)[1]
+            print(f"get_news: {get_news}")
+            # save the news to database
+            category, created = Category.objects.get_or_create(category_name=get_news["category"]["categorie_name"])
+            subcategory, created = Subcategory.objects.get_or_create(subcategory_name=get_news["subcatetgory"]["subcatetgory_name"])
+            topic, created = Topic.objects.get_or_create(name=get_news["topic"]["name"])
+
+            search_news = Search.objects.create(
+                category=category,
+                subcategory=subcategory,
+                general_fact=get_news["general_facts"],
+                topic=topic,
+                news=get_news["news"],
+                interesting_trivia=get_news["interesting_trivia"],
+                opinion=get_news["opinions"],
+                question=get_news["questions"],
+                further_key_words=get_news["further_key_words"],
+
+            )
+
+            response_data = {
+                "code": status.HTTP_200_OK,
+                "success": True,
+                "message": "News fetched successfully",
+                "data": model_to_dict(search_news),
+            }
+            return Response(response_data, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_404_NOT_FOUND)

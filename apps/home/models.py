@@ -1,6 +1,10 @@
 from django.db import models
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.auth import get_user_model
 
+User = get_user_model()
 
 # Category & Subcategory
 class Category(models.Model):
@@ -38,86 +42,120 @@ class Topic(models.Model):
         return self.name
 
 
-# General Facts
-class GeneralFact(models.Model):
-    general_definition = models.TextField()
-    general_points = models.TextField()
-    general_fun_fact = models.TextField()
-    general_created_at = models.DateField()
-    key_facts_text = models.TextField()
-    key_facts_fun_fact = models.TextField()
-    key_facts_created_at = models.DateField()
-    picture_url = models.URLField()
-    picture_created_at = models.DateField()
+# # General Facts
+# class GeneralFact(models.Model):
+#     general_definition = models.TextField()
+#     general_points = models.TextField()
+#     general_fun_fact = models.TextField()
+#     general_created_at = models.DateField()
+#     key_facts_text = models.TextField()
+#     key_facts_fun_fact = models.TextField()
+#     key_facts_created_at = models.DateField()
+#     picture_url = models.URLField()
+#     picture_created_at = models.DateField()
 
 
-# News
-class News(models.Model):
-    news_text = models.TextField()
-    news_fun_facts = models.TextField()
-    news_oldest_article_date = models.DateField()
-    news_newest_article_date = models.DateField()
-    news_picture_url = models.URLField()
-    news_picture_created_at = models.DateField()
+# # News
+# class News(models.Model):
+#     news_text = models.TextField()
+#     news_fun_facts = models.TextField()
+#     news_oldest_article_date = models.DateField()
+#     news_newest_article_date = models.DateField()
+#     news_picture_url = models.URLField()
+#     news_picture_created_at = models.DateField()
 
 
-# Interesting Trivia
-class InterestingTrivia(models.Model):
-    trivia_text = models.TextField()
-    picture_url = models.URLField()
-    trivia_fun_fact = models.TextField()
-    trivia_text_created_at = models.DateField()
-    trivia_picture_created_at = models.DateField()
+# # Interesting Trivia
+# class InterestingTrivia(models.Model):
+#     trivia_text = models.TextField()
+#     picture_url = models.URLField()
+#     trivia_fun_fact = models.TextField()
+#     trivia_text_created_at = models.DateField()
+#     trivia_picture_created_at = models.DateField()
 
 
-# Opinions
-class Opinion(models.Model):
-    opinions_text = models.TextField()
-    opinions_fun_fact = models.TextField()
-    opinions_created_at = models.DateField()
+# # Opinions
+# class Opinion(models.Model):
+#     opinions_text = models.TextField()
+#     opinions_fun_fact = models.TextField()
+#     opinions_created_at = models.DateField()
 
 
-# Questions
-class Question(models.Model):
-    questions_text = models.TextField()
-    questions_fun_fact = models.TextField()
-    questions_created_at = models.DateField()
+# # Questions
+# class Question(models.Model):
+#     questions_text = models.TextField()
+#     questions_fun_fact = models.TextField()
+#     questions_created_at = models.DateField()
 
 
-# Response
-class Response(models.Model):
-    category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True)
-    subcategory = models.ForeignKey(Subcategory, on_delete=models.CASCADE, null=True, blank=True)
-    topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
-    general_fact = models.ForeignKey(GeneralFact, on_delete=models.SET_NULL, null=True)
-    news = models.ForeignKey(News, on_delete=models.SET_NULL, null=True)
-    interesting_trivia = models.ForeignKey(InterestingTrivia, on_delete=models.SET_NULL, null=True)
-    opinion = models.ForeignKey(Opinion, on_delete=models.SET_NULL, null=True)
-    question = models.ForeignKey(Question, on_delete=models.SET_NULL, null=True)
-    further_key_words = models.TextField(blank=True)
-    created_at = models.DateField(auto_now_add=True)
+# # Response
+# class Response(models.Model):
+#     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True)
+#     subcategory = models.ForeignKey(Subcategory, on_delete=models.CASCADE, null=True, blank=True)
+#     topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
+#     general_fact = models.ForeignKey(GeneralFact, on_delete=models.SET_NULL, null=True)
+#     news = models.ForeignKey(News, on_delete=models.SET_NULL, null=True)
+#     interesting_trivia = models.ForeignKey(InterestingTrivia, on_delete=models.SET_NULL, null=True)
+#     opinion = models.ForeignKey(Opinion, on_delete=models.SET_NULL, null=True)
+#     question = models.ForeignKey(Question, on_delete=models.SET_NULL, null=True)
+#     further_key_words = models.TextField(blank=True)
+#     created_at = models.DateField(auto_now_add=True)
 
-
-# Options
-class Option(models.Model):
-    options = models.TextField()
-    selection = models.TextField()
 
 
 # Search
 class Search(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='searches')
-    search_term = models.TextField()
-    response = models.ForeignKey(Response, on_delete=models.SET_NULL, null=True)
-    options = models.ForeignKey(Option, on_delete=models.SET_NULL, null=True)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True, related_name='search')
+    subcategory = models.ForeignKey(Subcategory, on_delete=models.CASCADE, null=True, blank=True, related_name='search')
+    topic = models.ForeignKey(Topic, on_delete=models.CASCADE, blank=True, null=True, related_name='search')
+    general_fact = models.JSONField(blank=True, null=True)
+    news = models.JSONField(blank=True, null=True)
+    interesting_trivia = models.JSONField(blank=True, null=True)
+    opinion = models.JSONField(blank=True, null=True)
+    question = models.JSONField(blank=True, null=True)
+    further_key_words = models.JSONField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Search - {self.topic.name}"
+
+class SearchUser(models.Model):
+    pass
 
 
 # Search Tags
 class SearchTag(models.Model):
-    search = models.ForeignKey(Search, on_delete=models.CASCADE)
-    tag_names = models.TextField()
+    # search = models.ForeignKey(Search, on_delete=models.CASCADE)
+    tag_name = models.CharField(max_length=200) 
     created_at = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        return self.tag_name
+    
+    def save(self, *args, **kwargs):
+        self.tag_name = self.tag_name.lower()
+        super(SearchTag, self).save(*args, **kwargs)
+
+
+class SearchOption(models.Model):
+    search_tag = models.ForeignKey(SearchTag, on_delete=models.CASCADE, related_name='options')
+    keyword = models.CharField(max_length=200)
+    category = models.CharField(max_length=200, blank=True, null=True)
+    subcategory = models.CharField(max_length=200, blank=True, null=True)
+    created_at = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        return f'Option for {self.search_tag.tag_name} - {self.keyword}'
+
+
+class SearchHistory(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='search_history')
+    search_term = models.CharField(max_length=200)
+    is_delete = models.BooleanField(default=False)
+    created_at = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        return f'Search History for {self.user.username} - {self.search_term}'
 
 
 # Recommendations
@@ -214,15 +252,25 @@ class RecommendationUser(models.Model):
     clicked_at = models.DateField()
 
 
-class Bookmark(models.Model):
-    from apps.community_hubs.models import Post
+# class Bookmark(models.Model):
+#     from apps.community_hubs.models import Post
 
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    trending = models.ForeignKey(Trending, on_delete=models.SET_NULL, null=True, blank=True)
-    recommendation = models.ForeignKey(Recommendation, on_delete=models.SET_NULL, null=True, blank=True)
-    update_me = models.ForeignKey(UpdateMe, on_delete=models.CASCADE, null=True)
-    search = models.ForeignKey(Search, on_delete=models.SET_NULL, null=True, blank=True)
-    community_post = models.ForeignKey(Post, on_delete=models.SET_NULL, null=True, blank=True)
+#     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+#     trending = models.ForeignKey(Trending, on_delete=models.SET_NULL, null=True, blank=True)
+#     recommendation = models.ForeignKey(Recommendation, on_delete=models.SET_NULL, null=True, blank=True)
+#     update_me = models.ForeignKey(UpdateMe, on_delete=models.CASCADE, null=True)
+#     search = models.ForeignKey(Search, on_delete=models.SET_NULL, null=True, blank=True)
+#     community_post = models.ForeignKey(Post, on_delete=models.SET_NULL, null=True, blank=True)
+
+class Bookmark(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True)
+    object_id = models.PositiveIntegerField(null=True)
+    obj = GenericForeignKey('content_type', 'object_id')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'Bookmark'
 
 
 # Preferences
