@@ -81,14 +81,18 @@ class RecommendationAdmin(ModelAdmin):
 
 
 @admin.register(UpdateMe)
-class UpdateMeAdmin(ModelAdmin):
+class UpdateMeAdmin(admin.ModelAdmin):
     list_display = ("topic", "category", "subcategory", "created_at", "interest")
     list_filter = ("created_at", "interest", "category", "subcategory", "topic")
     search_fields = ("short_info", "background_story", "reference_url")
     ordering = ("-id",)
     list_per_page = 10
 
-
+    # optimize queryset
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        qs = qs.select_related("category", "subcategory", "topic")
+        return qs
 # KeyWord
 @admin.register(KeyWord)
 class KeyWordAdmin(admin.ModelAdmin):
@@ -100,8 +104,8 @@ class KeyWordAdmin(admin.ModelAdmin):
 
 # Trending
 @admin.register(Trending)
-class TrendingAdmin(ModelAdmin):
-    list_display = ("id", "description", "why_trending", "picture_url", "created_at")
+class TrendingAdmin(admin.ModelAdmin):
+    list_display = ("id", "picture_url", "created_at")
     list_filter = ("created_at",)
     search_fields = ("description", "why_trending", "key_points", "outlook")
     ordering = ("id",)

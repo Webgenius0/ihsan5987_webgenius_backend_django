@@ -316,7 +316,7 @@ class BookmarkAPIView(APIView):
         data = request.data
 
         try:
-            content_type = ContentType.objects.get(model=data["obj_type"])
+            content_type = ContentType.objects.get(model=data["obj_type"]) 
             model_class = content_type.model_class()
             obj = model_class.objects.get(pk=data["obj_id"])
         except ContentType.DoesNotExist:
@@ -563,10 +563,13 @@ class SearchAPIView(APIView):
                 "message": "Search term is required."
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        # Save search history if not already saved
-        if not SearchHistory.objects.filter(search_term=search_term).exists():
-            SearchHistory.objects.create(search_term=search_term, user=request.user)
+        #Save search history if not already saved
+        try:
+            _,search_history = SearchHistory.objects.get_or_create(search_term=search_term, user=request.user)
             print("Search history created")
+        except Exception as e:
+            print(f"Error saving search history: {e}")
+            pass
 
         # Get or create SearchTag
         try:
@@ -640,6 +643,7 @@ class SearchAPIView(APIView):
         # ====> CASE 2: Generate and return news
         elif search_tag and get_news:
             try:
+
                 _, get_news_data = search_bar(search_term, allow_options=False)
                 print(f"get_news: {get_news_data}")
 
@@ -697,3 +701,33 @@ class SearchHistoryAPIView(APIView):
             "message": "Search history fetched successfully",
             "data": data,
         }, status=status.HTTP_200_OK)
+    
+    def delete(self, request, pk=None):
+        user = request.user
+        search_history = SearchHistory.objects.filter(user=user)
+        # clear all search history
+        if pk:
+            search_history_obj = SearchHistory.objects.filter(user=user, id=pk).first()
+            if search_history_obj:
+                search_history_obj.delete()
+                return Response({
+                    "code": status.HTTP_200_OK,
+                    "success": True,
+                    "message": "Search history deleted successfully",
+                }, status=status.HTTP_200_OK)
+            else:
+                return Response({
+                    "code": status.HTTP_404_NOT_FOUND,
+                    "success": False,
+                    "message": "Search history not found",
+                }, status=status.HTTP_404_NOT_FOUND)
+
+        # clear all search history
+        search_history.all().delete()
+        return Response({
+            "code": status.HTTP_200_OK,
+            "success": True,
+            "message": "Search history deleted successfully",
+        }, status=status.HTTP_200_OK)
+        
+        
