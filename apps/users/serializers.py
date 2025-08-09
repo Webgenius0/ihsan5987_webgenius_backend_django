@@ -1,14 +1,13 @@
 from rest_framework import serializers
-from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth import authenticate
 from django.utils.timezone import now
 from apps.notifications.services import send_system_notification
-from rest_framework import status
 from .models import User
 
-#Signup Serializer
+
+# Signup Serializer
 class SignupSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only = True)
+    password = serializers.CharField(write_only=True)
 
     class Meta:
         model = User
@@ -19,10 +18,11 @@ class SignupSerializer(serializers.ModelSerializer):
         # Use create_user to properly hash the password
         return User.objects.create_user(**validated_data)
     
-#Login Serializer
+
+# Login Serializer
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
-    password = serializers.CharField(write_only = True)
+    password = serializers.CharField(write_only=True)
 
     def validate(self, data):
         email = data.get('email')

@@ -1,6 +1,6 @@
-from django.conf import settings
 from fcm_django.models import FCMDevice
 from .models import Notification
+
 
 def send_notification(sender, recipient, notification_type, message, related_post=None, related_comment=None):
     print(f"[SEND_NOTIFICATION] SENDER: {sender} ({type(sender)}), NAME: {getattr(sender, 'name', None)}")
@@ -27,8 +27,8 @@ def send_notification(sender, recipient, notification_type, message, related_pos
     devices = FCMDevice.objects.filter(user=recipient, active=True)
     if devices.exists():
         devices.send_message(
-            title = f"New {notification_type.capitalize()}", body = message,
-            data = {
+            title=f"New {notification_type.capitalize()}", body=message,
+            data={
                 'notification_id': str(notification.id),
                 'notification_type': notification_type,
                 'related_post_id': related_post.id if related_post else None,
@@ -36,9 +36,10 @@ def send_notification(sender, recipient, notification_type, message, related_pos
             }
         )
 
+
 def send_system_notification(recipient, title, message, event_type):
     icon_key = event_type
-    notification  = Notification.objects.create(
+    notification = Notification.objects.create(
         sender=None,
         recipient=recipient,
         category='system',
@@ -49,7 +50,7 @@ def send_system_notification(recipient, title, message, event_type):
         icon=icon_key
     )
 
-     # Send to device if available
+    # Send to device if available
     devices = FCMDevice.objects.filter(user=recipient, active=True)
     if devices.exists():
         devices.send_message(

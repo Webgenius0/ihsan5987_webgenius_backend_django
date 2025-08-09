@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-
 import os
 import sys
 import django
+from SmallTalk.search_bar import search_bar
 
 # Add the project root to the path
 sys.path.append('/home/badsha/code_hydra/ihsan5987_django')
@@ -11,7 +11,6 @@ sys.path.append('/home/badsha/code_hydra/ihsan5987_django')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'project.settings')
 django.setup()
 
-from SmallTalk.search_bar import search_bar
 
 def test_search_bar_consistency():
     print("Testing search_bar function consistency...")
@@ -51,8 +50,7 @@ def test_search_bar_consistency():
             if isinstance(json_output, dict):
                 print("JSON keys:", list(json_output.keys()))
                 # Check if it's in detailed format
-                expected_keys = {"further_key_words", "category", "subcatetgory", "topic", 
-                               "general_facts", "news", "interesting_trivia", "opinions", "questions"}
+                expected_keys = {"further_key_words", "category", "subcatetgory", "topic", "general_facts", "news", "interesting_trivia", "opinions", "questions"}
                 if expected_keys.issubset(set(json_output.keys())):
                     print("✓ Correctly formatted as detailed structure")
                 else:
@@ -63,6 +61,7 @@ def test_search_bar_consistency():
             print("Result is not a tuple with 2 elements")
     except Exception as e:
         print(f"Error: {e}")
+
 
 if __name__ == "__main__":
     test_search_bar_consistency()

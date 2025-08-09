@@ -3,7 +3,6 @@ from .models import (
     Topic,
     Category,
     Subcategory,
-    Search,
     UpdateMe,
     Trending,
     Recommendation,
@@ -30,6 +29,7 @@ class TopicSerializer(serializers.ModelSerializer):
         model = Topic
         # fields = ['id', 'name', 'topic_tags', 'created_at']
         fields = "__all__"
+
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:

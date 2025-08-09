@@ -1,9 +1,9 @@
-#hallucination_calculate.py
-
+# hallucination_calculate.py
 import json
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 from deepeval.metrics import BaseMetric
 from deepeval.test_case import LLMTestCase
+
 
 class KeywordJSONHallucinationTemplate:
     @staticmethod
@@ -61,8 +61,7 @@ JSON:
 """
 
     @staticmethod
-    def generate_reason(keywords: str, score: float, hallucinated_claims: List[str], 
-                       supported_claims: List[str]):
+    def generate_reason(keywords: str, score: float, hallucinated_claims: List[str], supported_claims: List[str]):
         return f"""Based on the keywords, JSON output, and hallucination analysis, provide a concise reason for the score.
 
 **
@@ -80,6 +79,7 @@ Supported Claims: {supported_claims}
 
 JSON:
 """
+
 
 class KeywordJSONHallucinationMetric(BaseMetric):
     def __init__(self, threshold: float = 0.7, model: str = "gpt-4o", 
@@ -209,9 +209,7 @@ class KeywordJSONHallucinationMetric(BaseMetric):
         matches = sum(1 for kw in keywords if kw.lower() in claim_lower and len(kw) > 2)
         return matches / len(keywords)
 
-    def _evaluate_hallucinations(self, keywords: str, json_output: str,
-                                retrieval_context: List[str], 
-                                json_claims: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def _evaluate_hallucinations(self, keywords: str, json_output: str, retrieval_context: List[str], json_claims: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Evaluate each JSON claim for potential hallucination"""
         verdicts = []
         context_text = " ".join(retrieval_context).lower()
@@ -230,8 +228,7 @@ class KeywordJSONHallucinationMetric(BaseMetric):
         
         return verdicts
 
-    def _detect_hallucination(self, claim_info: Dict[str, Any], 
-                            context_text: str, keywords: str) -> bool:
+    def _detect_hallucination(self, claim_info: Dict[str, Any], context_text: str, keywords: str) -> bool:
         """Detect if a claim is likely hallucinated"""
         claim_lower = claim_info["claim"].lower()
         
@@ -291,8 +288,7 @@ class KeywordJSONHallucinationMetric(BaseMetric):
             return True
         return False
 
-    def _generate_claim_reason(self, claim_info: Dict[str, Any], 
-                             is_hallucination: bool, context_text: str) -> str:
+    def _generate_claim_reason(self, claim_info: Dict[str, Any], is_hallucination: bool, context_text: str) -> str:
         """Generate reason for hallucination verdict"""
         if is_hallucination:
             if claim_info["claim_type"] == "factual":
@@ -322,9 +318,7 @@ class KeywordJSONHallucinationMetric(BaseMetric):
             hallucination_count = sum(1 for v in verdicts if v["verdict"] == "yes")
             return 1.0 - (hallucination_count / len(verdicts))
 
-    def _generate_detailed_reason(self, keywords: str, score: float,
-                                hallucinated_claims: List[str], 
-                                supported_claims: List[str]) -> str:
+    def _generate_detailed_reason(self, keywords: str, score: float, hallucinated_claims: List[str], supported_claims: List[str]) -> str:
         """Generate detailed explanation for the hallucination score"""
         total_claims = len(hallucinated_claims) + len(supported_claims)
         
@@ -335,11 +329,10 @@ class KeywordJSONHallucinationMetric(BaseMetric):
             if len(hallucinated_claims) <= 3:
                 reason += f"{', '.join(hallucinated_claims)}. "
             else:
-                reason += f"{', '.join(hallucinated_claims[:3])}, and {len(hallucinated_claims)-3} others. "
+                reason += f"{', '.join(hallucinated_claims[:3])}, and {len(hallucinated_claims) - 3} others. "
         
         if supported_claims:
             reason += f"Well-supported claims include content that aligns with the retrieval context for keywords '{keywords}'."
-        
         return reason
 
     def is_successful(self) -> bool:

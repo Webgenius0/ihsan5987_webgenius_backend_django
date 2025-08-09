@@ -2,31 +2,18 @@
 from gnews import GNews
 from newspaper import Article
 import re
-from googlesearch import search
-from typing import List, Dict
-from pytrends.request import TrendReq
-import pandas as pd
-
 import feedparser
 import json
 from dateutil import parser as date_parser
-from datetime import datetime
+from datetime import datetime, timedelta
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-from newspaper import Article
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
-import time
 import os
 import ast
-from .llm_utils import *
-
-import json
+from .llm_utils import generate_perplexity_output, get_llm_response
 import urllib.request
 import urllib.parse
 from .config import GNEWS_API_KEY, PERPLEXITY_API_KEY
-from datetime import datetime, timedelta
 
 # import nltk
 # nltk.download('punkt')
@@ -35,7 +22,6 @@ from datetime import datetime, timedelta
 # Get json with news metadata, url is as google news rss
 def get_news(keywords: str, num_articles: int = 3):
     """
-	
     Fetches a list of news articles based on the given keywords.
 
     Parameters:
@@ -60,9 +46,10 @@ def get_news(keywords: str, num_articles: int = 3):
     else:
         return None
 
+
 # get newspart from the perplexity
 def generate_search_bar_news_perplexity(keywords, API_KEY=PERPLEXITY_API_KEY):
-    date = (datetime.now()- timedelta(days=30)).strftime("%d.%m.%Y")
+    date = (datetime.now() - timedelta(days=30)).strftime("%d.%m.%Y")
     system_content = f"""You are the assistant that will help quickly get information on a certain topic to support small talk.
 
             Output Rules:
@@ -98,16 +85,13 @@ def generate_search_bar_news_perplexity(keywords, API_KEY=PERPLEXITY_API_KEY):
                         The latest news can be from the {date}.
 
                     """
-    user_input= f"""
+    user_input = f"""
                 Focus on the keywords {keywords}.
 
                 Find three recent news about the keywords.  
                 Generate an engaging and concise news summary in JSON format. 
                 Assume the reader knows little about the topic, but needs to be able to keep a high-level conversation.
         """
-
-
-
     output = generate_perplexity_output(system_content, user_input)
     return output['choices'][0]['message']['content']
 
@@ -226,13 +210,13 @@ def get_news_from_google_news(keywords: str, num_articles: int = 3):
 #   Get top news frmo RSS feeds
 #############################################
 
-
 # Global RSS feeds
 RSS_SOURCES = [
-    ("Al Jazeera",         "https://www.aljazeera.com/xml/rss/all.xml"),
-    ("BBC World",          "http://feeds.bbci.co.uk/news/world/rss.xml"),
-    ("Reuters Top News",   "http://feeds.reuters.com/reuters/topNews"),
+    ("Al Jazeera", "https://www.aljazeera.com/xml/rss/all.xml"),
+    ("BBC World", "http://feeds.bbci.co.uk/news/world/rss.xml"),
+    ("Reuters Top News", "http://feeds.reuters.com/reuters/topNews"),
 ]
+
 
 def fetch_rss_items(rss_sources=RSS_SOURCES):
     """
@@ -257,14 +241,15 @@ def fetch_rss_items(rss_sources=RSS_SOURCES):
                 except Exception:
                     pass
             items.append({
-                "title":        entry.title,
-                "text":         combined,
-                "link":         entry.link,
-                "source":       source,
-                "published":    published_iso,
+                "title": entry.title,
+                "text": combined,
+                "link": entry.link,
+                "source": source,
+                "published": published_iso,
                 "published_dt": published_dt
             })
     return items
+
 
 def select_top_items(items, top_n=3, use_tfidf=True):
     """
@@ -293,6 +278,7 @@ def select_top_items(items, top_n=3, use_tfidf=True):
         selected_idxs.append(best_idx)
     return [items[i] for i in selected_idxs]
 
+
 def fetch_article(url):
     """
     Uses newspaper3k to download & parse the article.
@@ -302,6 +288,7 @@ def fetch_article(url):
     art.download()
     art.parse()
     return art.text, art.top_image or None
+
 
 def get_top_news_full_json(
     top_n=3,
@@ -346,12 +333,12 @@ def get_top_news_full_json(
         except Exception as e:
             full_text, image_url = f"[Error fetching article: {e}]", None
         output.append({
-            "title":      art["title"],
-            "link":       art["link"],
-            "source":     art["source"],
-            "published":  art["published"],
-            "full_text":  full_text,
-            "image":      image_url
+            "title": art["title"],
+            "link": art["link"],
+            "source": art["source"],
+            "published": art["published"],
+            "full_text": full_text,
+            "image": image_url
         })
 
     return output
@@ -387,7 +374,7 @@ def extract_keywords_from_raw(raw_response):
         return {"error": f"Failed to parse input: {e}"}
 
 
-def fetch_trending_topics(country_codes= ['IN', 'ID', 'US', 'BR', 'MX', 'NG', 'JP', 'DE', 'RU'], top_n=3):
+def fetch_trending_topics(country_codes=['IN', 'ID', 'US', 'BR', 'MX', 'NG', 'JP', 'DE', 'RU'], top_n=3):
     """
     Fetches top N trending topics for each country in the list.
 
@@ -408,15 +395,16 @@ def fetch_trending_topics(country_codes= ['IN', 'ID', 'US', 'BR', 'MX', 'NG', 'J
                 print(f"No entries found for {country_code}")
                 continue
             for entry in feed.entries[:top_n]:
-                #all_trends.append({
+                # all_trends.append({
                 #    'country': country_code,
                 #    'title': entry.title
-                #})
+                # })
                 all_trends.append(entry.title)
         except Exception as e:
             print(f"Failed to fetch trends for {country_code}: {e}")
 
     return all_trends
+
 
 template_dir = "prompts"
 template_dir_path = os.path.join(os.path.dirname(__file__), template_dir)
@@ -446,7 +434,6 @@ def get_trending_topics(
 
 
 ##############################################
-
 def get_image(keyword):
     """
     Fetches the first image URL from Bing News RSS feed in English (en-US) for the given keyword.
@@ -557,8 +544,8 @@ def extract_main_text_from_url(url: str) -> str:
 
 '''
 
-# Alternative way to get the news on the certain topic in Gnews
 
+# Alternative way to get the news on the certain topic in Gnews
 def get_news_from_gnews(keywords, max_articles=10, lang="en", country="us", apikey=GNEWS_API_KEY):
     """
     Fetches news articles from the GNews API for given keywords.

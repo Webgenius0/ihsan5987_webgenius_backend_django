@@ -1,5 +1,6 @@
 # contextual_precision_eval.py
-from llm_handler import get_llm_response # Or your chosen LLM interaction module [1, 5]
+from llm_handler import get_llm_response  # Or your chosen LLM interaction module [1, 5]
+
 
 def check_context_chunk_relevance(chunk, user_query, llm_generated_response, api_key):
     """
@@ -18,6 +19,7 @@ def check_context_chunk_relevance(chunk, user_query, llm_generated_response, api
     relevance_response = get_llm_response(prompt, api_key).strip().lower()
     return relevance_response == 'yes'
 
+
 def calculate_contextual_precision_score(retrieved_context_chunks, user_query, llm_generated_response, api_key):
     """
     Calculates the contextual precision score.
@@ -25,7 +27,7 @@ def calculate_contextual_precision_score(retrieved_context_chunks, user_query, l
     The score is the proportion of retrieved chunks deemed relevant [12].
     """
     if not retrieved_context_chunks:
-        return 0.0 # No context provided, so precision is 0.
+        return 0.0  # No context provided, so precision is 0.
 
     relevant_chunks_count = 0
     for chunk in retrieved_context_chunks:

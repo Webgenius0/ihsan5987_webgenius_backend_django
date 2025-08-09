@@ -79,7 +79,7 @@ class SearchHistoryAdmin(admin.ModelAdmin):
 # Recommendation
 @admin.register(Recommendation)
 class RecommendationAdmin(ModelAdmin):
-    list_display = ("topic", "category","subcategory", "headline", "created_at", "last_refresh")
+    list_display = ("topic", "category", "subcategory", "headline", "created_at", "last_refresh")
     list_filter = ('category', 'created_at')
     search_fields = ('headline', 'description', 'content')
     ordering = ('-created_at',)

@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
-
 import sys
 import os
+from SmallTalk.search_bar import search_bar
 
 # Add the project root to the path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from SmallTalk.search_bar import search_bar
 
 def test_search_bar_function():
     print("Testing search_bar function...")
@@ -23,8 +22,7 @@ def test_search_bar_function():
             if isinstance(json_output, dict):
                 print("JSON keys:", list(json_output.keys()))
                 # Check if it's in detailed format
-                expected_keys = {"further_key_words", "category", "subcatetgory", "topic", 
-                               "general_facts", "news", "interesting_trivia", "opinions", "questions"}
+                expected_keys = {"further_key_words", "category", "subcatetgory", "topic", "general_facts", "news", "interesting_trivia", "opinions", "questions"}
                 if expected_keys.issubset(set(json_output.keys())):
                     print("✓ Correctly formatted as detailed structure")
                     # Check key_facts_text and trivia_text data types
@@ -47,6 +45,7 @@ def test_search_bar_function():
         print(f"Error: {e}")
         import traceback
         traceback.print_exc()
+
 
 if __name__ == "__main__":
     test_search_bar_function()

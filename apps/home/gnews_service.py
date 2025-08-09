@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 
+
 def human_readable_time(dt):
     now = datetime.now(dt.tzinfo)
     delta = now - dt

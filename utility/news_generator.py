@@ -1,10 +1,6 @@
 from decouple import config
 from datetime import date
-from .ai_scripts import (
-    generate_update_element,
-    
-)
-
+from .ai_scripts import generate_update_element
 from apps.home.models import (
     UpdateMe,
     Category,
@@ -15,8 +11,9 @@ from apps.home.models import (
 keywords = "football world cup 2024"
 openai_api_key = config("OPENAI_API_KEY")
 
+
 def save_update_me():
-    data = generate_update_element(keywords,openai_api_key)
+    data = generate_update_element(keywords, openai_api_key)
 
     if data:
         print("Generated data:", data)
@@ -35,7 +32,7 @@ def save_update_me():
         topic, _ = Topic.objects.get_or_create(name=topic_title)
 
         # Save the update
-        update = UpdateMe.objects.create(
+        UpdateMe.objects.create(
             user_id=1,  # Replace with the correct user ID or logic
             category=category,
             subcategory=subcategory,
@@ -50,4 +47,3 @@ def save_update_me():
         print("News update saved successfully.")
     else:
         print("No data generated.")
-        

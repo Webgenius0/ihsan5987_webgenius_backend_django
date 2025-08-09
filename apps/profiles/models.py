@@ -3,6 +3,7 @@ from apps.users.models import User
 from apps.home.models import Search
 from cloudinary.models import CloudinaryField
 
+
 # Create your models here.
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
@@ -27,6 +28,7 @@ class FAQCategory(models.Model):
     def __str__(self):
         return self.name
     
+
 class FAQ(models.Model):
     question = models.CharField(max_length=255)
     answer = models.TextField()
@@ -46,7 +48,7 @@ class ContactUs(models.Model):
         ('twitter', 'Twitter'),
         ('website', 'Website'),
     ]
-    platform = models.CharField(max_length=50, choices= PLATFORM_CHOICES, unique=True)
+    platform = models.CharField(max_length=50, choices=PLATFORM_CHOICES, unique=True)
     icon = CloudinaryField('icon', null=True, blank=True)
     link = models.URLField(unique=True, null=True, blank=True)
 
@@ -55,6 +57,7 @@ class ContactUs(models.Model):
         if self.icon:
             return self.icon.url
         return None
+
 
 class NotificationSetting(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='notification_setting')
@@ -68,6 +71,7 @@ class NotificationSetting(models.Model):
 
     def __str__(self):
         return f"{self.user.name}'s notification setting"
+
 
 # Feedback for about smailtalk page
 class Feedback(models.Model):

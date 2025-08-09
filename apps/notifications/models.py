@@ -1,7 +1,7 @@
 from django.db import models
 from apps.users.models import User
 from cloudinary.models import CloudinaryField
-from apps.community_hubs.models import Post, Comment, Like
+from apps.community_hubs.models import Post, Comment
 
 
 class Notification(models.Model):
@@ -29,7 +29,7 @@ class Notification(models.Model):
         'wrong_password': 'https://res.cloudinary.com/dmm41aaoh/image/upload/v1748597960/warning.png',
         'new_device_login': 'https://res.cloudinary.com/dmm41aaoh/image/upload/v1748597960/security.png',
         'password_change': 'https://res.cloudinary.com/dmm41aaoh/image/upload/v1748597959/updates.png',
-        #'default': 'https://res.cloudinary.com/dmm41aaoh/image/upload/v1748597959/updates.png',
+        # 'default': 'https://res.cloudinary.com/dmm41aaoh/image/upload/v1748597959/updates.png',
     }
 
     sender = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="sent_notifications")
