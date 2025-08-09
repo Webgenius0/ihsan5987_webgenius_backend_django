@@ -12,7 +12,10 @@ class GeneralNotificationListView(APIView):
     
     def get(self, request):
         try:
-            notifications = Notification.objects.filter(recipient=request.user, category='general').order_by('-created_at')
+            notifications = Notification.objects.filter(recipient=request.user, category='general')\
+                .select_related('recipient', 'sender', 'related_post')\
+                .prefetch_related('sender__profile', 'recipient__profile')\
+                .order_by('-created_at')
             serializer = GeneralNotificationSerializer(notifications, many=True)
             response = {
                 "status": status.HTTP_200_OK,

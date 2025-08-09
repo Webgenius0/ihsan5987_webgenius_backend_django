@@ -90,8 +90,8 @@ def search_bar(
         validated = validate_search_bar_output(json_output)[0]
         iterations += 1
     if validated:
-        # Only add images if output matches the distinct schema
-        if (
+        # Check if we need to convert distinct topic to search options format
+        is_distinct_topic = (
             isinstance(json_output, dict)
             and all(
                 k in json_output
@@ -101,7 +101,22 @@ def search_bar(
             and isinstance(json_output["general_facts"], dict)
             and isinstance(json_output["news"], dict)
             and isinstance(json_output["interesting_trivia"], dict)
-        ):
+        )
+        
+        # If allow_options is True and we have a distinct topic, convert to search options format
+        if allow_options and is_distinct_topic:
+            # Convert distinct topic structure to search options format
+            search_options = {
+                "search1": {
+                    "key_words": json_output.get("further_key_words", ""),
+                    "category": json_output.get("category", {}).get("categorie_name", ""),
+                    "subcatetgory": json_output.get("subcatetgory", {}).get("subcatetgory_name", "")
+                }
+            }
+            return need_choise, search_options
+        
+        # Only add images if output matches the distinct schema and allow_options is False
+        if is_distinct_topic and not allow_options:
             # Ensure the value is a string before calling replace
             topic_name = json_output["topic"].get("name", "")
             if isinstance(topic_name, list):
@@ -121,11 +136,21 @@ def search_bar(
                 news_text[:50].replace(" ", "-")
             )
 
+            # Handle key_facts_text to ensure it's always a string
+            key_facts_text = json_output["general_facts"].get("key_facts_text", "")
+            if isinstance(key_facts_text, list):
+                key_facts_text = " ".join(str(x) for x in key_facts_text)
+            else:
+                key_facts_text = str(key_facts_text)
+            json_output["general_facts"]["key_facts_text"] = key_facts_text
+            
+            # Handle trivia_text to ensure it's always a string
             trivia_text = json_output["interesting_trivia"].get("trivia_text", "")
             if isinstance(trivia_text, list):
                 trivia_text = " ".join(str(x) for x in trivia_text)
             else:
                 trivia_text = str(trivia_text)
+            json_output["interesting_trivia"]["trivia_text"] = trivia_text
             json_output["interesting_trivia"]["picture_url"] = get_image(
                 trivia_text[:20].replace(" ", "-")
             )
@@ -290,6 +315,10 @@ def validate_search_bar_output(json_data):
         if missing_gf:
             errors.append(f"`general_facts` is missing fields: {missing_gf}")
             return False
+        # Check that key_facts_text is either string or list
+        if "key_facts_text" in gf and not isinstance(gf["key_facts_text"], (str, list)):
+            errors.append("`general_facts.key_facts_text` should be a string or list.")
+            return False
 
         # news
         news_obj = obj["news"]
@@ -301,6 +330,10 @@ def validate_search_bar_output(json_data):
         if missing_news:
             errors.append(f"`news` is missing fields: {missing_news}")
             return False
+        # Check that news_text is either string or list
+        if "news_text" in news_obj and not isinstance(news_obj["news_text"], (str, list)):
+            errors.append("`news.news_text` should be a string or list.")
+            return False
 
         # interesting_trivia
         it = obj["interesting_trivia"]
@@ -311,6 +344,10 @@ def validate_search_bar_output(json_data):
         missing_it = it_required - set(it.keys())
         if missing_it:
             errors.append(f"`interesting_trivia` is missing fields: {missing_it}")
+            return False
+        # Check that trivia_text is either string or list
+        if "trivia_text" in it and not isinstance(it["trivia_text"], (str, list)):
+            errors.append("`interesting_trivia.trivia_text` should be a string or list.")
             return False
 
         # opinions

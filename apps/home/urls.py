@@ -49,4 +49,5 @@ urlpatterns = [
 
     # search bar
     path("search-bar/", views.SearchAPIView.as_view(), name="search-bar"),
+    path("search-history/", views.SearchHistoryAPIView.as_view(), name="search-history"),
 ]
