@@ -1,8 +1,9 @@
-#toxicity_calculate.py
+# toxicity_calculate.py
 import json
 from typing import List, Dict, Any
 from deepeval.metrics import BaseMetric
 from deepeval.test_case import LLMTestCase
+
 
 class KeywordJSONToxicityTemplate:
     @staticmethod
@@ -73,6 +74,7 @@ Clean Fields: {clean_fields}
 JSON:
 """
 
+
 class KeywordJSONToxicityMetric(BaseMetric):
     def __init__(self, threshold: float = 0.7, model: str = "gpt-4o", 
                  include_reason: bool = True, strict_mode: bool = False):
@@ -125,7 +127,7 @@ class KeywordJSONToxicityMetric(BaseMetric):
     def _extract_json_fields(self, json_output: Dict[str, Any], keywords: str) -> List[Dict[str, Any]]:
         """Extract all text fields from JSON for toxicity evaluation"""
         fields = []
-        keywords_list = keywords.split() if isinstance(keywords, str) else []
+        # keywords_list = keywords.split() if isinstance(keywords, str) else []
 
         def extract_fields(obj, prefix=""):
             if isinstance(obj, dict):
@@ -193,7 +195,7 @@ class KeywordJSONToxicityMetric(BaseMetric):
     def _classify_content_type(self, field_name: str, content: str) -> str:
         """Classify content type for targeted toxicity detection"""
         field_lower = field_name.lower()
-        content_lower = content.lower()
+        # content_lower = content.lower()
         
         # User-generated content (higher toxicity risk)
         if any(term in field_lower for term in ["comment", "review", "feedback", "message", "note"]):
@@ -213,8 +215,7 @@ class KeywordJSONToxicityMetric(BaseMetric):
         
         return "general"
 
-    def _evaluate_toxicity(self, keywords: str, json_output: str,
-                          field_analysis: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def _evaluate_toxicity(self, keywords: str, json_output: str, field_analysis: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Evaluate each JSON field for potential toxicity"""
         verdicts = []
 
@@ -315,8 +316,7 @@ class KeywordJSONToxicityMetric(BaseMetric):
         
         return detected_toxicity
 
-    def _generate_field_toxicity_reason(self, field_info: Dict[str, Any], 
-                                       toxicity_detection: Dict[str, Any], keywords: str) -> str:
+    def _generate_field_toxicity_reason(self, field_info: Dict[str, Any], toxicity_detection: Dict[str, Any], keywords: str) -> str:
         """Generate reason for toxicity detection verdict"""
         if toxicity_detection["is_toxic"]:
             toxicity_type = toxicity_detection["toxicity_type"]
@@ -365,9 +365,7 @@ class KeywordJSONToxicityMetric(BaseMetric):
             
             return max(0.0, 1.0 - (toxic_weight / total_weight)) if total_weight > 0 else 1.0
 
-    def _generate_detailed_reason(self, keywords: str, score: float, 
-                                toxic_fields: List[str], clean_fields: List[str],
-                                verdicts: List[Dict[str, Any]]) -> str:
+    def _generate_detailed_reason(self, keywords: str, score: float, toxic_fields: List[str], clean_fields: List[str], verdicts: List[Dict[str, Any]]) -> str:
         """Generate detailed explanation for the toxicity score"""
         total_fields = len(toxic_fields) + len(clean_fields)
         

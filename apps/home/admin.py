@@ -25,19 +25,25 @@ from .models import (
 class CategoryAdmin(ModelAdmin):
     list_display = ("category_name", "created_at")
     search_fields = ("category_name",)
+    ordering = ("-created_at",)
+    list_per_page = 20
 
 
 @admin.register(Subcategory)
 class SubcategoryAdmin(ModelAdmin):
     list_display = ("subcategory_name", "created_at")
     search_fields = ("subcategory_name",)
+    ordering = ("-created_at",)
+    list_per_page = 20
 
 
 # TopicTag & Topic
 @admin.register(TopicTag)
-class TopicTagAdmin(admin.ModelAdmin):
-    list_display = ("id", "tag_names", "created_at")
+class TopicTagAdmin(ModelAdmin):
+    list_display = ("tag_names", "created_at")
     search_fields = ("tag_names",)
+    ordering = ("-created_at",)
+    list_per_page = 20
 
 
 @admin.register(Topic)
@@ -73,11 +79,11 @@ class SearchHistoryAdmin(admin.ModelAdmin):
 # Recommendation
 @admin.register(Recommendation)
 class RecommendationAdmin(ModelAdmin):
-    list_display = ("topic", "category","subcategory", "headline", "created_at", "last_refresh")
-    # list_filter = ('category', 'created_at')
-    # search_fields = ('headline', 'description', 'content')
-    # ordering = ('id',)
-    # list_per_page = 10
+    list_display = ("topic", "category", "subcategory", "headline", "created_at", "last_refresh")
+    list_filter = ('category', 'created_at')
+    search_fields = ('headline', 'description', 'content')
+    ordering = ('-created_at',)
+    list_per_page = 20
 
 
 @admin.register(UpdateMe)
@@ -85,47 +91,43 @@ class UpdateMeAdmin(ModelAdmin):
     list_display = ("topic", "category", "subcategory", "created_at", "interest")
     list_filter = ("created_at", "interest", "category", "subcategory", "topic")
     search_fields = ("short_info", "background_story", "reference_url")
-    ordering = ("-id",)
-    list_per_page = 10
+    ordering = ("-created_at",)
+    list_per_page = 20
 
 
 # KeyWord
 @admin.register(KeyWord)
-class KeyWordAdmin(admin.ModelAdmin):
+class KeyWordAdmin(ModelAdmin):
     list_display = ("id", "key_words")
     search_fields = ("key_words",)
-    ordering = ("id",)
-    list_per_page = 10
+    list_per_page = 20
 
 
 # Trending
 @admin.register(Trending)
 class TrendingAdmin(ModelAdmin):
-    list_display = ("id", "description", "why_trending", "picture_url", "created_at")
+    list_display = ("description", "why_trending", "picture_url", "created_at")
     list_filter = ("created_at",)
     search_fields = ("description", "why_trending", "key_points", "outlook")
-    ordering = ("id",)
-    list_per_page = 10
+    list_per_page = 20
 
 
 # TrendingUser
 @admin.register(TrendingUser)
-class TrendingUserAdmin(admin.ModelAdmin):
-    list_display = ("id", "user", "trending", "clicked_at")
+class TrendingUserAdmin(ModelAdmin):
+    list_display = ("user", "trending", "clicked_at")
     list_filter = ("clicked_at", "user")
     search_fields = ("user__username",)
-    ordering = ("id",)
-    list_per_page = 10
+    list_per_page = 20
 
 
 # RecommendationUser
 @admin.register(RecommendationUser)
-class RecommendationUserAdmin(admin.ModelAdmin):
-    list_display = ("id", "user", "recommendation", "clicked_at")
+class RecommendationUserAdmin(ModelAdmin):
+    list_display = ("user", "recommendation", "clicked_at")
     list_filter = ("clicked_at", "user")
     search_fields = ("user__username",)
-    ordering = ("id",)
-    list_per_page = 10
+    list_per_page = 20
 
 
 # Bookmark
@@ -139,3 +141,5 @@ class BookmarkAdmin(ModelAdmin):
 class PreferenceAdmin(admin.ModelAdmin):
     list_display = ("user__name", "created_at")
     search_fields = ("user__username",)
+    ordering = ("-created_at",)
+    list_per_page = 20

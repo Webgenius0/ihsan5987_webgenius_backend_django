@@ -3,10 +3,10 @@ from rest_framework import status
 from rest_framework.views import APIView
 from apps.community_hubs.models import Post
 from rest_framework.response import Response
-from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from .models import Profile, FAQ, FAQCategory, ContactUs, NotificationSetting, AppInfo
 from .serializers import ProfileSerializer, MyPostSerializer, FAQSerializer, FAQCategorySerializer, ContactUsSerializer, NotificationSettingSerializer, AppInfoSerializer
+
 
 # Profile View
 class ProfileView(APIView):
@@ -14,7 +14,7 @@ class ProfileView(APIView):
 
     def get(self, request):
         try:
-            user=request.user
+            user = request.user
             print(f"ProfileView - user: {user}")
             profile = Profile.objects.get(user=request.user)
             print(f"ProfileView - profile: {profile}")
@@ -26,7 +26,7 @@ class ProfileView(APIView):
                 "message": "Profile not found",
             }, status=status.HTTP_404_NOT_FOUND)
         
-        serializer = ProfileSerializer(profile, context={'request' : request})
+        serializer = ProfileSerializer(profile, context={'request': request})
         response = {
             "status": status.HTTP_200_OK,
             "success": True,
@@ -195,7 +195,6 @@ class MyPostDetail(APIView):
             "success": True,
             "message": "Post deleted successfully"
         }, status=status.HTTP_200_OK)
-
     
 
 # FAQ View
@@ -219,6 +218,7 @@ class FAQList(APIView):
         }
         return Response(response, status=status.HTTP_200_OK)
 
+
 # FAQ Category View
 class FAQCategoryList(APIView):
     def get(self, request):
@@ -232,6 +232,7 @@ class FAQCategoryList(APIView):
         }
         return Response(response, status=status.HTTP_200_OK)
     
+
 # Contact Us View
 class ContactUsList(APIView):
     def get(self, request):
@@ -245,6 +246,7 @@ class ContactUsList(APIView):
         }
         return Response(response, status=status.HTTP_200_OK)
     
+
 # Notification Setting View
 class NotificationSettingView(APIView):
     permission_classes = [IsAuthenticated]
@@ -278,6 +280,7 @@ class NotificationSettingView(APIView):
             "message": "Invalid data",
             "errors": serializer.errors
         }, status=status.HTTP_400_BAD_REQUEST)
+
 
 # App Information View
 class AppInformationView(APIView):

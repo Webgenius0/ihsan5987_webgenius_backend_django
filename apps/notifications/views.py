@@ -7,6 +7,7 @@ from .serializers import GeneralNotificationSerializer, NotificationUpdateSerial
 from fcm_django.models import FCMDevice
 from django.shortcuts import get_object_or_404
 
+
 class GeneralNotificationListView(APIView):
     permission_classes = [IsAuthenticated]
     
@@ -45,7 +46,8 @@ class UnreadNotificationCountView(APIView):
             "success": True,
             "message": "Unread notification count fetched successfully",
             'unread_count': count
-            }, status=status.HTTP_200_OK)
+        }, status=status.HTTP_200_OK)
+
 
 class MarkAsReadView(APIView):
     permission_classes = [IsAuthenticated]
@@ -69,6 +71,7 @@ class MarkAsReadView(APIView):
             }
             return Response(response, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class MarkAllAsReadView(APIView):
     permission_classes = [IsAuthenticated]
@@ -104,7 +107,7 @@ class RegisterDeviceView(APIView):
             "status": status.HTTP_200_OK,
             "success": True,
             "message": "Device registered successfully",
-            }, status=status.HTTP_200_OK)
+        }, status=status.HTTP_200_OK)
     
     
 class DeleteDeviceView(APIView):
@@ -122,14 +125,14 @@ class DeleteDeviceView(APIView):
                 "status": status.HTTP_200_OK,
                 "success": True,
                 "message": "Device deleted successfully",
-                }, status=status.HTTP_200_OK)
+            }, status=status.HTTP_200_OK)
         
         except FCMDevice.DoesNotExist:
             return Response({
                 "status": status.HTTP_404_NOT_FOUND,
                 "success": False,
                 "message": "Device not found",
-                }, status=status.HTTP_404_NOT_FOUND)
+            }, status=status.HTTP_404_NOT_FOUND)
         
 
 # System notifications

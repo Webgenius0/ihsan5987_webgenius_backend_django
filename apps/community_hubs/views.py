@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.conf import settings
@@ -7,7 +6,14 @@ from django.db.models import Q, Count
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from .models import Post, Comment, Like, CommentReport
-from .serializers import PostlistSerializer,CreatePostSerializer, PostDetailSerializer, CommentSerializer, LikeSerializer, CommentReportSerializer
+from .serializers import (
+    PostlistSerializer, 
+    CreatePostSerializer, 
+    PostDetailSerializer, 
+    CommentSerializer, 
+    LikeSerializer, 
+    CommentReportSerializer
+)
 
 
 class PostList(APIView):
@@ -17,19 +23,23 @@ class PostList(APIView):
         sort = request.GET.get("sort", "latest")
         search = request.GET.get("search")
 
-        posts = Post.objects.select_related('user__profile', 'category').prefetch_related(
+        posts = Post.objects.select_related(
+            'user__profile', 'category').prefetch_related(
             'comments__user__profile', 'comments__likes'
         )
 
         if search:
-            posts = posts.filter(
-                Q(title__icontains=search) | Q(category__name__icontains=search)
-            )
+            posts = posts.filter(Q(title__icontains=search)
+                                 | Q(category__name__icontains=search))
 
         if sort == "most_commented":
-            posts = posts.annotate(num_comments=Count("comments")).order_by("-num_comments")
+            posts = posts.annotate(
+                num_comments=Count("comments")
+            ).order_by("-num_comments")
         elif sort == "most_interested":
-            posts = posts.annotate(num_comments=Count("comments")).order_by("-num_comments")
+            posts = posts.annotate(
+                num_comments=Count("comments")
+            ).order_by("-num_comments")
         else:
             posts = posts.order_by("-created_at")  # latest
 
@@ -40,6 +50,7 @@ class PostList(APIView):
             "message": "Posts fetched successfully",
             "data": serializer.data
         })
+
 
 class CreatePost(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -60,13 +71,15 @@ class CreatePost(APIView):
             "message": "Post creation failed",
             "errors": serializer.errors
         }, status=status.HTTP_400_BAD_REQUEST)
-    
+        
+
 class PostDetail(APIView):
     permission_classes = [permissions.AllowAny]
 
     def get(self, request, post_id):
         try:
-            post = Post.objects.select_related('user__profile', 'category').prefetch_related(
+            post = Post.objects.select_related(
+                'user__profile', 'category').prefetch_related(
                 'comments__user__profile', 'comments__likes'
             ).get(id=post_id)
         except Post.DoesNotExist:
@@ -83,13 +96,15 @@ class PostDetail(APIView):
             "message": "Post details fetched successfully",
             "data": serializer.data
         }, status=status.HTTP_200_OK)
-    
+
 
 class CommentView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, post_id):
-        comments = Comment.objects.filter(post_id=post_id, is_active=True).select_related('user__profile').prefetch_related('likes').order_by("-created_at")
+        comments = Comment.objects.filter(
+            post_id=post_id, is_active=True).select_related(
+            'user__profile').prefetch_related('likes').order_by("-created_at")
         serializer = CommentSerializer(comments, many=True)
         return Response({
             "status": status.HTTP_200_OK,
@@ -145,7 +160,7 @@ class CommentView(APIView):
         comment.text = new_text
         comment.save()
 
-        serializer =  CommentSerializer(comment)
+        serializer = CommentSerializer(comment)
         return Response({
             "status": status.HTTP_200_OK,
             "success": True,
@@ -174,7 +189,7 @@ class LikeView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, pk):
-        comment =  get_object_or_404(Comment, pk=pk)
+        comment = get_object_or_404(Comment, pk=pk)
 
         like_qs = Like.objects.filter(user=request.user, comment=comment)
 
@@ -226,7 +241,7 @@ class CommentReportView(APIView):
                 subject='🚨 New Comment Report',
                 message=f"A new comment has been reported:\n\nComment ID: {comment.id}\nReason: {serializer.validated_data['reason']}\nMessage: {serializer.validated_data.get('message', 'No message provided')}",
                 from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[settings.ADMIN_EMAIL],  # Ensure this is set in your settings
+                recipient_list=[settings.ADMIN_EMAIL],  
                 fail_silently=False,
             )
             return Response({
@@ -251,7 +266,7 @@ class CommentReportView(APIView):
                 self.comment.save()
 
         elif self.status == 'dismissed':
-            self.comment.is_active =False
+            self.comment.is_active = False
             self.comment.save()
 
         super().save(*args, **kwargs)

@@ -3,6 +3,7 @@ from apps.community_hubs.models import Post
 from apps.community_hubs.serializers import UserSerializer
 from .models import Profile, FAQ, FAQCategory, ContactUs, NotificationSetting, AppInfo
 
+
 # Profile Serializer
 class ProfileSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source='user.name', required=False)
@@ -33,6 +34,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
+
 
 # My Post Serializer
 class MyPostSerializer(serializers.ModelSerializer):
@@ -69,11 +71,13 @@ class MyPostSerializer(serializers.ModelSerializer):
             return len(obj._prefetched_objects_cache['comments'])
         return obj.comments.count()
     
+
 # FAQ Serializer
 class FAQSerializer(serializers.ModelSerializer):
     class Meta:
         model = FAQ
         fields = ['id', 'question', 'answer', 'category']
+
 
 class FAQCategorySerializer(serializers.ModelSerializer):
     faqs = FAQSerializer(many=True, read_only=True)
@@ -89,6 +93,7 @@ class ContactUsSerializer(serializers.ModelSerializer):
         model = ContactUs
         fields = ['id', 'platform', 'icon_url', 'link']
 
+
 # Notification Setting Serializer
 class NotificationSettingSerializer(serializers.ModelSerializer):
     class Meta:
@@ -99,6 +104,7 @@ class NotificationSettingSerializer(serializers.ModelSerializer):
         data = super().to_representation(instance)
         data['user'] = instance.user.id
         return data
+
 
 # App information Serializer
 class AppInfoSerializer(serializers.ModelSerializer):

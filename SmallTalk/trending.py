@@ -1,6 +1,8 @@
 # trending.py
-from .api_utils import *
-from .llm_utils import *
+import os
+from turtle import pd
+from .api_utils import get_trending_topics
+from .llm_utils import build_prompt, generate_perplexity_output, verify_and_fix_json
 
 
 file_name = 'Categories.xlsx'
@@ -18,13 +20,16 @@ def generate_trending_element(
     # news_content = [news_item['content'] for news_item in news if 'content' in news_item]
     # links = [news_item['url'] for news_item in news if 'url' in news_item]
 
-    prompt = build_prompt(prompt_type = 'trending',     
-                          prompt_version = prompt_version,
-                            keywords=keywords, news = "", #news_content, 
-                            article_text= '',
-                            reference_url = '',
-                            extra_links = "",#links,
-                            subcategories = df['Subcategory'].dropna().tolist())
+    prompt = build_prompt(
+        prompt_type='trending',     
+        prompt_version=prompt_version,
+        keywords=keywords,
+        news="", 
+        article_text='',
+        reference_url='',
+        extra_links="",
+        subcategories=df['Subcategory'].dropna().tolist()
+    )
 
     user_input = f'''Here is the key words input: {keywords}.
                 Subcategories: {df['Subcategory'].dropna().tolist()}. '''
@@ -47,7 +52,7 @@ def generate_trending_element(
         return None
 
 
-def generate_trending_set(keywords = None , num_elements=5, prompt_version="v02", categories_file = file_path, **model_params):
+def generate_trending_set(keywords=None, num_elements=5, prompt_version="v02", categories_file=file_path, **model_params):
 
     if not keywords:
         keywords = get_trending_topics()
@@ -61,9 +66,8 @@ def generate_trending_set(keywords = None , num_elements=5, prompt_version="v02"
         if trend_json:
             trending.append(trend_json)
 
-
-
     return trending
+
 
 def validate_trending_output(output_json):
     """
@@ -123,12 +127,16 @@ def validate_trending_output(output_json):
 
 def extract_text_from_trending_now_json(json_data):
     texts = []
-    if not isinstance(json_data, dict): return ""
+    if not isinstance(json_data, dict): 
+        return ""
     texts.append(json_data.get("topic", ""))
     texts.append(json_data.get("category", ""))
     texts.append(json_data.get("subcategory", ""))
     texts.append(json_data.get("description", ""))
-    if isinstance(json_data.get("why_is_it_trending"), list): texts.extend(json_data.get("why_is_it_trending"))
-    if isinstance(json_data.get("key_points"), list): texts.extend(json_data.get("key_points"))
-    if isinstance(json_data.get("overlook_what_might_happen_next"), list): texts.extend(json_data.get("overlook_what_might_happen_next"))
+    if isinstance(json_data.get("why_is_it_trending"), list): 
+        texts.extend(json_data.get("why_is_it_trending"))
+    if isinstance(json_data.get("key_points"), list): 
+        texts.extend(json_data.get("key_points"))
+    if isinstance(json_data.get("overlook_what_might_happen_next"), list): 
+        texts.extend(json_data.get("overlook_what_might_happen_next"))
     return "\n".join(filter(None, texts)).strip()

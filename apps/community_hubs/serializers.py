@@ -3,9 +3,8 @@ from apps.users.models import User
 from django.utils.timesince import timesince
 from django.utils.timezone import now
 from datetime import timedelta
-from apps.profiles.models import Profile
-from apps.users.models import User
 from .models import Post, Comment, Like, CommentReport
+
 
 class PostlistSerializer(serializers.ModelSerializer):
     comment_count = serializers.SerializerMethodField()
@@ -46,7 +45,6 @@ class PostlistSerializer(serializers.ModelSerializer):
         return None
 
 
-
 class CreatePostSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -65,7 +63,6 @@ class UserSerializer(serializers.ModelSerializer):
         if hasattr(obj, 'profile') and obj.profile.image:
             return obj.profile.image.url
         return None
-
 
 
 class LikeSerializer(serializers.ModelSerializer):

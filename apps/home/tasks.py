@@ -1,7 +1,6 @@
 import os
 import pandas as pd
 from celery import shared_task
-
 from .models import (
     Recommendation,
     Category,
@@ -10,10 +9,10 @@ from .models import (
     UpdateMe,
     Trending,
 )
-
 from SmallTalk.recommendation import generate_recommendation
 from SmallTalk.update_me import generate_update_me_element
 from SmallTalk.trending import generate_trending_set
+
 
 # Always use absolute path for categories file
 categories_file = "Categories.xlsx"

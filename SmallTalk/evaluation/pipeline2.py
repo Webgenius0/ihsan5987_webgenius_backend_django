@@ -3,21 +3,7 @@ import sys
 import os
 import json
 from typing import List, Dict, Any
-
-# Add parent directory to path to import config from root
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 from deepeval.test_case import LLMTestCase
-from deepeval.metrics import BaseMetric
-
-# Import and set API key from config.py
-try:
-    from config import OPENAI_API_KEY
-    os.environ['OPENAI_API_KEY'] = OPENAI_API_KEY
-except (ImportError, KeyError):
-    print("⚠️  Pipeline 2: Could not find OPENAI_API_KEY in config or environment.")
-    OPENAI_API_KEY = None
-
 # --- Use relative imports for sibling modules ---
 from .answer_relevency_calculate import KeywordJSONAnswerRelevancyMetric
 from .bias_calculate import KeywordJSONBiasMetric
@@ -26,6 +12,17 @@ from .conciseness_calculate import KeywordJSONConcisenessMetric
 from .engagement_calculate import KeywordJSONEngagementMetric
 from .hallucination_calculate import KeywordJSONHallucinationMetric
 from .toxicity_calculate import KeywordJSONToxicityMetric
+
+# Add parent directory to path to import config from root
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# Import and set API key from config.py
+try:
+    from config import OPENAI_API_KEY
+    os.environ['OPENAI_API_KEY'] = OPENAI_API_KEY
+except (ImportError, KeyError):
+    print("Pipeline 2: Could not find OPENAI_API_KEY in config or environment.")
+    OPENAI_API_KEY = None
 
 
 class EvaluationPipeline2:
@@ -57,7 +54,7 @@ class EvaluationPipeline2:
         """
         Runs all Keyword-JSON metrics using an INDEPENDENT retrieval_context passed from main.py.
         """
-        print(f"🔍 Evaluating {mode} output with Pipeline 2 (Keyword-JSON)...")
+        print(f"Evaluating {mode} output with Pipeline 2 (Keyword-JSON)...")
         
         json_data = result.get('data', {})
         actual_output_json_string = json.dumps(json_data, indent=2) if json_data else "{}"
@@ -79,10 +76,10 @@ class EvaluationPipeline2:
                     "reason": getattr(metric, "reason", "No reason provided."),
                     "successful": metric.is_successful()
                 }
-                print(f"  ✅ {metric_name}: Score={metric.score:.3f}")
+                print(f"{metric_name}: Score={metric.score:.3f}")
             except Exception as e:
                 evaluation_results[metric_name] = {"error": str(e), "score": None, "successful": False}
-                print(f"  ❌ {metric_name}: Error - {e}")
+                print(f"{metric_name}: Error - {e}")
         
         return evaluation_results
 
@@ -91,11 +88,11 @@ class EvaluationPipeline2:
         texts = []
         if isinstance(data, dict):
             if "search1" in data and isinstance(data["search1"], dict):
-                 for search_key in data:
-                     if isinstance(data[search_key], dict):
-                         for key, value in data[search_key].items():
-                             if isinstance(value, str):
-                                 texts.append(value)
+                for search_key in data:
+                    if isinstance(data[search_key], dict):
+                        for key, value in data[search_key].items():
+                            if isinstance(value, str):
+                                texts.append(value)
             else:
                 for key, value in data.items():
                     if isinstance(value, str):
