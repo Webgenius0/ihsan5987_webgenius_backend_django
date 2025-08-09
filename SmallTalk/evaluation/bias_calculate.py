@@ -1,8 +1,9 @@
-#bias_calculate.py
+# bias_calculate.py
 import json
 from typing import List, Dict, Any
 from deepeval.metrics import BaseMetric
 from deepeval.test_case import LLMTestCase
+
 
 class KeywordJSONBiasTemplate:
     @staticmethod
@@ -71,6 +72,7 @@ Unbiased Fields: {unbiased_fields}
 
 JSON:
 """
+
 
 class KeywordJSONBiasMetric(BaseMetric):
     def __init__(self, threshold: float = 0.7, model: str = "gpt-4o", 
@@ -207,8 +209,10 @@ class KeywordJSONBiasMetric(BaseMetric):
         matches = sum(1 for kw in keywords if kw.lower() in content_lower and len(kw) > 2)
         return matches / len(keywords)
 
-    def _evaluate_bias(self, keywords: str, json_output: str,
-                      field_analysis: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def _evaluate_bias(
+            self, keywords: str, 
+            json_output: str,
+            field_analysis: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Evaluate each JSON field for potential bias"""
         verdicts = []
 
@@ -298,8 +302,9 @@ class KeywordJSONBiasMetric(BaseMetric):
         
         return detected_bias
 
-    def _generate_field_bias_reason(self, field_info: Dict[str, Any], 
-                                   bias_detection: Dict[str, Any], keywords: str) -> str:
+    def _generate_field_bias_reason(
+            self, field_info: Dict[str, Any], 
+            bias_detection: Dict[str, Any], keywords: str) -> str:
         """Generate reason for bias detection verdict"""
         if bias_detection["has_bias"]:
             bias_type = bias_detection["bias_type"]
@@ -320,9 +325,10 @@ class KeywordJSONBiasMetric(BaseMetric):
             biased_count = sum(1 for v in verdicts if v["verdict"] == "yes")
             return 1.0 - (biased_count / len(verdicts))
 
-    def _generate_detailed_reason(self, keywords: str, score: float, 
-                                biased_fields: List[str], unbiased_fields: List[str],
-                                verdicts: List[Dict[str, Any]]) -> str:
+    def _generate_detailed_reason(
+            self, keywords: str, score: float, 
+            biased_fields: List[str], unbiased_fields: List[str],
+            verdicts: List[Dict[str, Any]]) -> str:
         """Generate detailed explanation for the bias score"""
         total_fields = len(biased_fields) + len(unbiased_fields)
         

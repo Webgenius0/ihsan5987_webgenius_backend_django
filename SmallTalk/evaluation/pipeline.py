@@ -1,12 +1,7 @@
 # evaluation/pipeline.py
 import sys
 import os
-import json
 from typing import Dict, Any, List
-
-# Add parent directory to path to import config from root
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 from deepeval.test_case import LLMTestCase
 from deepeval.metrics import (
     ContextualRelevancyMetric, 
@@ -17,6 +12,9 @@ from deepeval.metrics import (
     GEval
 )
 from deepeval.test_case import LLMTestCaseParams
+
+# Add parent directory to path to import config from root
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Import and set API key from config
 try:
@@ -67,7 +65,8 @@ class SmallTalkEvaluationPipeline:
     def _extract_text_content(self, result: Dict[str, Any]) -> str:
         """Extracts textual content from various SmallTalk result formats."""
         data = result.get('data', {})
-        if not data: return ""
+        if not data: 
+            return ""
         
         # Handle search results which are structured differently
         if isinstance(data, list) and len(data) > 1 and isinstance(data[1], dict) and "search1" in data[1]:
@@ -107,7 +106,7 @@ class SmallTalkEvaluationPipeline:
             input=keywords,
             actual_output=actual_output,
             retrieval_context=retrieval_context,
-            context=retrieval_context # Also used by HallucinationMetric
+            context=retrieval_context  # Also used by HallucinationMetric
         )
 
         evaluation_results = {}
@@ -122,7 +121,7 @@ class SmallTalkEvaluationPipeline:
                 }
             except Exception as e:
                 evaluation_results[metric_name] = {"error": str(e), "score": None, "successful": False}
-                print(f"  ❌ {metric_name} (P1): Error - {e}")
+                print(f"{metric_name} (P1): Error - {e}")
         
         return evaluation_results
 

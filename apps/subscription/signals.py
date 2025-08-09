@@ -7,6 +7,7 @@ from django.db.models.signals import post_save, pre_delete
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
+
 @receiver(post_save, sender=Package)
 def create_stripe_product(sender, instance, created, **kwargs):
     if not instance.stripe_product_id:
@@ -19,10 +20,10 @@ def create_stripe_product(sender, instance, created, **kwargs):
     if not instance.stripe_price_id:
         stripe_price = stripe.Price.create(
             product=instance.stripe_product_id,
-            currency= 'USD',
-            unit_amount= int(instance.discount_price * 100),
+            currency='USD',
+            unit_amount=int(instance.discount_price * 100),
             recurring={
-                'interval':instance.interval,
+                'interval': instance.interval,
             }
         )
         instance.stripe_price_id = stripe_price.id
@@ -67,6 +68,7 @@ def delete_stripe_product(sender, instance, **kwargs):
             instance.stripe_price_id,
             active=False,
         )
+
 
 # Premium User Signal
 @receiver(post_save, sender=Subscription)

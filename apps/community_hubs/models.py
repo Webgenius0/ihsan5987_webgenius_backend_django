@@ -4,12 +4,26 @@ from cloudinary.models import CloudinaryField
 from apps.home.models import Category
 
 
-class Post(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="posts")
 
-    category = models.ForeignKey('home.Category', on_delete=models.CASCADE, null=True, blank=True)
+class Post(models.Model):
+    user = models.ForeignKey(
+        User, 
+        on_delete=models.CASCADE, 
+        related_name="posts"
+    )
+    category = models.ForeignKey(
+        'home.Category', 
+        on_delete=models.CASCADE, 
+        null=True, 
+        blank=True
+    )
     title = models.CharField(max_length=255, null=True, blank=True)
-    category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True)
+    category = models.ForeignKey(
+        Category, 
+        on_delete=models.CASCADE, 
+        null=True, 
+        blank=True
+    )
     content = models.TextField()
     image = CloudinaryField('image', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -27,9 +41,18 @@ class Post(models.Model):
         return f"{self.title} - {self.user.name}"
 
 
+
 class Comment(models.Model):
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments")
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments')
+    post = models.ForeignKey(
+        Post, 
+        on_delete=models.CASCADE, 
+        related_name="comments"
+    )
+    user = models.ForeignKey(
+        User, 
+        on_delete=models.CASCADE, 
+        related_name='comments'
+    )
     text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
@@ -52,11 +75,23 @@ class CommentReport(models.Model):
         ('dismissed', 'Dismissed'),
     ]
 
-    reporter = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reports')
-    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name='reports')
+    reporter = models.ForeignKey(
+        User, 
+        on_delete=models.CASCADE, 
+        related_name='reports'
+    )
+    comment = models.ForeignKey(
+        Comment, 
+        on_delete=models.CASCADE, 
+        related_name='reports'
+    )
     reason = models.CharField(max_length=255, choices=REASON_CHOICES)
     message = models.TextField(blank=True, null=True)
-    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='pending')
+    status = models.CharField(
+        max_length=50, 
+        choices=STATUS_CHOICES, 
+        default='pending'
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -67,7 +102,11 @@ class CommentReport(models.Model):
 
 
 class Like(models.Model):
-    comment = models.ForeignKey(Comment, related_name='likes', on_delete=models.CASCADE)
+    comment = models.ForeignKey(
+        Comment, 
+        related_name='likes', 
+        on_delete=models.CASCADE
+    )
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
 

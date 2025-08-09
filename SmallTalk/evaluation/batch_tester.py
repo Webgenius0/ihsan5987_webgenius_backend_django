@@ -3,13 +3,14 @@ import pandas as pd
 import json
 import time
 from datetime import datetime
-from typing import Dict, Any, List
+from typing import List
 
 # Type hint for the app instance to avoid circular imports
 if 'SmallTalkApp' not in locals():
     from typing import TYPE_CHECKING
     if TYPE_CHECKING:
         from main import SmallTalkApp
+
 
 def run_all_modes_and_save_to_excel(
     app: 'SmallTalkApp',
@@ -20,7 +21,7 @@ def run_all_modes_and_save_to_excel(
     Runs ALL supported modes for each keyword and saves the consolidated results 
     into a single, detailed, multi-sheet Excel file.
     """
-    print(f"--- Starting Comprehensive Batch Test (All Modes to Excel) ---")
+    print("--- Starting Comprehensive Batch Test (All Modes to Excel) ---")
     
     # 1. Prepare data holders for the report sheets
     responses_data = []      # For Sheet 2: LLM Responses
@@ -55,7 +56,7 @@ def run_all_modes_and_save_to_excel(
             responses_data.append({
                 'ID': idx,
                 'Keywords': keyword,
-                'Mode': mode_name, # Add mode to distinguish rows
+                'Mode': mode_name,  # Add mode to distinguish rows
                 'LLM Response (JSON)': json.dumps(result.get('data', {}), indent=2),
                 'Source Articles/News': "\n---\n".join(context) if context else "No context fetched."
             })
@@ -66,7 +67,7 @@ def run_all_modes_and_save_to_excel(
                 detailed_metrics.append({
                     'ID': idx,
                     'Keywords': keyword,
-                    'Mode': mode_name, # Add mode here as well
+                    'Mode': mode_name,  # Add mode here as well
                     'Metric': metric,
                     'Score': metric_data.get('score'),
                     'Reason': metric_data.get('reason', ''),
@@ -113,7 +114,7 @@ def run_all_modes_and_save_to_excel(
     report_filename = f"report_all_modes_{start_time.strftime('%Y%m%d_%H%M%S')}.xlsx"
     with pd.ExcelWriter(report_filename, engine='xlsxwriter') as writer:
         df_general_header.to_excel(writer, sheet_name='General Information', index=False, startrow=0)
-        df_general_metrics.to_excel(writer, sheet_name='General Information', index=False, startrow=len(df_general_header)+1)
+        df_general_metrics.to_excel(writer, sheet_name='General Information', index=False, startrow=len(df_general_header) + 1)
         df_responses.to_excel(writer, sheet_name='LLM Responses', index=False)
         df_detailed.to_excel(writer, sheet_name='Detailed Metrics', index=False)
         
@@ -127,6 +128,7 @@ def run_all_modes_and_save_to_excel(
     print(f"--- Comprehensive Batch Test Finished. Report saved to: {report_filename} ---")
     return report_filename
 
+
 def run_test_from_cli_keywords(
     app: 'SmallTalkApp',
     cli_keywords: List[str],
@@ -136,6 +138,7 @@ def run_test_from_cli_keywords(
     """This function is for generating a report for a *single* mode."""
     # (Your existing logic for this function)
     pass
+
 
 def run_batch_test_from_file(
     app: 'SmallTalkApp',

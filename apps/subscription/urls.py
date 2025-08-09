@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import PackageView, SubscriptionView, SubscriptionCreate, CancelSubscription, UserActiveSubscriptionView,  stripe_webhook_view
+from .views import PackageView, SubscriptionView, SubscriptionCreate, CancelSubscription, UserActiveSubscriptionView, stripe_webhook_view
 
 urlpatterns = [
     path('packages/', PackageView.as_view(), name='package-list'),

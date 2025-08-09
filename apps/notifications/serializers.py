@@ -5,6 +5,7 @@ from rest_framework import serializers
 from django.utils.timesince import timesince
 from apps.community_hubs.serializers import UserSerializer
 
+
 class GeneralNotificationSerializer(serializers.ModelSerializer):
     recipient = UserSerializer(read_only=True)
     profile_image = serializers.SerializerMethodField()
@@ -32,8 +33,6 @@ class GeneralNotificationSerializer(serializers.ModelSerializer):
         else:
             print("Sender is None in get_profile_image")
         return obj.sender.profile.image_url if (obj.sender and hasattr(obj.sender, 'profile')) else None
-
-
 
     def get_post_image(self, obj):
         try:
@@ -68,9 +67,8 @@ class SystemNotificationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Notification
-        fields = ['id','title', 'icon', 'message', 'timestamp', 'is_read', 'category', 'new']
+        fields = ['id', 'title', 'icon', 'message', 'timestamp', 'is_read', 'category', 'new']
         read_only_fields = ['id', 'timestamp', 'is_read', 'category', 'icon', 'new']
-
 
     def get_timestamp(self, obj):
         created_at = obj.created_at

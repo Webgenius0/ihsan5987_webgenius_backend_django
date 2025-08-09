@@ -6,6 +6,7 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+
 # Category & Subcategory
 class Category(models.Model):
     category_name = models.CharField(max_length=200)
@@ -102,7 +103,6 @@ class Topic(models.Model):
 #     created_at = models.DateField(auto_now_add=True)
 
 
-
 # Search
 class Search(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True, related_name='search')
@@ -118,6 +118,7 @@ class Search(models.Model):
 
     def __str__(self):
         return f"Search - {self.topic.name}"
+
 
 class SearchUser(models.Model):
     pass
@@ -262,6 +263,7 @@ class RecommendationUser(models.Model):
 #     search = models.ForeignKey(Search, on_delete=models.SET_NULL, null=True, blank=True)
 #     community_post = models.ForeignKey(Post, on_delete=models.SET_NULL, null=True, blank=True)
 
+
 class Bookmark(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True)
@@ -270,7 +272,7 @@ class Bookmark(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'Bookmark'
+        return f"Bookmark - {self.user.name}"
 
 
 # Preferences

@@ -1,6 +1,7 @@
 from firebase_admin import messaging
-# from project.firebase.firebase_init import *
 
+
+# from project.firebase.firebase_init import *
 def send_fcm_notification(token, title, body, data=None):
     try:
         message = messaging.Message(

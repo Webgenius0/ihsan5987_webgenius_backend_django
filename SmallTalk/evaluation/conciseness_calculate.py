@@ -1,8 +1,10 @@
-#conciseness_calculate.py
+# conciseness_calculate.py
 from typing import List, Dict, Any
 import json
 from deepeval.metrics import BaseMetric
 from deepeval.test_case import LLMTestCase
+
+
 class KeywordJSONConcisenessTemplate:
     @staticmethod
     def generate_verdicts(keywords: str, json_output: str):
@@ -52,8 +54,11 @@ JSON:
 """
 
     @staticmethod
-    def generate_reason(keywords: str, score: float, concise_fields: List[str], 
-                       verbose_fields: List[str]):
+    def generate_reason(
+            keywords: str, 
+            score: float, 
+            concise_fields: List[str], 
+            verbose_fields: List[str]):
         return f"""Based on the keywords and JSON conciseness analysis, provide a concise reason for the conciseness score.
 
 **
@@ -71,6 +76,7 @@ Verbose Fields: {verbose_fields}
 
 JSON:
 """
+
 
 class KeywordJSONConcisenessMetric(BaseMetric):
     def __init__(self, threshold: float = 0.7, model: str = "gpt-4o", 
@@ -190,8 +196,10 @@ class KeywordJSONConcisenessMetric(BaseMetric):
         
         return "general"
 
-    def _evaluate_conciseness(self, keywords: str, json_output: str,
-                            field_analysis: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def _evaluate_conciseness(
+            self, keywords: str, 
+            json_output: str,
+            field_analysis: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Evaluate conciseness of each JSON field"""
         verdicts = []
 
@@ -287,9 +295,9 @@ class KeywordJSONConcisenessMetric(BaseMetric):
             "expected_range": expected_length
         }
 
-    def _generate_field_conciseness_reason(self, field_info: Dict[str, Any], 
-                                         conciseness_analysis: Dict[str, Any], 
-                                         is_concise: bool) -> str:
+    def _generate_field_conciseness_reason(
+            self, field_info: Dict[str, Any], 
+            conciseness_analysis: Dict[str, Any], is_concise: bool) -> str:
         """Generate reason for conciseness verdict"""
         word_count = conciseness_analysis["word_count"]
         expected_range = conciseness_analysis["expected_range"]
@@ -313,9 +321,10 @@ class KeywordJSONConcisenessMetric(BaseMetric):
             concise_count = sum(1 for v in verdicts if v["verdict"] == "yes")
             return concise_count / len(verdicts)
 
-    def _generate_detailed_reason(self, keywords: str, score: float, 
-                                concise_fields: List[str], verbose_fields: List[str],
-                                verdicts: List[Dict[str, Any]]) -> str:
+    def _generate_detailed_reason(
+            self, keywords: str, score: float, 
+            concise_fields: List[str], verbose_fields: List[str],
+            verdicts: List[Dict[str, Any]]) -> str:
         """Generate detailed explanation for conciseness score"""
         total_fields = len(concise_fields) + len(verbose_fields)
         

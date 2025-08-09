@@ -3,13 +3,13 @@
 # For instance, a hallucination can be defined as 1 - faithfulness_score,
 # or more specifically, the proportion of claims that are *not* supported by the context.
 
-from llm_handler import get_llm_response # Or your chosen LLM interaction module [1, 5]
+from llm_handler import get_llm_response  # Or your chosen LLM interaction module [1, 5]
 # You might import functions from faithfulness_eval.py if you structure it for reusability
 # from faithfulness_eval import extract_claims_from_output, verify_claim_against_context
 
 
 # For this standalone example, we'll include simplified versions or re-define.
-def _extract_claims(text_to_analyze, api_key): # Underscore to denote internal helper
+def _extract_claims(text_to_analyze, api_key):  # Underscore to denote internal helper
     """Simplified claim extraction for hallucination context."""
     prompt = (f"Extract all distinct factual claims from the following text. "
               f"Return claims as a numbered list.\n\nText: \"{text_to_analyze}\"\n\nClaims:\n")
@@ -17,13 +17,16 @@ def _extract_claims(text_to_analyze, api_key): # Underscore to denote internal h
     claims = [claim.strip() for claim in response_str.splitlines() if claim.strip() and claim[0].isdigit()]
     return [claim.split('.', 1)[1].strip() if '.' in claim else claim for claim in claims]
 
-def _verify_claim(claim, context, api_key): # Underscore to denote internal helper
+
+def _verify_claim(claim, context, api_key):  # Underscore to denote internal helper
     """Simplified claim verification for hallucination context."""
     prompt = (f"Context:\n---\n{context}\n---\n\nClaim: \"{claim}\"\n\n"
               f"Is the claim supported by the context? Answer ONLY with 'yes', 'no', or 'idk'.\n\nAnswer:")
     response = get_llm_response(prompt, api_key).strip().lower()
-    if response in ['yes', 'no', 'idk']: return response
+    if response in ['yes', 'no', 'idk']: 
+        return response
     return 'idk'
+
 
 def calculate_hallucination_score(llm_output, retrieved_context, api_key):
     """
@@ -31,15 +34,15 @@ def calculate_hallucination_score(llm_output, retrieved_context, api_key):
     This score is the proportion of claims in llm_output that are either contradicted by ('no')
     or not found ('idk') in the retrieved_context.
     """
-    if not llm_output: # No output means no hallucination.
+    if not llm_output:  # No output means no hallucination.
         return 0.0
     
     claims = _extract_claims(llm_output, api_key)
     
-    if not claims: # No claims extracted from existing output.
-        return 0.0 # Could also be an error state or 1.0 if output was non-factual.
+    if not claims:  # No claims extracted from existing output.
+        return 0.0  # Could also be an error state or 1.0 if output was non-factual.
 
-    if not retrieved_context: # If output exists but no context, all claims are ungrounded/hallucinated.
+    if not retrieved_context:  # If output exists but no context, all claims are ungrounded/hallucinated.
         return 1.0 if claims else 0.0
 
     hallucinated_claims_count = 0

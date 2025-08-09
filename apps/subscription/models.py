@@ -8,6 +8,7 @@ SUBSCRIPTION_TYPE = (
     ('day', 'Daily')
 )
 
+
 # Package Model
 class Package(models.Model):
     name = models.CharField(max_length=255, blank=True, null=True)
@@ -16,7 +17,7 @@ class Package(models.Model):
     interval = models.CharField(max_length=10, choices=SUBSCRIPTION_TYPE, default='month')
     stripe_product_id = models.CharField(max_length=100, blank=True)
     stripe_price_id = models.CharField(max_length=100, blank=True)
-    discount = models.DecimalField(help_text='Set discount percentages.',max_digits=10, decimal_places=2, default=0)
+    discount = models.DecimalField(help_text='Set discount percentages.', max_digits=10, decimal_places=2, default=0)
     discount_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -34,6 +35,7 @@ class Package(models.Model):
         else:
             self.discount_price = self.price
         super().save(*args, **kwargs)
+
 
 # Subscription Model
 class Subscription(models.Model):
