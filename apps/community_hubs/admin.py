@@ -1,5 +1,6 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin
+# from auditlog.models import LogEntry
 from .models import Post, Comment, Like, CommentReport
 from import_export.admin import ImportExportModelAdmin
 from unfold.contrib.import_export.forms import (ExportForm, ImportForm, SelectableFieldsExportForm)
@@ -7,13 +8,29 @@ from unfold.contrib.import_export.forms import (ExportForm, ImportForm, Selectab
 
 @admin.register(Post)
 class PostAdmin(ModelAdmin, ImportExportModelAdmin):
-    list_display = ("title", "content", "user", "created_at")
-    search_fields = ["title", "user__email"]
-    list_per_page = 20
-    ordering = ["-created_at"]
+    # Display settings for list view
+    list_display = (
+        "title",
+        "content_preview",
+        "user",
+        "created_at",
+    )
+    list_filter = ("created_at",)  # Add filters for quick navigation
+    search_fields = ["title", "user__email"]  # Searchable fields
+    list_per_page = 20  # Pagination settings
+    ordering = ["-created_at"]  # Default sorting by newest first
+    date_hierarchy = "created_at"  # Date-based navigation
 
+    # Import/Export configuration
     import_form_class = ImportForm
     export_form_class = ExportForm
+
+    # Custom methods for enhanced display
+    def content_preview(self, obj):
+        """Display a truncated version of the post content."""
+        return f"{obj.content[:50]}..." if len(obj.content) > 50 else obj.content
+
+    content_preview.short_description = "Content Preview"
 
 
 @admin.register(Comment)
@@ -64,6 +81,21 @@ class CommentReportAdmin(ModelAdmin, ImportExportModelAdmin):
             obj.comment.is_active = False
             obj.comment.save()
         super().save_model(request, obj, form, change)
+
+    import_form_class = ImportForm
+    export_form_class = ExportForm
+    selectable_fields_export_form_class = SelectableFieldsExportForm
+
+
+# @admin.register(LogEntry)
+class LogEntryAdmin(ModelAdmin, ImportExportModelAdmin):
+    list_display = ('timestamp', 'actor', 'content_type', 'object_repr', 'changes')
+    list_filter = ('content_type', 'actor')
+    search_fields = ('object_repr', 'changes')
+
+    readonly_fields = ('timestamp', 'actor', 'content_type', 'object_repr', 'changes')
+    list_per_page = 20
+    ordering = ['-timestamp']
 
     import_form_class = ImportForm
     export_form_class = ExportForm

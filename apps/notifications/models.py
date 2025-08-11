@@ -1,5 +1,6 @@
 from django.db import models
 from apps.users.models import User
+from auditlog.registry import auditlog
 from cloudinary.models import CloudinaryField
 from apps.community_hubs.models import Post, Comment
 
@@ -68,3 +69,7 @@ class Notification(models.Model):
         if self.system_event in self.CLOUDINARY_ICON_MAP:
             self.icon = self.CLOUDINARY_ICON_MAP[self.system_event]
         super().save(*args, **kwargs)
+
+
+# Register model for audit logging
+auditlog.register(Notification)

@@ -1,5 +1,6 @@
 from django.db import models
 from apps.users.models import User
+from auditlog.registry import auditlog
 from cloudinary.models import CloudinaryField
 from apps.home.models import Category
 
@@ -40,6 +41,10 @@ class Post(models.Model):
         return f"{self.title} - {self.user.name}"
 
 
+# Register model for audit logging
+auditlog.register(Post)
+
+
 class Comment(models.Model):
     post = models.ForeignKey(
         Post,
@@ -57,6 +62,10 @@ class Comment(models.Model):
 
     def __str__(self):
         return f"{self.user.name} - {self.post.title}"
+
+
+# Register model for audit logging
+auditlog.register(Comment)
 
 
 class CommentReport(models.Model):
@@ -99,6 +108,10 @@ class CommentReport(models.Model):
         return f"Report by {self.reporter.name} on comment {self.comment.id} - {self.status}"
 
 
+# Register model for audit logging
+auditlog.register(CommentReport)
+
+
 class Like(models.Model):
     comment = models.ForeignKey(
         Comment,
@@ -110,3 +123,7 @@ class Like(models.Model):
 
     class Meta:
         unique_together = ('comment', 'user')
+
+
+# Register model for audit logging
+auditlog.register(Like)

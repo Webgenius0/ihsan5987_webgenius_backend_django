@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "apps.users",
     "import_export",
     "schema_viewer",
+    "auditlog",
     # cloudinary
     "cloudinary",
     "django_celery_beat",
@@ -70,6 +71,7 @@ MIDDLEWARE = [
     # 3d party middleware
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "querycount.middleware.QueryCountMiddleware",
+    "simple_history.middleware.HistoryRequestMiddleware",
 ]
 
 ROOT_URLCONF = "project.urls"

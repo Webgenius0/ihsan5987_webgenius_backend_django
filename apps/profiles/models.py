@@ -1,6 +1,7 @@
 from django.db import models
 from apps.users.models import User
 from apps.home.models import Search
+from auditlog.registry import auditlog
 from cloudinary.models import CloudinaryField
 
 
@@ -20,6 +21,10 @@ class Profile(models.Model):
 
     def __str__(self):
         return f"{self.user.name} - {self.user.email}"
+
+
+# Register model for audit logging
+auditlog.register(Profile)
 
 
 class FAQCategory(models.Model):
@@ -73,6 +78,10 @@ class NotificationSetting(models.Model):
         return f"{self.user.name}'s notification setting"
 
 
+# Register model for audit logging
+auditlog.register(NotificationSetting)
+
+
 # Feedback for about smailtalk page
 class Feedback(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -80,6 +89,10 @@ class Feedback(models.Model):
     content = models.TextField()
     rating = models.IntegerField()
     created_at = models.DateField(auto_now_add=True)
+
+
+# Register model for audit logging
+auditlog.register(Feedback)
 
 
 # About SmallTalk

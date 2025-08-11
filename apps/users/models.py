@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils import timezone
+from auditlog.registry import auditlog
 from django.utils.timezone import now
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.utils.translation import gettext as _
@@ -52,6 +53,10 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.name if self.name else self.email
 
 
+# Register User model for audit logging
+auditlog.register(User)
+
+
 # User Device Model
 class UserDevice(models.Model):
     user = models.ForeignKey('User', on_delete=models.CASCADE, related_name='devices')
@@ -77,6 +82,10 @@ class UserDevice(models.Model):
         return ip
 
 
+# Register UserDevice model for audit logging
+auditlog.register(UserDevice)
+
+
 # EmailOTP Model
 class EmailOTP(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -93,3 +102,7 @@ class EmailOTP(models.Model):
 
     def __str__(self):
         return f"{self.user.email}"
+
+
+# Register EmailOTP model for audit logging
+auditlog.register(EmailOTP)
