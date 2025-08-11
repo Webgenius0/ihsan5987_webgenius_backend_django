@@ -41,11 +41,11 @@ class LikeAdmin(ModelAdmin, ImportExportModelAdmin):
 @admin.register(CommentReport)
 class CommentReportAdmin(ModelAdmin, ImportExportModelAdmin):
     list_display = [
-        'comment', 
-        'reporter', 
-        'reason', 
-        'message', 
-        'status', 
+        'comment',
+        'reporter',
+        'reason',
+        'message',
+        'status',
         'created_at'
     ]
     list_filter = ['status', 'reason']

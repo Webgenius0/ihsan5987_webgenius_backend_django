@@ -31,7 +31,7 @@ UNFOLD = {
     ],
     "SHOW_HISTORY": True,  # show/hide "History" button, default: True
     "SHOW_VIEW_ON_SITE": True,  # show/hide "View on site" button, default: True
-    "COLORS": { 
+    "COLORS": {
         "primary": {
             "50": "255, 248, 235",
             "100": "255, 242, 213",

@@ -127,12 +127,12 @@ class SearchUser(models.Model):
 # Search Tags
 class SearchTag(models.Model):
     # search = models.ForeignKey(Search, on_delete=models.CASCADE)
-    tag_name = models.CharField(max_length=200) 
+    tag_name = models.CharField(max_length=200)
     created_at = models.DateField(auto_now_add=True)
 
     def __str__(self):
         return self.tag_name
-    
+
     def save(self, *args, **kwargs):
         self.tag_name = self.tag_name.lower()
         super(SearchTag, self).save(*args, **kwargs)
@@ -177,7 +177,7 @@ class Recommendation(models.Model):
 
     def __str__(self):
         return self.topic.name
-    
+
     class Meta:
         verbose_name_plural = "Recommendations"
         ordering = ['-created_at']

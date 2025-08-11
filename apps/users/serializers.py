@@ -13,11 +13,11 @@ class SignupSerializer(serializers.ModelSerializer):
         model = User
         fields = ('name', 'email', 'password')
         extra_kwargs = {'password': {'write_only': True}}
-    
+
     def create(self, validated_data):
         # Use create_user to properly hash the password
         return User.objects.create_user(**validated_data)
-    
+
 
 # Login Serializer
 class LoginSerializer(serializers.Serializer):
@@ -32,7 +32,7 @@ class LoginSerializer(serializers.Serializer):
             user = User.objects.get(email=email)
         except User.DoesNotExist:
             raise serializers.ValidationError({"errors": ["Invalid credentials."]})
-    
+
         user_instance = authenticate(email=email, password=password)
 
         if user_instance:

@@ -20,14 +20,14 @@ class Profile(models.Model):
 
     def __str__(self):
         return f"{self.user.name} - {self.user.email}"
-    
+
 
 class FAQCategory(models.Model):
     name = models.CharField(max_length=255)
 
     def __str__(self):
         return self.name
-    
+
 
 class FAQ(models.Model):
     question = models.CharField(max_length=255)
@@ -36,7 +36,7 @@ class FAQ(models.Model):
 
     def __str__(self):
         return self.question
-    
+
 
 # Contact Us
 class ContactUs(models.Model):
@@ -97,4 +97,4 @@ class AppInfo(models.Model):
     social_media_url = models.URLField(blank=True, null=True)
 
     def __str__(self):
-        return "App Information" 
+        return "App Information"

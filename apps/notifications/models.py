@@ -63,7 +63,7 @@ class Notification(models.Model):
         elif time_diff.days < 7:
             return f"{time_diff.days} day(s) ago | {self.created_at.strftime('%I:%M %p')}"
         return self.created_at.strftime('%Y-%m-%d | %I:%M %p')
-    
+
     def save(self, *args, **kwargs):
         if self.system_event in self.CLOUDINARY_ICON_MAP:
             self.icon = self.CLOUDINARY_ICON_MAP[self.system_event]

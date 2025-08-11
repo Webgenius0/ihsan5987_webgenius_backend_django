@@ -356,10 +356,7 @@ class BookmarkAPIView(APIView):
                         "subcategory": obj.subcategory.subcategory_name,
                         "picture_url": obj.picture_url,
                         "created_at": obj.created_at,
-                        "details_url": base_url
-                        + "api/home/trending-now/"
-                        + str(obj.id)
-                        + "/",
+                        "details_url": base_url + "api/home/trending-now/" + str(obj.id) + "/",
                     }
                 )
             elif isinstance(obj, Post):

@@ -38,23 +38,22 @@ def build_prompt_search_bar(keywords, news, second=False):
         - The instructions/format for the response.
         - A placeholder (the fetched news articles) to be summarized.
     """
-    
+
     prompt = (f'''
         You are the assistant that will help quickly get information on a certain topic to support small talk.
         You will receive:
             1) A set of keywords related to a topic.
             2) Potential news items or descriptions that might or might not match the topic.
-              
+
         Assume the reader knows little about the topic, but needs to be able to keep a high-level conversation.
-              
+
         1. Analyze the user's input keywords and any provided news text.
         2. Determine whether the topic is **singular** (one clear meaning) or **ambiguous** (multiple possible interpretations or 'collisions').
 
 
         You will receive raw news descriptions that you must summarize.
         Finally, to keep the user engaged, provide additional keywords that they can use to request more information if desired.
-        You must retun the response in the JSON format 
-                
+        You must retun the response in the JSON format
 
         Output Rules
           - If the topic is **distinct** (only one clear meaning):
@@ -62,25 +61,24 @@ def build_prompt_search_bar(keywords, news, second=False):
 
           **
           IMPORTANT: original structure:
-                
           {{
               "further_key_words": 3 - 5 key words of the topic and your response,
-              
+
               "category": {{
                               "categorie_name": what is the category of the response
               }},
-                
+
               "subcatetgory": {{
                               "subcatetgory_name": what is the subcategory of the response
               }},
-                
+
               "topic": {{
                               "name": name of the topic,
                               "topic_tags": {{
                                       "tag_names": 3-5 tags of the topic and the response
                       }}
               }},
-                
+
               "general_facts": {{
                               "general_definition": introductory sentence about the topic,
                               "general_points": 3 general key points about the topic that the user must know,
@@ -90,7 +88,7 @@ def build_prompt_search_bar(keywords, news, second=False):
                               "key_facts_fun_fact": one fun fact about the key points,
                               "picture_url": url of the picture about this topic
               }},
-        
+
               "news": {{
                       "news_text": 3 bullet points with the news, you will get the news and need to summarise them,
                                   you must provide 3 sentances, the news must be connected to the egeneral information you
@@ -98,48 +96,48 @@ def build_prompt_search_bar(keywords, news, second=False):
                       "news_fun_facts": fun fact about the news,
                       "picture_url": url of the picture about this topic
               }},
-                
+
               "interesting_trivia": {{
                       "trivia_text": 3 interesting anecdotes or stories or memes, they must be provided as separate sentances,
                       "trivia_fun_fact": funcfacts about the trivia,
                       "picture_url":url of the picture about this topic
               }},
-                
+
               "opinions": {{
                       "opinions_text": opinions of the other people about this topic,
                       "opinions_fun_fact": fun cfact about the opinions
 
               }},
-                
+
               "questions": {{
                       "questions_text": questions about the topic that can be discussed on the forum,
                       "questions_fun_fact": func fact about the questions, or fun question that can be discussed
               }}
           }}
           **
-          
-      
+
+
           Examples:
           Input: All-Star game
           Output:
           {{
               "further_key_words": "NBA, All-Star, Basketball, Entertainment",
-              
+
               "category": {{
                       "categorie_name": "Sports"
               }},
-        
+
               "subcatetgory": {{
                       "subcatetgory_name": "NBA Events"
               }},
-        
+
               "topic": {{
                       "name": "NBA All-Star Game",
                       "topic_tags": {{
                               "tag_names": "Basketball, NBA, All-Star"
                       }}
               }},
-                
+
               "general_facts": {{
                       "general_definition": "The NBA All-Star Game is an annual basketball showcase featuring top players from the Eastern and Western Conference.",
                       "general_points": "Multi-Event Format: All-Star Game, Slam Dunk Contest, Three-Point Shootout, Rising Stars.
@@ -152,7 +150,7 @@ def build_prompt_search_bar(keywords, news, second=False):
                       "key_facts_fun_fact": Four Boston Celtics played in the inaugural 1951 game—fans loved it, setting the stage for this annual tradition.",
                       "picture_url": "https://cdn.warriors.com/events_migration/1005x600__14_-2025-nba-all-star-game-20250216.jpg"
               }},
-              
+
               "news": {{
                       "news_text": "2025 Venue: Chase Center, San Francisco.
                                     Rule Tweak: Fourth-quarter scoring adjustments for more excitement.
@@ -160,7 +158,7 @@ def build_prompt_search_bar(keywords, news, second=False):
                       "news_fun_facts": "The 2020 “Elam Ending” sparked debates on further innovations to keep the All-Star Game thrilling.",
                       "picture_url": "https://cdn.warriors.com/events_migration/1005x600__14_-2025-nba-all-star-game-20250216.jpg"
               }},
-                
+
               "interesting_trivia": {{
                       "trivia_text": "Kobe at 19: Faced Michael Jordan in his first All-Star appearance (1998).
                                       Wilt’s 42: Highest single-game All-Star scoring record (1962).
@@ -180,10 +178,10 @@ def build_prompt_search_bar(keywords, news, second=False):
                       "questions_fun_fact": "Many recall Vince Carter's 2000 Dunk Contest heroics, which revolutionised aerial creativity. One performance can define an entire AlI-Star generation."
               }}
           }}
-          
+
           Example:
           Input: Da Vinci
-          Output:      
+          Output:
           {{
               "further_key_words": "Leonardo, Renaissance, Innovation, Robotics, Art",
               "category": {{
@@ -225,11 +223,11 @@ def build_prompt_search_bar(keywords, news, second=False):
                 "questions_fun_fact": "A fun discussion point is whether the modern use of his name truly honors his legacy or dilutes it over time."
               }}
           }}
-                
+
           - If the topic is **not distinct** (multiple subtopics or collisions):
             - Return **only** a single JSON object with keys "search1", "search2", "search3", etc.
-            - Return from 3 to 5 possible searches. 
-            - Each search block must contain the fields: 
+            - Return from 3 to 5 possible searches.
+            - Each search block must contain the fields:
               - "key_words"
               - "category"
               - "subcatetgory"
@@ -706,7 +704,7 @@ def search_bar(input, OPENAI_API_KEY, second=False,):
                 (need_choise, json_output)
                 where `need_choise` (bool) indicates whether the JSON was initially valid
                 or had to be fixed, and `json_output` is the resulting parsed JSON dict.
-            - If the JSON could not be validated in 3 attempts: 
+            - If the JSON could not be validated in 3 attempts:
                 "The Error is not fixed"
 
 
@@ -739,7 +737,7 @@ def build_prompt_recommendations(keywords, articles):
       - The instructions/format for the response.
       - A placeholder (the fetched news articles) to be summarized.
     """
-  
+
     prompt = f"""
     You are an assistant that summarizes trending topics into structured, readable briefings.
 
@@ -752,7 +750,7 @@ def build_prompt_recommendations(keywords, articles):
     2. Category
     3. A brief introduction
     4. A section with key tips or takeaways (use multiple labeled sections with bullet points inside)
-    5. A section titled **Fun Facts / Did You Know?**, there interesting or fun facts about the topic must be provided. Example could be the meme or anecdote. 
+    5. A section titled **Fun Facts / Did You Know?**, there interesting or fun facts about the topic must be provided. Example could be the meme or anecdote.
     6. A clear and useful conclusion
 
     Your response must:
@@ -833,25 +831,25 @@ def get_urls_from_google(keywords, region="us", num_results=15, lang="en"):
 def extract_main_text_from_url(url: str) -> str:
     """
     Extracts the main article text from a given URL using newspaper3k.
-    
+
     Args:
         url (str): The URL of the web page to extract content from.
-    
+
     Returns:
         str: The main text content of the page, or an empty string if failed.
     """
     if not url or not url.startswith("http"):
         return ""
-    
+
     try:
         article = Article(url, language='en')
         article.download()
         article.parse()
-        
+
         # Clean up the text: remove multiple newlines
         text_content = re.sub(r'\n+', '\n', article.text).strip()
         return text_content
-    
+
     except Exception as e:
         print(f"Failed to extract content from {url}: {e}")
         return ""
@@ -867,11 +865,11 @@ def get_articles(urls, max_articles=5):
             print('Invalid URL')
         if len(articles) >= max_articles:
             break
-        
+
     return articles
 
 
-def recommendations(keywords, region="us", num_results=15, lang="en", OPENAI_API_KEY='Open-AI-API'):   
+def recommendations(keywords, region="us", num_results=15, lang="en", OPENAI_API_KEY='Open-AI-API'):
     urls = get_urls_from_google(keywords, region=region, num_results=num_results, lang=lang)
     articles = get_articles(urls)
     print(len(" ".join(articles)))
@@ -887,25 +885,25 @@ def recommendations(keywords, region="us", num_results=15, lang="en", OPENAI_API
 
 def build_prompt_update_me(keywords, article_text, reference_url=None):
     prompt = (f'''
-          
+
     You are the assistant that will help quickly get information on a certain topic for update briefings.
     You will receive:
         1) A set of keywords related to a topic.
         2) A summary of related news or article text.
-          
+
     Assume the reader needs a concise briefing that can be used in small talk or for quick updates.
-          
+
     1. Analyze the provided keywords and article text.
     2. Determine whether the topic is singular (one clear meaning) or ambiguous (multiple possible subtopics or collisions).
 
     You will produce a structured update briefing in JSON format.
     Include a reference URL, a background story, and a related picture URL.
     You must return the response in the JSON format exactly as specified.
-          
+
     Output Rules:
     - If the topic is distinct (only one clear meaning):
       Return the full, detailed JSON object with the following structure:
-      
+
       {{
         "category": "<Category, e.g., Global News, Personal Interest, Global Development>",
         "subcategory": "<Subcategory, e.g., NFL, Politics, Tech>",
@@ -923,7 +921,7 @@ def build_prompt_update_me(keywords, article_text, reference_url=None):
         }},
         "picture_url": "<URL of a related picture>"
       }}
-      
+
 
     Critical Requirements:
     - Always respond in valid JSON only (no extra commentary, no markdown).
@@ -937,7 +935,7 @@ def build_prompt_update_me(keywords, article_text, reference_url=None):
     Example:
     {{
       "category": "Global News",
-      "subcategory": "Middle East",      
+      "subcategory": "Middle East",
       "topic": "Erdoğan: “No power can expel Palestinians from their homeland”",
       "short_info": [
           "In a recent speech, the Turkish president reaffirmed his support for the Palestinian people and criticized recent developments in the Middle East.",
@@ -1065,9 +1063,3 @@ def generate_trending_now_element(keywords, OPENAI_API_KEY='Open-AI-API', extra_
     else:
         print("Could not parse/fix the JSON response.")
         return None
-
-
-
-
-
-

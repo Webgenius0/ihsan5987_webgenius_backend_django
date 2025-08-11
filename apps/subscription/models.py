@@ -25,10 +25,10 @@ class Package(models.Model):
 
     def __str__(self):
         return f'{self.name}'
-    
+
     def get_discount_price(self):
         return self.price - (self.price * self.discount / 100)
-    
+
     def save(self, *args, **kwargs):
         if self.discount > 0 and self.discount_price >= 0:
             self.discount_price = self.get_discount_price()
