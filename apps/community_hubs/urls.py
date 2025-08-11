@@ -1,10 +1,10 @@
 from django.urls import path
 from .views import (
-    PostList, 
-    CreatePost, 
-    PostDetail, 
-    CommentView, 
-    LikeView, 
+    PostList,
+    CreatePost,
+    PostDetail,
+    CommentView,
+    LikeView,
     CommentReportView
 )
 

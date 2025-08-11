@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from auditlog.registry import auditlog
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.auth import get_user_model
@@ -16,12 +17,20 @@ class Category(models.Model):
         return self.category_name
 
 
+# Register model for audit logging
+auditlog.register(Category)
+
+
 class Subcategory(models.Model):
     subcategory_name = models.CharField(max_length=200)
     created_at = models.DateField(auto_now_add=True)
 
     def __str__(self):
         return self.subcategory_name
+
+
+# Register model for audit logging
+auditlog.register(Subcategory)
 
 
 # Topic Tags
@@ -33,6 +42,10 @@ class TopicTag(models.Model):
         return self.tag_names
 
 
+# Register model for audit logging
+auditlog.register(TopicTag)
+
+
 # Topic
 class Topic(models.Model):
     name = models.CharField(max_length=255)
@@ -41,6 +54,10 @@ class Topic(models.Model):
 
     def __str__(self):
         return self.name
+
+
+# Register model for audit logging
+auditlog.register(Topic)
 
 
 # # General Facts
@@ -120,6 +137,10 @@ class Search(models.Model):
         return f"Search - {self.topic.name}"
 
 
+# Register model for audit logging
+auditlog.register(Search)
+
+
 class SearchUser(models.Model):
     pass
 
@@ -127,15 +148,19 @@ class SearchUser(models.Model):
 # Search Tags
 class SearchTag(models.Model):
     # search = models.ForeignKey(Search, on_delete=models.CASCADE)
-    tag_name = models.CharField(max_length=200) 
+    tag_name = models.CharField(max_length=200)
     created_at = models.DateField(auto_now_add=True)
 
     def __str__(self):
         return self.tag_name
-    
+
     def save(self, *args, **kwargs):
         self.tag_name = self.tag_name.lower()
         super(SearchTag, self).save(*args, **kwargs)
+
+
+# Register model for audit logging
+auditlog.register(SearchTag)
 
 
 class SearchOption(models.Model):
@@ -149,6 +174,10 @@ class SearchOption(models.Model):
         return f'Option for {self.search_tag.tag_name} - {self.keyword}'
 
 
+# Register model for audit logging
+auditlog.register(SearchOption)
+
+
 class SearchHistory(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='search_history')
     search_term = models.CharField(max_length=200)
@@ -157,6 +186,10 @@ class SearchHistory(models.Model):
 
     def __str__(self):
         return f'Search History for {self.user.username} - {self.search_term}'
+
+
+# Register model for audit logging
+auditlog.register(SearchHistory)
 
 
 # Recommendations
@@ -177,13 +210,17 @@ class Recommendation(models.Model):
 
     def __str__(self):
         return self.topic.name
-    
+
     class Meta:
         verbose_name_plural = "Recommendations"
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['category', 'subcategory', 'topic']),
         ]
+
+
+# Register model for audit logging
+auditlog.register(Recommendation)
 
 
 # Update Me
@@ -209,6 +246,10 @@ class UpdateMe(models.Model):
         ]
 
 
+# Register model for audit logging
+auditlog.register(UpdateMe)
+
+
 class UpdateMeUser(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     update_me = models.ForeignKey(UpdateMe, on_delete=models.CASCADE)
@@ -216,6 +257,10 @@ class UpdateMeUser(models.Model):
 
     def __str__(self):
         return self.user.name
+
+
+# Register model for audit logging
+auditlog.register(UpdateMeUser)
 
 
 # Keywords
@@ -240,6 +285,10 @@ class Trending(models.Model):
         return f"Trending - {self.description[:20]}"
 
 
+# Register model for audit logging
+auditlog.register(Trending)
+
+
 # User-Interaction Tables
 class TrendingUser(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -247,10 +296,18 @@ class TrendingUser(models.Model):
     clicked_at = models.DateField()
 
 
+# Register model for audit logging
+auditlog.register(TrendingUser)
+
+
 class RecommendationUser(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     recommendation = models.ForeignKey(Recommendation, on_delete=models.CASCADE)
     clicked_at = models.DateField()
+
+
+# Register model for audit logging
+auditlog.register(RecommendationUser)
 
 
 # class Bookmark(models.Model):
@@ -275,6 +332,10 @@ class Bookmark(models.Model):
         return f"Bookmark - {self.user.name}"
 
 
+# Register model for audit logging
+auditlog.register(Bookmark)
+
+
 # Preferences
 class Preference(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='preferences')
@@ -285,3 +346,7 @@ class Preference(models.Model):
 
     def __str__(self):
         return self.user.name
+
+
+# Register model for audit logging
+auditlog.register(Preference)

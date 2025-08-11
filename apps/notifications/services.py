@@ -9,7 +9,7 @@ def send_notification(sender, recipient, notification_type, message, related_pos
         image_url = sender.profile.image_url if hasattr(sender, 'profile') else 'No profile'
     except Exception as e:
         image_url = f'Error accessing profile: {e}'
-    
+
     print(f"[SEND_NOTIFICATION] IMAGE_URL: {image_url}")
 
     # Create a notification record in the database

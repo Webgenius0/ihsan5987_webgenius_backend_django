@@ -36,7 +36,7 @@ class PackageView(APIView):
             "data": serializer.data
         }
         return Response(response)
-    
+
 
 class UserActiveSubscriptionView(APIView):
     def get(self, request):
@@ -104,7 +104,7 @@ class SubscriptionCreate(APIView):
                 'success': False,
                 'message': 'Failed to create or retrieve customer.'
             }, status=status.HTTP_400_BAD_REQUEST)
-        
+
         try:
             current_subscription = Subscription.objects.filter(user=user, is_active=True).first()
             stripe_subscription = None
@@ -202,7 +202,7 @@ def stripe_webhook_view(request):
         return HttpResponse(status=400)
     except ValueError:
         return HttpResponse(status=400)
-    
+
     if event['type'] == 'customer.subscription.created':
         data = event['data']['object']
         metadata = data.get('metadata', {})

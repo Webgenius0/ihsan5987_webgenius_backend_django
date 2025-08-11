@@ -1,5 +1,6 @@
 from django.db import models
 from apps.users.models import User
+from auditlog.registry import auditlog
 from cloudinary.models import CloudinaryField
 from apps.community_hubs.models import Post, Comment
 
@@ -63,8 +64,12 @@ class Notification(models.Model):
         elif time_diff.days < 7:
             return f"{time_diff.days} day(s) ago | {self.created_at.strftime('%I:%M %p')}"
         return self.created_at.strftime('%Y-%m-%d | %I:%M %p')
-    
+
     def save(self, *args, **kwargs):
         if self.system_event in self.CLOUDINARY_ICON_MAP:
             self.icon = self.CLOUDINARY_ICON_MAP[self.system_event]
         super().save(*args, **kwargs)
+
+
+# Register model for audit logging
+auditlog.register(Notification)
