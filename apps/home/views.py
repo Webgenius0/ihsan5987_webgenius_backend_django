@@ -334,6 +334,13 @@ class BookmarkAPIView(APIView):
                 "message": "Bookmark created successfully",
             }
             return Response(response_data, status=status.HTTP_201_CREATED)
+        else:
+            response_data = {
+                "code": status.HTTP_400_BAD_REQUEST,
+                "success": False,
+                "message": "Bookmark already exists",
+            }
+            return Response(response_data, status=status.HTTP_400_BAD_REQUEST)
 
     def get(self, request):
         user = request.user
