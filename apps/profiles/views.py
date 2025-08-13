@@ -35,36 +35,6 @@ class ProfileView(APIView):
         }
         return Response(response, status=status.HTTP_200_OK)
     
-    # def post(self, request):
-    #     # Check if user already has a profile
-    #     if hasattr(request.user, 'profile'):
-    #         response = {
-    #             "status": 400,
-    #             "success": False,
-    #             "message": "Profile already exists for this user.",
-    #             "data": None
-    #         }
-    #         return Response(response, status=status.HTTP_400_BAD_REQUEST)
-        
-    #     # Create profile for the authenticated user
-    #     serializer = ProfileSerializer(data=request.data)
-    #     if serializer.is_valid():
-    #         serializer.save(user=request.user)  # Link profile to the authenticated user
-    #         response = {
-    #             "status": 201,
-    #             "success": True,
-    #             "message": "Profile created successfully.",
-    #             "data": serializer.data
-    #         }
-    #         return Response(response, status=status.HTTP_201_CREATED)
-    #     response = {
-    #         "status": 400,
-    #         "success": False,
-    #         "message": "Failed to create profile.",
-    #         "data": serializer.errors
-    #     }
-    #     return Response(response, status=status.HTTP_400_BAD_REQUEST)
-    
     def put(self, request):
         profile = request.user.profile
         serializer = ProfileSerializer(profile, data=request.data, partial=True)

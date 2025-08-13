@@ -7,7 +7,6 @@ from apps.home.models import (
     Subcategory,
     Topic
 )
-
 keywords = "football world cup 2024"
 openai_api_key = config("OPENAI_API_KEY")
 

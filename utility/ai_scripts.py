@@ -5,7 +5,6 @@ from openai import OpenAI
 import re
 from googlesearch import search
 from newspaper import Article
-
 from decouple import config
 
 # --- Configuration (replace with your actual API keys) ---

@@ -47,18 +47,13 @@ class UserSerializer(serializers.ModelSerializer):
 
 class FeedbackSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
-    # search = SearchSerializer(read_only=True)
-
+    
     class Meta:
         model = Feedback
         fields = ["id", "user", "content", "rating", "created_at"]
 
 
 class UpdateMeSerializer(serializers.ModelSerializer):
-    # category = CategorySerializer(read_only=True, source='category_id')
-    # subcategory = SubcategorySerializer(read_only=True, source='subcategory_id')
-    # topic = TopicSerializer(read_only=True, source='topic_id')
-
     class Meta:
         model = UpdateMe
         # fields = '__all__'

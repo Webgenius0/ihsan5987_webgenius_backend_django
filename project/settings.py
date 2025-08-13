@@ -1,4 +1,4 @@
-# from .unfold_conf import UNFOLD
+from .unfold_conf import UNFOLD
 import os
 from pathlib import Path
 import cloudinary
@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "schema_viewer",
     # cloudinary
     "cloudinary",
+    "easyaudit",
     "django_celery_beat",
     # my apps
     "apps.profiles.apps.ProfilesConfig",
@@ -67,9 +68,11 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "easyaudit.middleware.easyaudit.EasyAuditMiddleware",
     # 3d party middleware
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "querycount.middleware.QueryCountMiddleware",
+    "apps.users.middleware.supabase_auth.SupabaseJWTMiddleware",
 ]
 
 ROOT_URLCONF = "project.urls"
@@ -157,6 +160,9 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+# Supabase Project ID
+SUPABASE_PROJECT_ID = os.getenv("SUPABASE_PROJECT_ID")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
