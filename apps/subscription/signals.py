@@ -41,7 +41,7 @@ def update_stripe_product(sender, instance, created, **kwargs):
                 stripe_product.id,
                 name=instance.name
             )
-        
+
         if stripe_price['unit_amount'] != int(instance.discount_price * 100):
             stripe.Price.modify(instance.stripe_price_id, active=False)
 

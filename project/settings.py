@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "apps.users",
     "import_export",
     "schema_viewer",
+    "auditlog",
     # cloudinary
     "cloudinary",
     "easyaudit",

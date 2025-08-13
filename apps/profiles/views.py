@@ -25,7 +25,7 @@ class ProfileView(APIView):
                 "success": False,
                 "message": "Profile not found",
             }, status=status.HTTP_404_NOT_FOUND)
-        
+
         serializer = ProfileSerializer(profile, context={'request': request})
         response = {
             "status": status.HTTP_200_OK,
@@ -47,7 +47,7 @@ class ProfileView(APIView):
                 "data": serializer.data
             }
             return Response(response, status=status.HTTP_200_OK)
-        
+
         # Error handling for invalid data
         response = {
             "status": 400,
@@ -56,7 +56,7 @@ class ProfileView(APIView):
             "data": serializer.errors
         }
         return Response(response, status=status.HTTP_400_BAD_REQUEST)
-    
+
     def delete(self, request):
         try:
             profile = Profile.objects.get(user=request.user)
@@ -165,14 +165,14 @@ class MyPostDetail(APIView):
             "success": True,
             "message": "Post deleted successfully"
         }, status=status.HTTP_200_OK)
-    
+
 
 # FAQ View
 class FAQList(APIView):
     def get(self, request):
         category = request.query_params.get('category', None)
         search = request.query_params.get('search', None)
-        
+
         if category:
             faqs = FAQ.objects.filter(category__name=category)
         elif search:
@@ -201,7 +201,7 @@ class FAQCategoryList(APIView):
             "data": serializer.data
         }
         return Response(response, status=status.HTTP_200_OK)
-    
+
 
 # Contact Us View
 class ContactUsList(APIView):
@@ -215,7 +215,7 @@ class ContactUsList(APIView):
             "data": serializer.data
         }
         return Response(response, status=status.HTTP_200_OK)
-    
+
 
 # Notification Setting View
 class NotificationSettingView(APIView):
@@ -231,7 +231,7 @@ class NotificationSettingView(APIView):
             "data": serializer.data
         }
         return Response(response, status=status.HTTP_200_OK)
-    
+
     def put(self, request):
         settings, created = NotificationSetting.objects.get_or_create(user=request.user)
         serializer = NotificationSettingSerializer(settings, data=request.data, partial=True)
@@ -263,7 +263,7 @@ class AppInformationView(APIView):
                     "success": False,
                     "message": "App information not found"
                 }, status=status.HTTP_404_NOT_FOUND)
-            
+
             serializer = AppInfoSerializer(app_info)
             response = {
                 "status": status.HTTP_200_OK,
