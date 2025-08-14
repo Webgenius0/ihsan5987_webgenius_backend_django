@@ -18,7 +18,7 @@ class SignupView(APIView):
         serializer = SignupSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save(is_active=False)
-            
+
             otp = str(random.randint(1000, 9999))
 
             # Send OTP email
@@ -42,7 +42,7 @@ class SignupView(APIView):
                 "message": f"User created. OTP sent to email for verification. {otp}",
             }
             return Response(response_data, status=status.HTTP_201_CREATED)
-        
+
         response_data = {
             "status": status.HTTP_400_BAD_REQUEST,
             "success": "false",
@@ -76,7 +76,7 @@ class VerifyOTPView(APIView):
                 "success": "false",
                 "message": "User not found.",
             }, status=status.HTTP_400_BAD_REQUEST)
-        
+
         # Check OTP expiration (3 minutes)
         if otp_obj.is_expired():
             otp_obj.delete()
@@ -86,8 +86,7 @@ class VerifyOTPView(APIView):
                 "message": "OTP has expired. Please resend OTP.",
             }
             return Response(response_data, status=status.HTTP_400_BAD_REQUEST)
-        
-        
+
         if not otp_obj.has_attempts_left():
             otp_obj.delete()
             return Response({
@@ -141,7 +140,7 @@ class VerifyResetPasswordOTPView(APIView):
         otp = request.data.get('otp')
 
         try:
-            user = User.objects.get(email=email, is_active = True)
+            user = User.objects.get(email=email, is_active=True)
             otp_obj = EmailOTP.objects.filter(user=user, is_verified=False).latest('created_at')
         except EmailOTP.DoesNotExist:
             response_data = {
@@ -156,7 +155,7 @@ class VerifyResetPasswordOTPView(APIView):
                 "success": "false",
                 "message": "User not found.",
             }, status=status.HTTP_400_BAD_REQUEST)
-        
+
         # Check OTP expiration (3 minutes)
         if otp_obj.is_expired():
             otp_obj.delete()
@@ -211,6 +210,8 @@ class ResendVerifyOTPView(APIView):
 
         try:
             user = User.objects.get(email=email)
+            otp_obj = EmailOTP.objects.filter(user=user, is_verified=False).latest('created_at')
+
             if user.is_active:
                 return Response({
                     "status": status.HTTP_400_BAD_REQUEST,
@@ -218,6 +219,15 @@ class ResendVerifyOTPView(APIView):
                     "message": "Invalid credentials.",
                     "errors": "User is already verified."
                 }, status=status.HTTP_400_BAD_REQUEST)
+
+            if not otp_obj.is_expired():
+                return Response({
+                    "status": status.HTTP_400_BAD_REQUEST,
+                    "success": False,
+                    "message": "Invalid credentials.",
+                    "errors": "OTP has not expired."
+                }, status=status.HTTP_400_BAD_REQUEST)
+
         except User.DoesNotExist:
             return Response({
                 "status": status.HTTP_400_BAD_REQUEST,
@@ -256,7 +266,7 @@ class ResendVerifyOTPView(APIView):
             "status": status.HTTP_200_OK,
             "success": True,
             "message": "OTP resent successfully.",
-        }   
+        }
         return Response(response_data, status=status.HTTP_200_OK)
 
 
@@ -356,8 +366,8 @@ class ForgotPasswordView(APIView):
         otp = str(random.randint(1000, 9999))
         EmailOTP.objects.filter(user=user).delete()
         EmailOTP.objects.create(
-            user=user, 
-            otp=otp, 
+            user=user,
+            otp=otp,
             created_at=timezone.now(),
             attempts=0
         )
@@ -391,14 +401,14 @@ class ResetPasswordView(APIView):
                 "status": status.HTTP_400_BAD_REQUEST,
                 "success": False,
                 "message": "Email, OTP, new password, and confirm password are required."
-            }, status = status.HTTP_400_BAD_REQUEST)
+            }, status=status.HTTP_400_BAD_REQUEST)
 
         if new_password != confirm_password:
             return Response({
                 "status": status.HTTP_400_BAD_REQUEST,
                 "success": False,
                 "message": "Passwords do not match."
-            }, status = status.HTTP_400_BAD_REQUEST)
+            }, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             user = User.objects.get(email=email)
@@ -408,14 +418,14 @@ class ResetPasswordView(APIView):
                 "status": status.HTTP_400_BAD_REQUEST,
                 "success": False,
                 "message": "OTP not verified or user not found."
-            }, status = status.HTTP_400_BAD_REQUEST)
+            }, status=status.HTTP_400_BAD_REQUEST)
 
         if otp_obj:
             user.set_password(new_password)
             user.save()
 
         EmailOTP.objects.filter(user=user).delete()  # Clean up OTPs
-        
+
         send_system_notification(
             recipient=user,
             title="Password Changed",
@@ -429,7 +439,7 @@ class ResetPasswordView(APIView):
         }, status=200)
 
 
-#Login View
+# Login View
 class LoginView(APIView):
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
@@ -445,7 +455,6 @@ class LoginView(APIView):
                     },
                     status=status.HTTP_403_FORBIDDEN
                 )
-
 
             device_info = UserDevice.get_device_info(request)
             ip_address = UserDevice.get_client_ip(request)
@@ -482,7 +491,7 @@ class LoginView(APIView):
                 },
             }
             return Response(response_data, status=status.HTTP_200_OK)
-        
+
         error_message = None
         if 'errors' in serializer.errors:
             error_value = serializer.errors['errors']
@@ -495,7 +504,7 @@ class LoginView(APIView):
             "errors": error_message,
         }
         return Response(response_error, status=status.HTTP_403_FORBIDDEN)
-    
+
 
 # Change Password View
 class ChangePasswordView(APIView):
@@ -511,22 +520,22 @@ class ChangePasswordView(APIView):
                 "status": status.HTTP_400_BAD_REQUEST,
                 "success": False,
                 "message": "Current password, new password, and confirm password are required."
-            }, status = status.HTTP_400_BAD_REQUEST)
-        
+            }, status=status.HTTP_400_BAD_REQUEST)
+
         user = User.objects.get(email=request.user.email)
         if not user.check_password(current_password):
             return Response({
                 "status": status.HTTP_400_BAD_REQUEST,
                 "success": False,
                 "message": "Current password is incorrect."
-            }, status = status.HTTP_400_BAD_REQUEST)
-        
+            }, status=status.HTTP_400_BAD_REQUEST)
+
         if new_password != confirm_password:
             return Response({
                 "status": status.HTTP_400_BAD_REQUEST,
                 "success": False,
                 "message": "Passwords do not match."
-            }, status = status.HTTP_400_BAD_REQUEST)
+            }, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             user = User.objects.get(email=request.user.email)
@@ -537,7 +546,7 @@ class ChangePasswordView(APIView):
                 "status": status.HTTP_400_BAD_REQUEST,
                 "success": False,
                 "message": "User not found."
-            }, status = status.HTTP_400_BAD_REQUEST)
+            }, status=status.HTTP_400_BAD_REQUEST)
 
         send_system_notification(
             recipient=user,
@@ -552,6 +561,7 @@ class ChangePasswordView(APIView):
             "message": "Password changed successfully."
         }, status=status.HTTP_200_OK)
 
+
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -563,3 +573,21 @@ class LogoutView(APIView):
         }, status=status.HTTP_200_OK)
         
 
+class ProtectedView(APIView):
+    def get(self, request):
+        user = request.supabase_user
+        if not user:
+            response_data = {
+                "status": status.HTTP_401_UNAUTHORIZED,
+                "success": False,
+                "message": "Unauthorized",
+            }
+            return Response(response_data, status=401)
+
+        response_data = {
+            "status": status.HTTP_200_OK,
+            "success": True,
+            "message": "Authenticated!",
+            "user": user,
+        }
+        return Response(response_data, status=status.HTTP_200_OK)

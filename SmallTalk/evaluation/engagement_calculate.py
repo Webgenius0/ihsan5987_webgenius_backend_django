@@ -1,8 +1,9 @@
-#engagement_calculate.py
+# engagement_calculate.py
 import json
 from typing import List, Dict, Any
 from deepeval.metrics import BaseMetric
 from deepeval.test_case import LLMTestCase
+
 
 class KeywordJSONEngagementTemplate:
     @staticmethod
@@ -54,8 +55,12 @@ JSON:
 """
 
     @staticmethod
-    def generate_reason(keywords: str, score: float, engaging_fields: List[str], 
-                       non_engaging_fields: List[str]):
+    def generate_reason(
+        keywords: str, 
+        score: float, 
+        engaging_fields: List[str], 
+        non_engaging_fields: List[str]
+    ):
         return f"""Based on the keywords and JSON engagement analysis, provide a concise reason for the engagement score.
 
 **
@@ -73,6 +78,7 @@ Non-Engaging Fields: {non_engaging_fields}
 
 JSON:
 """
+
 
 class KeywordJSONEngagementMetric(BaseMetric):
     def __init__(self, threshold: float = 0.7, model: str = "gpt-4o", 
@@ -126,7 +132,7 @@ class KeywordJSONEngagementMetric(BaseMetric):
     def _extract_json_fields(self, json_output: Dict[str, Any], keywords: str) -> List[Dict[str, Any]]:
         """Extract content fields from JSON for engagement evaluation"""
         fields = []
-        keywords_list = keywords.split() if isinstance(keywords, str) else []
+        # keywords_list = keywords.split() if isinstance(keywords, str) else []
 
         def extract_fields(obj, prefix=""):
             if isinstance(obj, dict):
@@ -196,8 +202,7 @@ class KeywordJSONEngagementMetric(BaseMetric):
         
         return "general"
 
-    def _evaluate_engagement(self, keywords: str, json_output: str,
-                           field_analysis: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def _evaluate_engagement(self, keywords: str, json_output: str, field_analysis: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Evaluate engagement level of each JSON field"""
         verdicts = []
 
@@ -284,9 +289,7 @@ class KeywordJSONEngagementMetric(BaseMetric):
             "factors": factors
         }
 
-    def _generate_field_engagement_reason(self, field_info: Dict[str, Any], 
-                                        engagement_analysis: Dict[str, Any], 
-                                        is_engaging: bool, keywords: str) -> str:
+    def _generate_field_engagement_reason(self, field_info: Dict[str, Any], engagement_analysis: Dict[str, Any], is_engaging: bool, keywords: str) -> str:
         """Generate reason for engagement verdict"""
         if is_engaging:
             factors = engagement_analysis["factors"]
@@ -314,9 +317,7 @@ class KeywordJSONEngagementMetric(BaseMetric):
             engaging_count = sum(1 for v in verdicts if v["verdict"] == "yes")
             return engaging_count / len(verdicts)
 
-    def _generate_detailed_reason(self, keywords: str, score: float, 
-                                engaging_fields: List[str], non_engaging_fields: List[str],
-                                verdicts: List[Dict[str, Any]]) -> str:
+    def _generate_detailed_reason(self, keywords: str, score: float, engaging_fields: List[str], non_engaging_fields: List[str], verdicts: List[Dict[str, Any]]) -> str:
         """Generate detailed explanation for engagement score"""
         total_fields = len(engaging_fields) + len(non_engaging_fields)
         

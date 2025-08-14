@@ -1,42 +1,70 @@
 from django.contrib import admin
-from unfold.admin import ModelAdmin   
+from unfold.admin import ModelAdmin
+# from auditlog.models import LogEntry
 from .models import Post, Comment, Like, CommentReport
 from import_export.admin import ImportExportModelAdmin
-from unfold.contrib.import_export.forms import ExportForm, ImportForm, SelectableFieldsExportForm
+from unfold.contrib.import_export.forms import (ExportForm, ImportForm, SelectableFieldsExportForm)
+
 
 @admin.register(Post)
 class PostAdmin(ModelAdmin, ImportExportModelAdmin):
-    list_display = ("id", "title", "content", "user", "created_at")
-    search_fields = ["title", "user__email"]
-    list_per_page = 10
-    ordering = ["id"]
+    # Display settings for list view
+    list_display = (
+        "title",
+        "content_preview",
+        "user",
+        "created_at",
+    )
+    list_filter = ("created_at",)  # Add filters for quick navigation
+    search_fields = ["title", "user__email"]  # Searchable fields
+    list_per_page = 20  # Pagination settings
+    ordering = ["-created_at"]  # Default sorting by newest first
+    date_hierarchy = "created_at"  # Date-based navigation
 
+    # Import/Export configuration
     import_form_class = ImportForm
     export_form_class = ExportForm
+
+    # Custom methods for enhanced display
+    def content_preview(self, obj):
+        """Display a truncated version of the post content."""
+        return f"{obj.content[:50]}..." if len(obj.content) > 50 else obj.content
+
+    content_preview.short_description = "Content Preview"
+
 
 @admin.register(Comment)
 class CommentAdmin(ModelAdmin, ImportExportModelAdmin):
-    list_display = ("id", "post", "user", "text", "is_active", "created_at")
+    list_display = ("post", "user", "text", "is_active", "created_at")
     search_fields = ["post__title", "user__email"]
-    list_per_page = 10
-    ordering = ["id"]
+    list_per_page = 20
+    ordering = ["-created_at"]
 
     import_form_class = ImportForm
     export_form_class = ExportForm
+
 
 @admin.register(Like)
 class LikeAdmin(ModelAdmin, ImportExportModelAdmin):
     list_display = ("comment", "user", "created_at")
     search_fields = ["comment__post__title", "user__email"]
-    list_per_page = 10
-    ordering = ["id"]
+    list_per_page = 20
+    ordering = ["-created_at"]
 
     import_form_class = ImportForm
     export_form_class = ExportForm
 
+
 @admin.register(CommentReport)
 class CommentReportAdmin(ModelAdmin, ImportExportModelAdmin):
-    list_display = ['id', 'comment', 'reporter', 'reason', 'message', 'status', 'created_at']
+    list_display = [
+        'comment',
+        'reporter',
+        'reason',
+        'message',
+        'status',
+        'created_at'
+    ]
     list_filter = ['status', 'reason']
     search_fields = ['comment__text', 'reporter__username', 'reporter__name']
     readonly_fields = ['created_at']
@@ -45,8 +73,8 @@ class CommentReportAdmin(ModelAdmin, ImportExportModelAdmin):
     list_editable = ['status']
 
     # Optional: Add ordering by status and created_at
-    list_per_page = 10
-    ordering = ["id"]
+    list_per_page = 20
+    ordering = ["-created_at"]
 
     def save_model(self, request, obj, form, change):
         if obj.status == 'dismissed':
@@ -54,10 +82,21 @@ class CommentReportAdmin(ModelAdmin, ImportExportModelAdmin):
             obj.comment.save()
         super().save_model(request, obj, form, change)
 
-
     import_form_class = ImportForm
     export_form_class = ExportForm
     selectable_fields_export_form_class = SelectableFieldsExportForm
 
 
+# @admin.register(LogEntry)
+class LogEntryAdmin(ModelAdmin, ImportExportModelAdmin):
+    list_display = ('timestamp', 'actor', 'content_type', 'object_repr', 'changes')
+    list_filter = ('content_type', 'actor')
+    search_fields = ('object_repr', 'changes')
 
+    readonly_fields = ('timestamp', 'actor', 'content_type', 'object_repr', 'changes')
+    list_per_page = 20
+    ordering = ['-timestamp']
+
+    import_form_class = ImportForm
+    export_form_class = ExportForm
+    selectable_fields_export_form_class = SelectableFieldsExportForm

@@ -1,15 +1,17 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from .models import User
 from import_export.admin import ImportExportModelAdmin
 from unfold.contrib.import_export.forms import ExportForm, ImportForm
 
 
 @admin.register(User)
-class UserAdmin(ModelAdmin, ImportExportModelAdmin):
+class UserAdmin(BaseUserAdmin, ModelAdmin, ImportExportModelAdmin):
     list_display = ("name", "email", "is_staff", "is_active",)
-    list_filter = ("email", "is_staff", "is_active",)
-    list_per_page = 10
+    list_filter = ("is_staff", "is_active",)
+    list_per_page = 20
+    ordering = ("-created_at",)
     fieldsets = (
         (None, {"fields": ("name", "email", "password")}),
         ("Permissions", {"fields": ("is_staff", "is_active", "groups", "user_permissions")}),
@@ -18,10 +20,13 @@ class UserAdmin(ModelAdmin, ImportExportModelAdmin):
     add_fieldsets = (
         (None, {
             "classes": ("wide",),
-            "fields": ("name", "email", "password", "is_staff", "is_active", "groups", "user_permissions"),
+            "fields": ("name", "email", "password", "is_staff", "is_active"),
         }),
     )
     search_fields = ["email", "name"]
 
-    import_form_class = ImportForm
     export_form_class = ExportForm
+
+    # disable import
+    def has_import_permission(self, request):
+        return False

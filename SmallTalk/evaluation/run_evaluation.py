@@ -8,6 +8,12 @@ import argparse
 import sys
 import os
 from typing import Dict, Any, List
+# --- Imports ---
+# Import the base application class from the root directory
+from main import SmallTalkApp
+# Import API utilities needed for fetching evaluation context
+from api_utils import get_urls_from_google, get_articles, get_news
+
 
 # --- Path Correction ---
 # This is crucial: it adds the project's root directory (one level up from `evaluation/`)
@@ -15,21 +21,15 @@ from typing import Dict, Any, List
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(project_root)
 
-# --- Imports ---
-# Import the base application class from the root directory
-from main import SmallTalkApp
-# Import API utilities needed for fetching evaluation context
-from api_utils import get_urls_from_google, get_articles, get_news
-
 # Import evaluation pipelines and batch tester utilities from the `evaluation` package
 try:
     from evaluation.pipeline import SmallTalkEvaluationPipeline as EvaluationPipeline1
     from evaluation.pipeline2 import EvaluationPipeline2
     from evaluation.batch_tester import run_test_from_cli_keywords, run_batch_test_from_file, run_all_modes_and_save_to_excel
     EVAL_MODULES_AVAILABLE = True
-    print("✅ Evaluation modules loaded successfully.")
+    print("Evaluation modules loaded successfully.")
 except ImportError as e:
-    print(f"❌ Critical Error: Could not import evaluation modules. Details: {e}")
+    print(f"Critical Error: Could not import evaluation modules. Details: {e}")
     EVAL_MODULES_AVAILABLE = False
 
 
@@ -42,7 +42,7 @@ class EvaluatedSmallTalkApp(SmallTalkApp):
         super().__init__()
         self.pipeline1 = EvaluationPipeline1() if EVAL_MODULES_AVAILABLE else None
         self.pipeline2 = EvaluationPipeline2() if EVAL_MODULES_AVAILABLE else None
-        print("⚒️  EvaluatedSmallTalkApp initialized with evaluation pipelines.")
+        print("EvaluatedSmallTalkApp initialized with evaluation pipelines.")
 
     def _get_shared_context(self, keywords: str, num_articles: int = 3) -> List[str]:
         """Fetches shared context for fair evaluation across modes."""
@@ -55,7 +55,7 @@ class EvaluatedSmallTalkApp(SmallTalkApp):
                 return [item.get('description', '') for item in news_items] if news_items else []
             return articles
         except Exception as e:
-            print(f"❌ Error fetching shared context: {e}")
+            print(f"Error fetching shared context: {e}")
             return []
     
     def _apply_evaluations(self, keywords: str, mode: str, result: Dict[str, Any], retrieval_context: List[str]):
@@ -112,11 +112,13 @@ def run_evaluation():
         print("\n--- Running Comprehensive (All Modes) Excel Report ---")
         run_all_modes_and_save_to_excel(app, args.run_all_to_excel)
     elif args.batch_file:
-        if not args.mode: parser.error("--mode is required when using --batch-file.")
+        if not args.mode: 
+            parser.error("--mode is required when using --batch-file.")
         print(f"\n--- Running Batch Test from File for Mode: {args.mode.upper()} ---")
         run_batch_test_from_file(app, args.batch_file, args.mode)
     elif args.cli_keywords:
-        if not args.mode: parser.error("--mode is required when using --cli-keywords.")
+        if not args.mode: 
+            parser.error("--mode is required when using --cli-keywords.")
         print(f"\n--- Running Batch Test from CLI Keywords for Mode: {args.mode.upper()} ---")
         run_test_from_cli_keywords(app, args.cli_keywords, args.mode)
     else:

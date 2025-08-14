@@ -3,6 +3,7 @@ from rest_framework.exceptions import AuthenticationFailed, ValidationError, Not
 from rest_framework.response import Response
 from rest_framework import status
 
+
 def custom_exception_handler(exc, context):
     # Call the default exception handler first
     response = exception_handler(exc, context)

@@ -5,6 +5,7 @@ from apps.users.models import User
 from .services import send_notification
 from apps.profiles.models import NotificationSetting
 
+
 @receiver(post_save, sender=Post)
 def notify_on_post_creation(sender, instance, created, **kwargs):
     if created:
@@ -46,6 +47,7 @@ def notify_on_comment_creation(sender, instance, created, **kwargs):
             except NotificationSetting.DoesNotExist:
                 pass
 
+
 @receiver(post_save, sender=Like)
 def notify_on_like_creation(sender, instance, created, **kwargs):
     if created:
@@ -58,10 +60,10 @@ def notify_on_like_creation(sender, instance, created, **kwargs):
                     send_notification(
                         sender=instance.user,  # ✅ Use instance.user here
                         recipient=comment_creator,
-                                notification_type='like',
-                                message=message,
-                                related_post=instance.comment.post,
-                                related_comment=instance.comment
-                            )
+                        notification_type='like',
+                        message=message,
+                        related_post=instance.comment.post,
+                        related_comment=instance.comment
+                    )
             except NotificationSetting.DoesNotExist:
                 pass

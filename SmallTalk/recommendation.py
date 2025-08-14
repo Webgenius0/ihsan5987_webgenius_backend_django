@@ -1,7 +1,8 @@
 # recommendation.py
-
-from .api_utils import *
-from .llm_utils import *
+import os
+from turtle import pd
+from .api_utils import generate_perplexity_output
+from .llm_utils import build_prompt, verify_and_fix_json
 
 
 file_name = "Categories.xlsx"
@@ -24,11 +25,14 @@ def generate_recommendation(
     # print(len(" ".join(articles)))
     # articles = " ".join(articles)[0:21000]
 
-    prompt = build_prompt(prompt_type = 'recommendation', 
-                          prompt_version = prompt_version,
-                            keywords=keywords, news = '', 
-                            article_text= '',#articles,
-                            reference_url = '')
+    prompt = build_prompt(
+        prompt_type='recommendation', 
+        prompt_version=prompt_version,
+        keywords=keywords, 
+        news='', 
+        article_text='',
+        reference_url=''
+    )
 
     user_input = f'    Here is the subcategory: {keywords}.'
     # response = get_llm_response(prompt)
@@ -94,7 +98,7 @@ def validate_recommendation_output(output_json):
                 for i, tip in enumerate(tips_list):
                     if not isinstance(tip, str):
                         errors.append(f"Element at index {i} in list 'key_tips_and_takeaways.{category}' must be a string, but found {type(tip).__name__}.")
-                        break # Stop checking this list after the first error
+                        break  # Stop checking this list after the first error
 
     # Check for 'fun_facts' field (list of strings)
     if "fun_facts" not in output_json:
@@ -105,7 +109,7 @@ def validate_recommendation_output(output_json):
         for i, fact in enumerate(output_json["fun_facts"]):
             if not isinstance(fact, str):
                 errors.append(f"Element at index {i} in list 'fun_facts' must be a string, but found {type(fact).__name__}.")
-                break # Stop checking this list after the first error
+                break  # Stop checking this list after the first error
 
     is_valid = len(errors) == 0
     return is_valid, errors
@@ -113,13 +117,16 @@ def validate_recommendation_output(output_json):
 
 def extract_text_from_recommendations_json(json_data):
     texts = []
-    if not isinstance(json_data, dict): return ""
+    if not isinstance(json_data, dict):
+        return ""
     texts.append(json_data.get("introduction", ""))
     key_tips = json_data.get("key_tips_and_takeaways", {})
     if isinstance(key_tips, dict):
         for _, tips_list in key_tips.items():
-            if isinstance(tips_list, list): texts.extend(str(tip) for tip in tips_list)
+            if isinstance(tips_list, list):
+                texts.extend(str(tip) for tip in tips_list)
     fun_facts = json_data.get("fun_facts", [])
-    if isinstance(fun_facts, list): texts.extend(str(fact) for fact in fun_facts)
+    if isinstance(fun_facts, list):
+        texts.extend(str(fact) for fact in fun_facts)
     texts.append(json_data.get("conclusion", ""))
     return "\n".join(filter(None, texts)).strip()

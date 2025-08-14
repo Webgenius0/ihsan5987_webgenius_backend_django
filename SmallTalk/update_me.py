@@ -1,7 +1,7 @@
 # update_me.py
-from .api_utils import *
-from .llm_utils import *
-
+import os
+from .api_utils import get_top_news_full_json, get_image
+from .llm_utils import get_llm_response, build_prompt, generate_perplexity_output, verify_and_fix_json
 import pandas as pd
 import random
 from datetime import datetime, timedelta
@@ -26,16 +26,17 @@ def generate_update_me_element(
     df = pd.read_excel(categories_file)
     if prompt_type == 'update_me_general':
 
-        user_input = build_prompt(prompt_type = prompt_type, 
-                              prompt_version = prompt_version,
-                                keywords=keywords, news = '', 
-                                article_text= "",
-                                reference_url = link,
-                                subcategories = df['Subcategory'].dropna().tolist())
+        user_input = build_prompt(
+            prompt_type=prompt_type, 
+            prompt_version=prompt_version,
+            keywords=keywords, news='', 
+            article_text="",
+            reference_url=link,
+            subcategories=df['Subcategory'].dropna().tolist())
 
-        date = (datetime.now()- timedelta(days=30)).strftime("%d.%m.%Y")
+        date = (datetime.now() - timedelta(days=30)).strftime("%d.%m.%Y")
 
-        system_prompt  = f''' You are the assistant that will help quickly get information on a certain topic for update briefings.
+        system_prompt = f''' You are the assistant that will help quickly get information on a certain topic for update briefings.
            Output Rules:
               Return the full, detailed JSON object with the following structure:
 
@@ -65,7 +66,7 @@ def generate_update_me_element(
             The latest news can be from the {date}.
 
         '''
-        raw_response = generate_perplexity_output(system_content = system_prompt, user_content = user_input)
+        raw_response = generate_perplexity_output(system_content=system_prompt, user_content=user_input)
         # return raw_response
         valid, parsed_json = verify_and_fix_json(raw_response['choices'][0]['message']['content'])
         # valid = True
@@ -80,14 +81,15 @@ def generate_update_me_element(
         # valid, parsed_json = verify_and_fix_json(raw_response)
 
         # parsed_json['picture_url'] = image_url
-
     else:
-        prompt = build_prompt(prompt_type = prompt_type, 
-                              prompt_version = prompt_version,
-                                keywords=keywords, news = news_text, 
-                                article_text= "",
-                                reference_url = link,
-                                subcategories = df['Subcategory'].dropna().tolist())
+        prompt = build_prompt(
+            prompt_type=prompt_type, 
+            prompt_version=prompt_version,
+            keywords=keywords, 
+            news=news_text, 
+            article_text="",
+            reference_url=link,
+            subcategories=df['Subcategory'].dropna().tolist())
 
         raw_response = get_llm_response(prompt)
 
@@ -110,7 +112,7 @@ def generate_update_me_element(
         return None
 
 
-def get_random_subtopics_for_update_me(n, categories_file = 'Categories.xlsx'):
+def get_random_subtopics_for_update_me(n, categories_file='Categories.xlsx'):
     """
     Returns a list of n random subcategories from the specified categories file.
     
@@ -120,9 +122,7 @@ def get_random_subtopics_for_update_me(n, categories_file = 'Categories.xlsx'):
         
     Returns:
         List[str]: A list of n random subcategories.
-    """
-
-    
+    """ 
     # Load the categories from the Excel file
     df = pd.read_excel(categories_file)
     
@@ -133,32 +133,30 @@ def get_random_subtopics_for_update_me(n, categories_file = 'Categories.xlsx'):
     return random.sample(subtopics, min(n, len(subtopics)))
 
 
-def generate_update_me_news_set(use_tfidf=True, sort_by_date=False, categories_file = 'Categories.xlsx', prompt_version='v01', **model_params):
+def generate_update_me_news_set(use_tfidf=True, sort_by_date=False, categories_file='Categories.xlsx', prompt_version='v01', **model_params):
     """
     Generates a set of update elements for various subtopics.
     
     Returns:
         List[dict]: A list of dictionaries, each containing an update element.
     """
-    subtopics = get_random_subtopics_for_update_me(2)
+    # subtopics = get_random_subtopics_for_update_me(2)
     top_news = get_top_news_full_json(top_n=3, use_tfidf=use_tfidf, sort_by_date=sort_by_date)
     
     update_me = []
 
     for news in top_news:
         print(news)
-        update_me.append(generate_update_me_element(keywords = news['title'], 
-                                                    link = news['link'], 
-                                                    news_text = news['full_text'], 
-                                                    image_url = news['image'], 
-                                                    prompt_type = 'update_me_news', 
-                                                    categories_file = categories_file,  
-                                                    prompt_version=prompt_version, 
-                                                    **model_params)
-    )
-    
-
-    
+        update_me.append(generate_update_me_element(
+            keywords=news['title'], 
+            link=news['link'], 
+            news_text=news['full_text'], 
+            image_url=news['image'], 
+            prompt_type='update_me_news', 
+            categories_file=categories_file,  
+            prompt_version=prompt_version, 
+            **model_params)
+        )  
     return update_me
 
 
@@ -233,11 +231,13 @@ def validate_update_me_output(output_json):
 
 def extract_text_from_update_element_json(json_data):
     texts = []
-    if not isinstance(json_data, dict): return ""
+    if not isinstance(json_data, dict):
+        return ""
     texts.append(json_data.get("category", ""))
     texts.append(json_data.get("subcategory", ""))
     texts.append(json_data.get("topic", ""))
-    if isinstance(json_data.get("short_info"), list): texts.extend(json_data.get("short_info"))
+    if isinstance(json_data.get("short_info"), list):
+        texts.extend(json_data.get("short_info"))
     if isinstance(json_data.get("background_story"), dict):
         texts.append(json_data["background_story"].get("context_history", ""))
         texts.append(json_data["background_story"].get("current_developments", ""))

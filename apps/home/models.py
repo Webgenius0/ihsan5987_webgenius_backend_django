@@ -1,10 +1,12 @@
 from django.db import models
 from django.conf import settings
+from auditlog.registry import auditlog
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
+
 
 # Category & Subcategory
 class Category(models.Model):
@@ -15,12 +17,20 @@ class Category(models.Model):
         return self.category_name
 
 
+# Register model for audit logging
+auditlog.register(Category)
+
+
 class Subcategory(models.Model):
     subcategory_name = models.CharField(max_length=200)
     created_at = models.DateField(auto_now_add=True)
 
     def __str__(self):
         return self.subcategory_name
+
+
+# Register model for audit logging
+auditlog.register(Subcategory)
 
 
 # Topic Tags
@@ -32,75 +42,18 @@ class TopicTag(models.Model):
         return self.tag_names
 
 
+# Register model for audit logging
+auditlog.register(TopicTag)
+
+
 # Topic
 class Topic(models.Model):
     name = models.CharField(max_length=255)
-    topic_tags = models.ForeignKey(TopicTag, on_delete=models.SET_NULL, null=True)
+    topic_tags = models.ForeignKey(TopicTag, on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateField(auto_now_add=True)
 
     def __str__(self):
         return self.name
-
-
-# # General Facts
-# class GeneralFact(models.Model):
-#     general_definition = models.TextField()
-#     general_points = models.TextField()
-#     general_fun_fact = models.TextField()
-#     general_created_at = models.DateField()
-#     key_facts_text = models.TextField()
-#     key_facts_fun_fact = models.TextField()
-#     key_facts_created_at = models.DateField()
-#     picture_url = models.URLField()
-#     picture_created_at = models.DateField()
-
-
-# # News
-# class News(models.Model):
-#     news_text = models.TextField()
-#     news_fun_facts = models.TextField()
-#     news_oldest_article_date = models.DateField()
-#     news_newest_article_date = models.DateField()
-#     news_picture_url = models.URLField()
-#     news_picture_created_at = models.DateField()
-
-
-# # Interesting Trivia
-# class InterestingTrivia(models.Model):
-#     trivia_text = models.TextField()
-#     picture_url = models.URLField()
-#     trivia_fun_fact = models.TextField()
-#     trivia_text_created_at = models.DateField()
-#     trivia_picture_created_at = models.DateField()
-
-
-# # Opinions
-# class Opinion(models.Model):
-#     opinions_text = models.TextField()
-#     opinions_fun_fact = models.TextField()
-#     opinions_created_at = models.DateField()
-
-
-# # Questions
-# class Question(models.Model):
-#     questions_text = models.TextField()
-#     questions_fun_fact = models.TextField()
-#     questions_created_at = models.DateField()
-
-
-# # Response
-# class Response(models.Model):
-#     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True)
-#     subcategory = models.ForeignKey(Subcategory, on_delete=models.CASCADE, null=True, blank=True)
-#     topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
-#     general_fact = models.ForeignKey(GeneralFact, on_delete=models.SET_NULL, null=True)
-#     news = models.ForeignKey(News, on_delete=models.SET_NULL, null=True)
-#     interesting_trivia = models.ForeignKey(InterestingTrivia, on_delete=models.SET_NULL, null=True)
-#     opinion = models.ForeignKey(Opinion, on_delete=models.SET_NULL, null=True)
-#     question = models.ForeignKey(Question, on_delete=models.SET_NULL, null=True)
-#     further_key_words = models.TextField(blank=True)
-#     created_at = models.DateField(auto_now_add=True)
-
 
 
 # Search
@@ -119,6 +72,11 @@ class Search(models.Model):
     def __str__(self):
         return f"Search - {self.topic.name}"
 
+
+# Register model for audit logging
+auditlog.register(Search)
+
+
 class SearchUser(models.Model):
     pass
 
@@ -126,15 +84,19 @@ class SearchUser(models.Model):
 # Search Tags
 class SearchTag(models.Model):
     # search = models.ForeignKey(Search, on_delete=models.CASCADE)
-    tag_name = models.CharField(max_length=200) 
+    tag_name = models.CharField(max_length=200)
     created_at = models.DateField(auto_now_add=True)
 
     def __str__(self):
         return self.tag_name
-    
+
     def save(self, *args, **kwargs):
         self.tag_name = self.tag_name.lower()
         super(SearchTag, self).save(*args, **kwargs)
+
+
+# Register model for audit logging
+auditlog.register(SearchTag)
 
 
 class SearchOption(models.Model):
@@ -148,6 +110,10 @@ class SearchOption(models.Model):
         return f'Option for {self.search_tag.tag_name} - {self.keyword}'
 
 
+# Register model for audit logging
+auditlog.register(SearchOption)
+
+
 class SearchHistory(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='search_history')
     search_term = models.CharField(max_length=200)
@@ -155,7 +121,11 @@ class SearchHistory(models.Model):
     created_at = models.DateField(auto_now_add=True)
 
     def __str__(self):
-        return f'Search History for {self.user.username} - {self.search_term}'
+        return f'Search History for {self.user} - {self.search_term}'
+
+
+# Register model for audit logging
+auditlog.register(SearchHistory)
 
 
 # Recommendations
@@ -176,13 +146,17 @@ class Recommendation(models.Model):
 
     def __str__(self):
         return self.topic.name
-    
+
     class Meta:
         verbose_name_plural = "Recommendations"
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['category', 'subcategory', 'topic']),
         ]
+
+
+# Register model for audit logging
+auditlog.register(Recommendation)
 
 
 # Update Me
@@ -208,6 +182,10 @@ class UpdateMe(models.Model):
         ]
 
 
+# Register model for audit logging
+auditlog.register(UpdateMe)
+
+
 class UpdateMeUser(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     update_me = models.ForeignKey(UpdateMe, on_delete=models.CASCADE)
@@ -215,6 +193,10 @@ class UpdateMeUser(models.Model):
 
     def __str__(self):
         return self.user.name
+
+
+# Register model for audit logging
+auditlog.register(UpdateMeUser)
 
 
 # Keywords
@@ -239,6 +221,10 @@ class Trending(models.Model):
         return f"Trending - {self.description[:20]}"
 
 
+# Register model for audit logging
+auditlog.register(Trending)
+
+
 # User-Interaction Tables
 class TrendingUser(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -246,10 +232,18 @@ class TrendingUser(models.Model):
     clicked_at = models.DateField()
 
 
+# Register model for audit logging
+auditlog.register(TrendingUser)
+
+
 class RecommendationUser(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     recommendation = models.ForeignKey(Recommendation, on_delete=models.CASCADE)
     clicked_at = models.DateField()
+
+
+# Register model for audit logging
+auditlog.register(RecommendationUser)
 
 
 # class Bookmark(models.Model):
@@ -262,6 +256,7 @@ class RecommendationUser(models.Model):
 #     search = models.ForeignKey(Search, on_delete=models.SET_NULL, null=True, blank=True)
 #     community_post = models.ForeignKey(Post, on_delete=models.SET_NULL, null=True, blank=True)
 
+
 class Bookmark(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True)
@@ -270,7 +265,11 @@ class Bookmark(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'Bookmark'
+        return f"Bookmark - {self.user.name}"
+
+
+# Register model for audit logging
+auditlog.register(Bookmark)
 
 
 # Preferences
@@ -283,3 +282,7 @@ class Preference(models.Model):
 
     def __str__(self):
         return self.user.name
+
+
+# Register model for audit logging
+auditlog.register(Preference)

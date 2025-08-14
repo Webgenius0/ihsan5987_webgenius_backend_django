@@ -1,4 +1,4 @@
-# from .unfold_conf import UNFOLD
+from .unfold_conf import UNFOLD
 import os
 from pathlib import Path
 import cloudinary
@@ -27,13 +27,13 @@ ALLOWED_HOSTS = ["*"]
 # Application definition
 
 INSTALLED_APPS = [
-    # "unfold",
-    # "unfold.contrib.filters",  # optional, if special filters are needed
-    # "unfold.contrib.forms",  # optional, if special form elements are needed
-    # "unfold.contrib.inlines",  # optional, if special inlines are needed
-    # "unfold.contrib.import_export",  # optional, if django-import-export package is used
-    # "unfold.contrib.guardian",  # optional, if django-guardian package is used
-    # "unfold.contrib.simple_history",
+    "unfold",
+    "unfold.contrib.filters",  # optional, if special filters are needed
+    "unfold.contrib.forms",  # optional, if special form elements are needed
+    "unfold.contrib.inlines",  # optional, if special inlines are needed
+    "unfold.contrib.import_export",  # optional, if django-import-export package is used
+    "unfold.contrib.guardian",  # optional, if django-guardian package is used
+    "unfold.contrib.simple_history",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "apps.users",
     "import_export",
     "schema_viewer",
+    "auditlog",
     # cloudinary
     "cloudinary",
     "django_celery_beat",
@@ -67,9 +68,11 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "easyaudit.middleware.easyaudit.EasyAuditMiddleware",
     # 3d party middleware
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "querycount.middleware.QueryCountMiddleware",
+    "apps.users.middleware.supabase_auth.SupabaseJWTMiddleware",
 ]
 
 ROOT_URLCONF = "project.urls"
@@ -158,6 +161,9 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
+# Supabase Project ID
+SUPABASE_PROJECT_ID = os.getenv("SUPABASE_PROJECT_ID")
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
@@ -186,6 +192,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
     "https://ihsan5987-django.onrender.com",
+    "https://8c11fb61d9a2.ngrok-free.app",
 ]
 
 # csrf setup
@@ -193,7 +200,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
     "https://ihsan5987-django.onrender.com",
-    "https://c977196003c4.ngrok-free.app",
+    "https://8c11fb61d9a2.ngrok-free.app",
 ]
 
 # GNEWS_API_KEY
