@@ -62,20 +62,20 @@ UNFOLD = {
                         "link": reverse_lazy("admin:users_user_changelist"),
                         "permission": lambda request: request.user.is_superuser,
                     },
-                ],
-            },
-            {
-                "title": _("Profiles"),
-                "icon": "person",
-                "separator": True,  # Top border
-                "collapsible": False,  # Collapsible group of links
-                "items": [
                     {
                         "title": _("All Profiles"),
                         "icon": "person",  # Supported icon set: https://fonts.google.com/icons
                         "link": reverse_lazy("admin:profiles_profile_changelist"),
                         "permission": lambda request: request.user.is_superuser,
                     },
+                ],
+            },
+            {
+                "title": _("General Settings"),
+                "icon": "person",
+                "separator": True,  # Top border
+                "collapsible": False,  # Collapsible group of links
+                "items": [
                     {
                         "title": _("FAQ Category"),
                         "icon": "category",  # Supported icon set: https://fonts.google.com/icons
@@ -135,25 +135,19 @@ UNFOLD = {
                         "permission": lambda request: request.user.is_superuser,
                     },
                     {
-                        "title": _("Topic Tag"),
-                        "icon": "label",
-                        "link": reverse_lazy("admin:home_topictag_changelist"),
-                        "permission": lambda request: request.user.is_superuser,
-                    },
-                    {
                         "title": _("Topic"),
                         "icon": "topic",
                         "link": reverse_lazy("admin:home_topic_changelist"),
                         "permission": lambda request: request.user.is_superuser,
                     },
                     {
-                        "title": _("Search Option"),
+                        "title": _("Search Recommandation"),
                         "icon": "saved_search",
                         "link": reverse_lazy("admin:home_searchoption_changelist"),
                         "permission": lambda request: request.user.is_superuser,
                     },
                     {
-                        "title": _("Search"),
+                        "title": _("Search Result"),
                         "icon": "search",
                         "link": reverse_lazy("admin:home_search_changelist"),
                         "permission": lambda request: request.user.is_superuser,
@@ -223,6 +217,21 @@ UNFOLD = {
                 ],
             },
             {
+                "title": _("Scheduler"),
+                "icon": "home",
+                "separator": True,  # Top border
+                "collapsible": False,  # Collapsible group of links
+                "items": [
+                    {
+                        "title": _("Periodic Task"),
+                        "icon": "tune",
+                        "link": reverse_lazy("admin:django_celery_beat_periodictask_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
+                    }
+                ]
+            },
+
+            {
                 "title": _("Subscriptions"),
                 "icon": "subscriptions",
                 "separator": True,  # Top border
@@ -262,12 +271,12 @@ UNFOLD = {
                         "link": reverse_lazy("admin:community_hubs_comment_changelist"),
                         "permission": lambda request: request.user.is_superuser,
                     },
-                    {
-                        "title": _("Like"),
-                        "icon": "thumb_up",  # Supported icon set: https://fonts.google.com/icons
-                        "link": reverse_lazy("admin:community_hubs_like_changelist"),
-                        "permission": lambda request: request.user.is_superuser,
-                    },
+                    # {
+                    #     "title": _("Like"),
+                    #     "icon": "thumb_up",  # Supported icon set: https://fonts.google.com/icons
+                    #     "link": reverse_lazy("admin:community_hubs_like_changelist"),
+                    #     "permission": lambda request: request.user.is_superuser,
+                    # },
                     {
                         "title": _("Comment Report"),
                         "icon": "comments_disabled",  # Supported icon set: https://fonts.google.com/icons

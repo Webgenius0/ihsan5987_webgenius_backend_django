@@ -566,11 +566,12 @@ class SearchAPIView(APIView):
 
         # Save search history if not already saved
         if not SearchHistory.objects.filter(search_term=search_term).exists():
-            SearchHistory.objects.create(search_term=search_term, user=request.user)
-            print("Search history created")
-        except Exception as e:
-            print(f"Error saving search history: {e}")
-            pass
+            try:
+                SearchHistory.objects.create(search_term=search_term, user=request.user)
+                print("Search history created")
+            except Exception as e:
+                print(f"Error saving search history: {e}")
+                pass
 
         # Get or create search tag
         try:

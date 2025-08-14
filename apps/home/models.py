@@ -49,7 +49,7 @@ auditlog.register(TopicTag)
 # Topic
 class Topic(models.Model):
     name = models.CharField(max_length=255)
-    topic_tags = models.ForeignKey(TopicTag, on_delete=models.SET_NULL, null=True)
+    topic_tags = models.ForeignKey(TopicTag, on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateField(auto_now_add=True)
 
     def __str__(self):
