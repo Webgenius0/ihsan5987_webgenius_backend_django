@@ -1,8 +1,9 @@
-#answer_relevency_calculate.py
+# answer_relevency_calculate.py
 import json
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 from deepeval.metrics import BaseMetric
 from deepeval.test_case import LLMTestCase
+
 
 class KeywordJSONAnswerRelevancyTemplate:
     @staticmethod
@@ -72,6 +73,7 @@ Irrelevant Fields: {irrelevant_fields}
 
 JSON:
 """
+
 
 class KeywordJSONAnswerRelevancyMetric(BaseMetric):
     def __init__(self, threshold: float = 0.7, model: str = "gpt-4o", 
@@ -210,8 +212,10 @@ class KeywordJSONAnswerRelevancyMetric(BaseMetric):
         matches = sum(1 for kw in keywords if kw.lower() in content_lower and len(kw) > 2)
         return matches / len(keywords)
 
-    def _evaluate_field_relevancy(self, keywords: str, json_output: str, 
-                                field_analysis: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def _evaluate_field_relevancy(  
+            self, keywords: str, 
+            json_output: str, 
+            field_analysis: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Evaluate relevancy of each JSON field to the keywords"""
         verdicts = []
         
@@ -259,8 +263,9 @@ class KeywordJSONAnswerRelevancyMetric(BaseMetric):
             relevant_count = sum(1 for v in verdicts if v["verdict"] == "yes")
             return relevant_count / len(verdicts)
 
-    def _generate_detailed_reason(self, keywords: str, score: float, 
-                                relevant_fields: List[str], irrelevant_fields: List[str]) -> str:
+    def _generate_detailed_reason(
+            self, keywords: str, score: float, 
+            relevant_fields: List[str], irrelevant_fields: List[str]) -> str:
         """Generate detailed explanation for the relevancy score"""
         total_fields = len(relevant_fields) + len(irrelevant_fields)
         
@@ -270,13 +275,13 @@ class KeywordJSONAnswerRelevancyMetric(BaseMetric):
             if len(relevant_fields) <= 3:
                 reason += f"Relevant fields: {', '.join(relevant_fields)}. "
             else:
-                reason += f"Relevant fields include: {', '.join(relevant_fields[:3])}, and {len(relevant_fields)-3} others. "
+                reason += f"Relevant fields include: {', '.join(relevant_fields[:3])}, and {len(relevant_fields) - 3} others. "
         
         if irrelevant_fields:
             if len(irrelevant_fields) <= 3:
                 reason += f"Irrelevant fields: {', '.join(irrelevant_fields)}. "
             else:
-                reason += f"Irrelevant fields include: {', '.join(irrelevant_fields[:3])}, and {len(irrelevant_fields)-3} others. "
+                reason += f"Irrelevant fields include: {', '.join(irrelevant_fields[:3])}, and {len(irrelevant_fields) - 3} others. "
         
         return reason
 

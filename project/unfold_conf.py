@@ -12,8 +12,8 @@ UNFOLD = {
     "SITE_URL": "/",
     # "SITE_ICON": lambda request: static("icon.svg"),  # both modes, optimise for 32px height
     "SITE_ICON": {
-        "light": lambda request: static("logo/logo.png"),  # light mode
-        "dark": lambda request: static("logo/logo.png"),  # dark mode
+        "light": lambda request: static("logo/brand.png"),  # light mode
+        "dark": lambda request: static("logo/brand.png"),  # dark mode
     },
     # "SITE_LOGO": lambda request: static("logo.svg"),  # both modes, optimise for 32px height
     # "SITE_LOGO": {
@@ -32,19 +32,6 @@ UNFOLD = {
     "SHOW_HISTORY": True,  # show/hide "History" button, default: True
     "SHOW_VIEW_ON_SITE": True,  # show/hide "View on site" button, default: True
     "COLORS": {
-        # "primary": {
-        #     "50": "235 243 255",
-        #     "100": "213 229 255",
-        #     "200": "179 204 255",
-        #     "300": "145 179 252",
-        #     "400": "111 154 241",
-        #     "500": "69 116 202",
-        #     "600": "54 95 168",
-        #     "700": "42 76 136",
-        #     "800": "34 61 109",
-        #     "900": "28 50 90",
-        #     "950": "15 29 52"
-        # }
         "primary": {
             "50": "255, 248, 235",
             "100": "255, 242, 213",
@@ -160,45 +147,9 @@ UNFOLD = {
                         "permission": lambda request: request.user.is_superuser,
                     },
                     {
-                        "title": _("General Fact"),
-                        "icon": "fact_check",
-                        "link": reverse_lazy("admin:home_generalfact_changelist"),
-                        "permission": lambda request: request.user.is_superuser,
-                    },
-                    {
-                        "title": _("News"),
-                        "icon": "newspaper",
-                        "link": reverse_lazy("admin:home_news_changelist"),
-                        "permission": lambda request: request.user.is_superuser,
-                    },
-                    {
-                        "title": _("Interesting Trivia"),
-                        "icon": "lightbulb",
-                        "link": reverse_lazy("admin:home_interestingtrivia_changelist"),
-                        "permission": lambda request: request.user.is_superuser,
-                    },
-                    {
-                        "title": _("Opinion"),
-                        "icon": "question_answer",
-                        "link": reverse_lazy("admin:home_opinion_changelist"),
-                        "permission": lambda request: request.user.is_superuser,
-                    },
-                    {
-                        "title": _("Question"),
-                        "icon": "quiz",
-                        "link": reverse_lazy("admin:home_question_changelist"),
-                        "permission": lambda request: request.user.is_superuser,
-                    },
-                    {
-                        "title": _("Response"),
-                        "icon": "reply",
-                        "link": reverse_lazy("admin:home_response_changelist"),
-                        "permission": lambda request: request.user.is_superuser,
-                    },
-                    {
-                        "title": _("Option"),
-                        "icon": "toggle_on",
-                        "link": reverse_lazy("admin:home_option_changelist"),
+                        "title": _("Search Option"),
+                        "icon": "saved_search",
+                        "link": reverse_lazy("admin:home_searchoption_changelist"),
                         "permission": lambda request: request.user.is_superuser,
                     },
                     {
@@ -211,6 +162,12 @@ UNFOLD = {
                         "title": _("Search Tag"),
                         "icon": "sell",
                         "link": reverse_lazy("admin:home_searchtag_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                    {
+                        "title": _("Search History"),
+                        "icon": "search_activity",
+                        "link": reverse_lazy("admin:home_searchhistory_changelist"),
                         "permission": lambda request: request.user.is_superuser,
                     },
                     {

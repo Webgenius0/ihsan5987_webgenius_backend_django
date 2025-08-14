@@ -9,7 +9,8 @@ from unfold.contrib.import_export.forms import ExportForm, ImportForm
 class UserAdmin(ModelAdmin, ImportExportModelAdmin):
     list_display = ("name", "email", "is_staff", "is_active",)
     list_filter = ("email", "is_staff", "is_active",)
-    list_per_page = 10
+    list_per_page = 20
+    ordering = ("-created_at",)
     fieldsets = (
         (None, {"fields": ("name", "email", "password")}),
         ("Permissions", {"fields": ("is_staff", "is_active", "groups", "user_permissions")}),

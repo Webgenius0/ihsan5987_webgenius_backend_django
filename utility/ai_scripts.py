@@ -5,7 +5,6 @@ from openai import OpenAI
 import re
 from googlesearch import search
 from newspaper import Article
-
 from decouple import config
 
 # --- Configuration (replace with your actual API keys) ---
@@ -14,18 +13,17 @@ OPENAI_API_KEY = config('OPENAI_API_KEY', default='Your-OpenAI-API-Key')
 openai.api_key = OPENAI_API_KEY
 
 
-def get_news(keywords, num_articles = 3):
-   
+def get_news(keywords, num_articles=3):
     google_news = GNews()
     articles = google_news.get_news(keywords)[:num_articles]
     news_str = ""
-    if articles != None:
+    if articles is not None:
         for article in articles:
             title = article.get("title", "No Title")
             description = article.get("description", "No Description")
-            published_date = article.get("published date", "No Description")
-            url = article.get("url", "No Description")
-            publisher = article.get("description", "No Description")
+            # published_date = article.get("published date", "No Description")
+            # url = article.get("url", "No Description")
+            # publisher = article.get("description", "No Description")
 
             news_str += f"- {title}: {description}\n"
         return articles
@@ -33,261 +31,254 @@ def get_news(keywords, num_articles = 3):
         print('no articles found')
 
 
-def build_prompt_search_bar(keywords, news, second = False ):
+def build_prompt_search_bar(keywords, news, second=False):
     """
-    Build the LLM prompt that contains:
-      - The instructions/format for the response.
-      - A placeholder (the fetched news articles) to be summarized.
+      Build the LLM prompt that contains:
+        - The instructions/format for the response.
+        - A placeholder (the fetched news articles) to be summarized.
     """
-  
+
     prompt = (f'''
-          
-    You are the assistant that will help quickly get information on a certain topic to support small talk.
-    You will receive:
-        1) A set of keywords related to a topic.
-        2) Potential news items or descriptions that might or might not match the topic.
-          
-    Assume the reader knows little about the topic, but needs to be able to keep a high-level conversation.
-          
-    1. Analyze the user's input keywords and any provided news text.
-    2. Determine whether the topic is **singular** (one clear meaning) or **ambiguous** (multiple possible interpretations or 'collisions').
+        You are the assistant that will help quickly get information on a certain topic to support small talk.
+        You will receive:
+            1) A set of keywords related to a topic.
+            2) Potential news items or descriptions that might or might not match the topic.
+
+        Assume the reader knows little about the topic, but needs to be able to keep a high-level conversation.
+
+        1. Analyze the user's input keywords and any provided news text.
+        2. Determine whether the topic is **singular** (one clear meaning) or **ambiguous** (multiple possible interpretations or 'collisions').
 
 
-    You will receive raw news descriptions that you must summarize.
-    Finally, to keep the user engaged, provide additional keywords that they can use to request more information if desired.
-    You must retun the response in the JSON format 
-          
+        You will receive raw news descriptions that you must summarize.
+        Finally, to keep the user engaged, provide additional keywords that they can use to request more information if desired.
+        You must retun the response in the JSON format
 
-   Output Rules
-    - If the topic is **distinct** (only one clear meaning):
-    - Return the full, detailed JSON object in the **original structure** (with 'further_key_words', 'category', 'topic', 'general_facts', 'news', 'interesting_trivia', 'opinions', 'questions', etc.).
+        Output Rules
+          - If the topic is **distinct** (only one clear meaning):
+          - Return the full, detailed JSON object in the **original structure** (with 'further_key_words', 'category', 'topic', 'general_facts', 'news', 'interesting_trivia', 'opinions', 'questions', etc.).
 
-    **
-    IMPORTANT: original structure:
-          
-    {{
-        "further_key_words": 3 - 5 key words of the topic and your response,
-        
-        "category": {{
-                        "categorie_name": what is the category of the response
-        }},
-          
-        "subcatetgory": {{
-                        "subcatetgory_name": what is the subcategory of the response
-        }},
-          
-        "topic": {{
-                        "name": name of the topic,
-                        "topic_tags": {{
-                                "tag_names": 3-5 tags of the topic and the response
-                }}
-        }},
-          
-        "general_facts": {{
-                        "general_definition": introductory sentence about the topic,
-                        "general_points": 3 general key points about the topic that the user must know,
-                                            key points must be provided as separate sentances,
-                        "general_fun_fact": one general fun fact about the topic,
-                        "key_facts_text": 3 key facts about the topic, they must be written as separate sentances,
-                        "key_facts_fun_fact": one fun fact about the key points,
-                        "picture_url": url of the picture about this topic
-        }},
-  
-        "news": {{
-                "news_text": 3 bullet points with the news, you will get the news and need to summarise them,
-                             you must provide 3 sentances, the news must be connected to the egeneral information you
-                             provided before, if the news ar ecompletly from the another field, indicate that
-                "news_fun_facts": fun fact about the news,
-                "picture_url": url of the picture about this topic
-        }},
-          
-        "interesting_trivia": {{
-                "trivia_text": 3 interesting anecdotes or stories or memes, they must be provided as separate sentances,
-                "trivia_fun_fact": funcfacts about the trivia,
-                "picture_url":url of the picture about this topic
-        }},
-          
-        "opinions": {{
-                "opinions_text": opinions of the other people about this topic,
-                "opinions_fun_fact": fun cfact about the opinions
+          **
+          IMPORTANT: original structure:
+          {{
+              "further_key_words": 3 - 5 key words of the topic and your response,
 
-        }},
-          
-        "questions": {{
-                "questions_text": questions about the topic that can be discussed on the forum,
-                "questions_fun_fact": func fact about the questions, or fun question that can be discussed
-        }}
-    }}
-     **
-    
- 
-    Examples:
-    Input: All-Star game
-    Output:
-    {{
-        "further_key_words": "NBA, All-Star, Basketball, Entertainment",
-        
-        "category": {{
-                "categorie_name": "Sports"
-        }},
-  
-        "subcatetgory": {{
-                "subcatetgory_name": "NBA Events"
-         }},
-  
-        "topic": {{
-                "name": "NBA All-Star Game",
-                "topic_tags": {{
-                        "tag_names": "Basketball, NBA, All-Star"
-                }}
-        }},
-          
-        "general_facts": {{
-                "general_definition": "The NBA All-Star Game is an annual basketball showcase featuring top players from the Eastern and Western Conference.",
-                "general_points": "Multi-Event Format: All-Star Game, Slam Dunk Contest, Three-Point Shootout, Rising Stars.
-                                    Big Show: Blends sports, celebrity culture, music acts.
-                                    Money Maker: Generates massive revenue from tickets, TV deals, sponsorships.",
-                "general_fun_fact": "Originally a gamble in 1951, its surprising attendance helped make the All-Star Game a yearly NBA highlight.",
-                "key_facts_text": "First Game (1951): Grew into a major U.S. sports event.
-                                    Draft Format (since 2018): Top fan-voted players pick their teams.
-                                    LeBron’s Record: Could reach 20 All-Star appearances by 2025.",
-                "key_facts_fun_fact": Four Boston Celtics played in the inaugural 1951 game—fans loved it, setting the stage for this annual tradition.",
-                "picture_url": "https://cdn.warriors.com/events_migration/1005x600__14_-2025-nba-all-star-game-20250216.jpg"
-        }},
-        
-        "news": {{
-                "news_text": "2025 Venue: Chase Center, San Francisco.
-                              Rule Tweak: Fourth-quarter scoring adjustments for more excitement.
-                              New Faces: Wembanyama, Banchero, Scoot Henderson may debut.",
-                "news_fun_facts": "The 2020 “Elam Ending” sparked debates on further innovations to keep the All-Star Game thrilling.",
-                "picture_url": "https://cdn.warriors.com/events_migration/1005x600__14_-2025-nba-all-star-game-20250216.jpg"
-        }},
-          
-        "interesting_trivia": {{
-                "trivia_text": "Kobe at 19: Faced Michael Jordan in his first All-Star appearance (1998).
-                                Wilt’s 42: Highest single-game All-Star scoring record (1962).
-                                Target Score: In 2020, time was irrelevant in the final quarter.",
-                "trivia_fun_fact": "In 1997, legends of multiple eras shared the court for the NBA’s 50th anniversary—a rare convergence of past and present.",
-                "picture_url": "https://cdn.warriors.com/events_migration/1005x600__14_-2025-nba-all-star-game-20250216.jpg"
-        }},
-        "opinions": {{
-                "opinions_text": "Dunk Contests can be more exciting than the actual game—some moves are jaw-dropping.
-                                    I’m eager to see if LeBron still dominates in 2025 or if new stars take the spotlight.",
-                "opinions_fun_fact": "In 1997, legends of multiple eras shared the court for the NBA's 50th anniversary-a rare convergence of past and present."
-        }},
-        "questions": {{
-                "questions_text": "How do you feel about the All-Star team-drafting format?
-                                    Which All-Star Game was your favorite?
-                                    Will Steph Curry return in 2025 despite aging?",
-                "questions_fun_fact": "Many recall Vince Carter's 2000 Dunk Contest heroics, which revolutionised aerial creativity. One performance can define an entire AlI-Star generation."
-        }}
-    }}
-    
-    Example:
-    Input: Da Vinci
-    Output:      
-   {{
-          "further_key_words": "Leonardo, Renaissance, Innovation, Robotics, Art",
-          "category": {{
-            "categorie_name": "Art & Technology"
-          }},
-          "subcatetgory": {{
-            "subcatetgory_name": "Renaissance Legacy & Modern Innovation"
-          }},
-          "topic": {{
-            "name": "da vinci",
-            "topic_tags": {{
-              "tag_names": "Leonardo da Vinci, Renaissance, Innovation, Art, Technology"
-            }}
-          }},
-          "general_facts": {{
-            "general_definition": "Da Vinci commonly refers to Leonardo da Vinci, the iconic Renaissance polymath known for his art, scientific discoveries, and innovative ideas.",
-            "general_points": "He revolutionized art with masterpieces like the Mona Lisa and The Last Supper. His inventive sketches and scientific observations laid the groundwork for modern engineering and anatomy. His multidisciplinary genius continues to inspire innovation in diverse fields today.",
-            "general_fun_fact": "Leonardo often wrote his notes in mirror script, a quirky habit that adds to his mystique.",
-            "key_facts_text": "Leonardo's artwork remains some of the most studied and celebrated in history. His conceptual designs predicted inventions like flying machines and armored vehicles. The da Vinci legacy has extended into modern products and institutions bearing his name.",
-            "key_facts_fun_fact": "A surprising number of modern technological products, from surgical robots to video editing software, use his name as a mark of innovation.",
-            "picture_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Leonardo_da_Vinci_-_presumed_self-portrait_-_WGA12798.jpg/800px-Leonardo_da_Vinci_-_presumed_self-portrait_-_WGA12798.jpg"
-          }},
-          "news": {{
-            "news_text": "A free beginner's guide to Da Vinci Resolve 19 has been released by Blackmagic, emphasizing its status as a leading free video editing software inspired by creative innovation. Intuitive Surgical has issued a Class II recall for its da Vinci 5 foot pedal, causing concerns over product safety and potential impacts on stock performance. In art and heritage news, exhibits inspired by 'The Last Supper' and the upcoming Leonardo da Vinci Museum in North America underline the enduring influence of his legacy.",
-            "news_fun_facts": "These news items demonstrate how Leonardo da Vinci's name bridges the gap between historical art and cutting-edge technology.",
-            "picture_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Da_Vinci_robotic_surgery.jpg/800px-Da_Vinci_robotic_surgery.jpg"
-          }},
-          "interesting_trivia": {{
-            "trivia_text": "Leonardo's detailed notebooks reveal sketches of inventions centuries ahead of their time. He was not only a master artist but also a scientist, inventor, and engineer. Modern pop culture frequently references his enigmatic art and visionary ideas in films and literature.",
-            "trivia_fun_fact": "A recurring theme in trivia is Leonardo's ability to blend art and science, making him a timeless figure of innovation.",
-            "picture_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Leonardo_da_Vinci_-_Codex_Leicester.jpg/800px-Leonardo_da_Vinci_-_Codex_Leicester.jpg"
-          }},
-          "opinions": {{
-            "opinions_text": "Many admire da Vinci as a symbol of genius whose work transcends time, while others critique the modern commercialization of his name in unrelated industries.",
-            "opinions_fun_fact": "Some enthusiasts joke that every new 'da Vinci' product is a modern-day homage to his genius, regardless of the field."
-          }},
-          "questions": {{
-            "questions_text": "What do you think makes Leonardo da Vinci's work so enduring? How do modern innovations reflect his visionary ideas? Should more institutions celebrate his legacy in diverse fields?",
-            "questions_fun_fact": "A fun discussion point is whether the modern use of his name truly honors his legacy or dilutes it over time."
+              "category": {{
+                              "categorie_name": what is the category of the response
+              }},
+
+              "subcatetgory": {{
+                              "subcatetgory_name": what is the subcategory of the response
+              }},
+
+              "topic": {{
+                              "name": name of the topic,
+                              "topic_tags": {{
+                                      "tag_names": 3-5 tags of the topic and the response
+                      }}
+              }},
+
+              "general_facts": {{
+                              "general_definition": introductory sentence about the topic,
+                              "general_points": 3 general key points about the topic that the user must know,
+                                                  key points must be provided as separate sentances,
+                              "general_fun_fact": one general fun fact about the topic,
+                              "key_facts_text": 3 key facts about the topic, they must be written as separate sentances,
+                              "key_facts_fun_fact": one fun fact about the key points,
+                              "picture_url": url of the picture about this topic
+              }},
+
+              "news": {{
+                      "news_text": 3 bullet points with the news, you will get the news and need to summarise them,
+                                  you must provide 3 sentances, the news must be connected to the egeneral information you
+                                  provided before, if the news ar ecompletly from the another field, indicate that
+                      "news_fun_facts": fun fact about the news,
+                      "picture_url": url of the picture about this topic
+              }},
+
+              "interesting_trivia": {{
+                      "trivia_text": 3 interesting anecdotes or stories or memes, they must be provided as separate sentances,
+                      "trivia_fun_fact": funcfacts about the trivia,
+                      "picture_url":url of the picture about this topic
+              }},
+
+              "opinions": {{
+                      "opinions_text": opinions of the other people about this topic,
+                      "opinions_fun_fact": fun cfact about the opinions
+
+              }},
+
+              "questions": {{
+                      "questions_text": questions about the topic that can be discussed on the forum,
+                      "questions_fun_fact": func fact about the questions, or fun question that can be discussed
+              }}
           }}
-    }}
-          
-
-- If the topic is **not distinct** (multiple subtopics or collisions):
-  - Return **only** a single JSON object with keys "search1", "search2", "search3", etc.
-  - Return from 3 to 5 possible searches. 
-  - Each search block must contain the fields: 
-    - "key_words"
-    - "category"
-    - "subcatetgory"
-  - Example when multiple subtopics are found:
-    {{
-      "search1": {{
-        "key_words": "Leonardo da Vinci Painter",
-        "category": "Art & History",
-        "subcatetgory": "Renaissance Legacy"
-      }},
-      "search2": {{
-        "key_words": "DaVinci Resolve Software",
-        "category": "Technology & Media",
-        "subcatetgory": "Video Editing Tools"
-      }},
-      "search3": {{
-        "key_words": "da Vinci Surgical System",
-        "category": "Medical Technology",
-        "subcatetgory": "Robotic Surgery"
-      }}
-    }}
-
-        Critical Requirements
-        - Always respond in **valid JSON** only (no extra commentary, no markdown).
-        - For **singular** topics  return the **detailed** JSON (your original schema).
-        - For **ambiguous** topics  return the **simplified** JSON (the "searchN" keys format).
-        - If it is the second time generating  is True, output only **detailed** JSON (your original schema), if second time generating  is False, you can decide what output to make.
-        - Do not include any other text or explanation outside the JSON.
+          **
 
 
-    Second time generating: {second}
-    Here is the key words input: {keywords}.
-    Here are the news: {news}
+          Examples:
+          Input: All-Star game
+          Output:
+          {{
+              "further_key_words": "NBA, All-Star, Basketball, Entertainment",
 
- '''
-)
+              "category": {{
+                      "categorie_name": "Sports"
+              }},
 
-  
+              "subcatetgory": {{
+                      "subcatetgory_name": "NBA Events"
+              }},
+
+              "topic": {{
+                      "name": "NBA All-Star Game",
+                      "topic_tags": {{
+                              "tag_names": "Basketball, NBA, All-Star"
+                      }}
+              }},
+
+              "general_facts": {{
+                      "general_definition": "The NBA All-Star Game is an annual basketball showcase featuring top players from the Eastern and Western Conference.",
+                      "general_points": "Multi-Event Format: All-Star Game, Slam Dunk Contest, Three-Point Shootout, Rising Stars.
+                                          Big Show: Blends sports, celebrity culture, music acts.
+                                          Money Maker: Generates massive revenue from tickets, TV deals, sponsorships.",
+                      "general_fun_fact": "Originally a gamble in 1951, its surprising attendance helped make the All-Star Game a yearly NBA highlight.",
+                      "key_facts_text": "First Game (1951): Grew into a major U.S. sports event.
+                                          Draft Format (since 2018): Top fan-voted players pick their teams.
+                                          LeBron’s Record: Could reach 20 All-Star appearances by 2025.",
+                      "key_facts_fun_fact": Four Boston Celtics played in the inaugural 1951 game—fans loved it, setting the stage for this annual tradition.",
+                      "picture_url": "https://cdn.warriors.com/events_migration/1005x600__14_-2025-nba-all-star-game-20250216.jpg"
+              }},
+
+              "news": {{
+                      "news_text": "2025 Venue: Chase Center, San Francisco.
+                                    Rule Tweak: Fourth-quarter scoring adjustments for more excitement.
+                                    New Faces: Wembanyama, Banchero, Scoot Henderson may debut.",
+                      "news_fun_facts": "The 2020 “Elam Ending” sparked debates on further innovations to keep the All-Star Game thrilling.",
+                      "picture_url": "https://cdn.warriors.com/events_migration/1005x600__14_-2025-nba-all-star-game-20250216.jpg"
+              }},
+
+              "interesting_trivia": {{
+                      "trivia_text": "Kobe at 19: Faced Michael Jordan in his first All-Star appearance (1998).
+                                      Wilt’s 42: Highest single-game All-Star scoring record (1962).
+                                      Target Score: In 2020, time was irrelevant in the final quarter.",
+                      "trivia_fun_fact": "In 1997, legends of multiple eras shared the court for the NBA’s 50th anniversary—a rare convergence of past and present.",
+                      "picture_url": "https://cdn.warriors.com/events_migration/1005x600__14_-2025-nba-all-star-game-20250216.jpg"
+              }},
+              "opinions": {{
+                      "opinions_text": "Dunk Contests can be more exciting than the actual game—some moves are jaw-dropping.
+                                          I’m eager to see if LeBron still dominates in 2025 or if new stars take the spotlight.",
+                      "opinions_fun_fact": "In 1997, legends of multiple eras shared the court for the NBA's 50th anniversary-a rare convergence of past and present."
+              }},
+              "questions": {{
+                      "questions_text": "How do you feel about the All-Star team-drafting format?
+                                          Which All-Star Game was your favorite?
+                                          Will Steph Curry return in 2025 despite aging?",
+                      "questions_fun_fact": "Many recall Vince Carter's 2000 Dunk Contest heroics, which revolutionised aerial creativity. One performance can define an entire AlI-Star generation."
+              }}
+          }}
+
+          Example:
+          Input: Da Vinci
+          Output:
+          {{
+              "further_key_words": "Leonardo, Renaissance, Innovation, Robotics, Art",
+              "category": {{
+                "categorie_name": "Art & Technology"
+              }},
+              "subcatetgory": {{
+                "subcatetgory_name": "Renaissance Legacy & Modern Innovation"
+              }},
+              "topic": {{
+                "name": "da vinci",
+                "topic_tags": {{
+                  "tag_names": "Leonardo da Vinci, Renaissance, Innovation, Art, Technology"
+                }}
+              }},
+              "general_facts": {{
+                "general_definition": "Da Vinci commonly refers to Leonardo da Vinci, the iconic Renaissance polymath known for his art, scientific discoveries, and innovative ideas.",
+                "general_points": "He revolutionized art with masterpieces like the Mona Lisa and The Last Supper. His inventive sketches and scientific observations laid the groundwork for modern engineering and anatomy. His multidisciplinary genius continues to inspire innovation in diverse fields today.",
+                "general_fun_fact": "Leonardo often wrote his notes in mirror script, a quirky habit that adds to his mystique.",
+                "key_facts_text": "Leonardo's artwork remains some of the most studied and celebrated in history. His conceptual designs predicted inventions like flying machines and armored vehicles. The da Vinci legacy has extended into modern products and institutions bearing his name.",
+                "key_facts_fun_fact": "A surprising number of modern technological products, from surgical robots to video editing software, use his name as a mark of innovation.",
+                "picture_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Leonardo_da_Vinci_-_presumed_self-portrait_-_WGA12798.jpg/800px-Leonardo_da_Vinci_-_presumed_self-portrait_-_WGA12798.jpg"
+              }},
+              "news": {{
+                "news_text": "A free beginner's guide to Da Vinci Resolve 19 has been released by Blackmagic, emphasizing its status as a leading free video editing software inspired by creative innovation. Intuitive Surgical has issued a Class II recall for its da Vinci 5 foot pedal, causing concerns over product safety and potential impacts on stock performance. In art and heritage news, exhibits inspired by 'The Last Supper' and the upcoming Leonardo da Vinci Museum in North America underline the enduring influence of his legacy.",
+                "news_fun_facts": "These news items demonstrate how Leonardo da Vinci's name bridges the gap between historical art and cutting-edge technology.",
+                "picture_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Da_Vinci_robotic_surgery.jpg/800px-Da_Vinci_robotic_surgery.jpg"
+              }},
+              "interesting_trivia": {{
+                "trivia_text": "Leonardo's detailed notebooks reveal sketches of inventions centuries ahead of their time. He was not only a master artist but also a scientist, inventor, and engineer. Modern pop culture frequently references his enigmatic art and visionary ideas in films and literature.",
+                "trivia_fun_fact": "A recurring theme in trivia is Leonardo's ability to blend art and science, making him a timeless figure of innovation.",
+                "picture_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Leonardo_da_Vinci_-_Codex_Leicester.jpg/800px-Leonardo_da_Vinci_-_Codex_Leicester.jpg"
+              }},
+              "opinions": {{
+                "opinions_text": "Many admire da Vinci as a symbol of genius whose work transcends time, while others critique the modern commercialization of his name in unrelated industries.",
+                "opinions_fun_fact": "Some enthusiasts joke that every new 'da Vinci' product is a modern-day homage to his genius, regardless of the field."
+              }},
+              "questions": {{
+                "questions_text": "What do you think makes Leonardo da Vinci's work so enduring? How do modern innovations reflect his visionary ideas? Should more institutions celebrate his legacy in diverse fields?",
+                "questions_fun_fact": "A fun discussion point is whether the modern use of his name truly honors his legacy or dilutes it over time."
+              }}
+          }}
+
+          - If the topic is **not distinct** (multiple subtopics or collisions):
+            - Return **only** a single JSON object with keys "search1", "search2", "search3", etc.
+            - Return from 3 to 5 possible searches.
+            - Each search block must contain the fields:
+              - "key_words"
+              - "category"
+              - "subcatetgory"
+            - Example when multiple subtopics are found:
+              {{
+                "search1": {{
+                  "key_words": "Leonardo da Vinci Painter",
+                  "category": "Art & History",
+                  "subcatetgory": "Renaissance Legacy"
+                }},
+                "search2": {{
+                  "key_words": "DaVinci Resolve Software",
+                  "category": "Technology & Media",
+                  "subcatetgory": "Video Editing Tools"
+                }},
+                "search3": {{
+                  "key_words": "da Vinci Surgical System",
+                  "category": "Medical Technology",
+                  "subcatetgory": "Robotic Surgery"
+                }}
+              }}
+
+                  Critical Requirements
+                  - Always respond in **valid JSON** only (no extra commentary, no markdown).
+                  - For **singular** topics  return the **detailed** JSON (your original schema).
+                  - For **ambiguous** topics  return the **simplified** JSON (the "searchN" keys format).
+                  - If it is the second time generating  is True, output only **detailed** JSON (your original schema), if second time generating  is False, you can decide what output to make.
+                  - Do not include any other text or explanation outside the JSON.
+
+
+              Second time generating: {second}
+              Here is the key words input: {keywords}.
+              Here are the news: {news}
+
+          ''')
     return prompt
 
 
-def get_llm_response(prompt, OPENAI_API_KEY = 'Open-AI-API'):
+def get_llm_response(prompt, OPENAI_API_KEY='Open-AI-API'):
     """
     Call the LLM (using OpenAI's API in this example) to generate a response.
     """
-    client = OpenAI(api_key = OPENAI_API_KEY)
+    client = OpenAI(api_key=OPENAI_API_KEY)
     try:
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",  # or another model if desired
             messages=[
-                #{"role": "system", "content": "You are a helpful assistant."},
+                # {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.7,
-            #max_completion_tokens = 5000
+            # max_completion_tokens = 5000
         )
         llm_output = response.choices[0].message.content.strip()
         return llm_output
@@ -336,7 +327,7 @@ def verify_and_fix_json(input_str):
         parsed = json.loads(preprocessed)
         # If parsing works, return immediately
         return True, parsed
-    except json.JSONDecodeError as error:
+    except json.JSONDecodeError:
         # We'll attempt to fix the JSON below
         pass
 
@@ -355,12 +346,7 @@ def verify_and_fix_json(input_str):
             next_line = lines[i + 1].lstrip()
 
             # If current line ends with a literal or true/false/null
-            if (current_line.endswith('"') or 
-                re.search(r'[0-9]$', current_line) or
-                current_line.endswith('true') or 
-                current_line.endswith('false') or
-                current_line.endswith('null')):
-
+            if (current_line.endswith('"') or re.search(r'[0-9]$', current_line) or current_line.endswith('true') or current_line.endswith('false') or current_line.endswith('null')):
                 # And next line starts like a key or unquoted text that might be a key
                 if (next_line.startswith('"') or re.match(r'^[a-zA-Z_]', next_line)):
                     # If there's no trailing comma, add it
@@ -404,7 +390,6 @@ def verify_and_fix_json(input_str):
     except Exception:
         # If we still fail, return parse_ok=False with no JSON
         return False, None
-
 
 
 def validate_json_structure_search_bar(json_data):
@@ -674,7 +659,7 @@ def validate_json_structure_search_bar(json_data):
     return False, errors
 
 
-def search_bar(input, OPENAI_API_KEY,  second=False,):
+def search_bar(input, OPENAI_API_KEY, second=False,):
     """
     Retrieves news based on the given `input` keyword(s), constructs a prompt
     for the LLM, requests a JSON response, and verifies the JSON structure.
@@ -718,7 +703,7 @@ def search_bar(input, OPENAI_API_KEY,  second=False,):
                 (need_choise, json_output)
                 where `need_choise` (bool) indicates whether the JSON was initially valid
                 or had to be fixed, and `json_output` is the resulting parsed JSON dict.
-            - If the JSON could not be validated in 3 attempts: 
+            - If the JSON could not be validated in 3 attempts:
                 "The Error is not fixed"
 
 
@@ -733,7 +718,7 @@ def search_bar(input, OPENAI_API_KEY,  second=False,):
 
     while not validated and iterations != 3:
         # Get the response from the LLM.
-        llm_response = get_llm_response(prompt, OPENAI_API_KEY = OPENAI_API_KEY)
+        llm_response = get_llm_response(prompt, OPENAI_API_KEY=OPENAI_API_KEY)
         need_choise, json_output = verify_and_fix_json(llm_response)
 
         validated = validate_json_structure_search_bar(json_output)[0]
@@ -751,7 +736,7 @@ def build_prompt_recommendations(keywords, articles):
       - The instructions/format for the response.
       - A placeholder (the fetched news articles) to be summarized.
     """
-  
+
     prompt = f"""
     You are an assistant that summarizes trending topics into structured, readable briefings.
 
@@ -764,7 +749,7 @@ def build_prompt_recommendations(keywords, articles):
     2. Category
     3. A brief introduction
     4. A section with key tips or takeaways (use multiple labeled sections with bullet points inside)
-    5. A section titled **Fun Facts / Did You Know?**, there interesting or fun facts about the topic must be provided. Example could be the meme or anecdote. 
+    5. A section titled **Fun Facts / Did You Know?**, there interesting or fun facts about the topic must be provided. Example could be the meme or anecdote.
     6. A clear and useful conclusion
 
     Your response must:
@@ -834,37 +819,36 @@ def build_prompt_recommendations(keywords, articles):
 
     Use the article content to enhance your tips, facts, and examples. Only return a valid JSON object with no extra output.
     """
-
-  
     return prompt
 
 
-def get_urls_from_google(keywords, region = "us", num_results=15, lang="en"):
-    results = list(search(keywords, advanced=True, region = region, num_results=num_results, lang=lang))
+def get_urls_from_google(keywords, region="us", num_results=15, lang="en"):
+    results = list(search(keywords, advanced=True, region=region, num_results=num_results, lang=lang))
     return results
+
 
 def extract_main_text_from_url(url: str) -> str:
     """
     Extracts the main article text from a given URL using newspaper3k.
-    
+
     Args:
         url (str): The URL of the web page to extract content from.
-    
+
     Returns:
         str: The main text content of the page, or an empty string if failed.
     """
     if not url or not url.startswith("http"):
         return ""
-    
+
     try:
         article = Article(url, language='en')
         article.download()
         article.parse()
-        
+
         # Clean up the text: remove multiple newlines
         text_content = re.sub(r'\n+', '\n', article.text).strip()
         return text_content
-    
+
     except Exception as e:
         print(f"Failed to extract content from {url}: {e}")
         return ""
@@ -876,21 +860,21 @@ def get_articles(urls, max_articles=5):
         try:
             art = extract_main_text_from_url(url.url)
             articles.append(art)
-        except:
+        except Exception:
             print('Invalid URL')
         if len(articles) >= max_articles:
             break
-        
+
     return articles
 
 
-def recommendations(keywords, region = "us", num_results=15, lang="en", OPENAI_API_KEY='Open-AI-API'):   
-    urls = get_urls_from_google(keywords, region = region, num_results=num_results, lang=lang)
+def recommendations(keywords, region="us", num_results=15, lang="en", OPENAI_API_KEY='Open-AI-API'):
+    urls = get_urls_from_google(keywords, region=region, num_results=num_results, lang=lang)
     articles = get_articles(urls)
     print(len(" ".join(articles)))
     articles = " ".join(articles)[0:21000]
     prompt = build_prompt_recommendations(keywords, articles)
-    response = get_llm_response(prompt, OPENAI_API_KEY = OPENAI_API_KEY)
+    response = get_llm_response(prompt, OPENAI_API_KEY=OPENAI_API_KEY)
     valid, fixed_json = verify_and_fix_json(response)
     if valid:
         return fixed_json
@@ -900,25 +884,25 @@ def recommendations(keywords, region = "us", num_results=15, lang="en", OPENAI_A
 
 def build_prompt_update_me(keywords, article_text, reference_url=None):
     prompt = (f'''
-          
+
     You are the assistant that will help quickly get information on a certain topic for update briefings.
     You will receive:
         1) A set of keywords related to a topic.
         2) A summary of related news or article text.
-          
+
     Assume the reader needs a concise briefing that can be used in small talk or for quick updates.
-          
+
     1. Analyze the provided keywords and article text.
     2. Determine whether the topic is singular (one clear meaning) or ambiguous (multiple possible subtopics or collisions).
 
     You will produce a structured update briefing in JSON format.
     Include a reference URL, a background story, and a related picture URL.
     You must return the response in the JSON format exactly as specified.
-          
+
     Output Rules:
     - If the topic is distinct (only one clear meaning):
       Return the full, detailed JSON object with the following structure:
-      
+
       {{
         "category": "<Category, e.g., Global News, Personal Interest, Global Development>",
         "subcategory": "<Subcategory, e.g., NFL, Politics, Tech>",
@@ -936,7 +920,7 @@ def build_prompt_update_me(keywords, article_text, reference_url=None):
         }},
         "picture_url": "<URL of a related picture>"
       }}
-      
+
 
     Critical Requirements:
     - Always respond in valid JSON only (no extra commentary, no markdown).
@@ -950,7 +934,7 @@ def build_prompt_update_me(keywords, article_text, reference_url=None):
     Example:
     {{
       "category": "Global News",
-      "subcategory": "Middle East",      
+      "subcategory": "Middle East",
       "topic": "Erdoğan: “No power can expel Palestinians from their homeland”",
       "short_info": [
           "In a recent speech, the Turkish president reaffirmed his support for the Palestinian people and criticized recent developments in the Middle East.",
@@ -973,6 +957,7 @@ def build_prompt_update_me(keywords, article_text, reference_url=None):
     ''')
     return prompt
 
+
 def generate_update_element(keywords, OPENAI_API_KEY, reference_url=None):
     """
     Generates a structured update element in JSON format using OpenAI's API and the tailored prompt.
@@ -986,7 +971,6 @@ def generate_update_element(keywords, OPENAI_API_KEY, reference_url=None):
     else:
         print("Could not parse/fix the JSON response.")
         return None
-
 
 
 def build_prompt_trending(keywords, article_text, extra_links=None):
@@ -1067,6 +1051,7 @@ def build_prompt_trending(keywords, article_text, extra_links=None):
     ''')
     return prompt
 
+
 def generate_trending_now_element(keywords, OPENAI_API_KEY='Open-AI-API', extra_links=None):
     article_text = get_news(keywords, 3)
     prompt = build_prompt_trending(keywords, article_text, extra_links)
@@ -1077,9 +1062,3 @@ def generate_trending_now_element(keywords, OPENAI_API_KEY='Open-AI-API', extra_
     else:
         print("Could not parse/fix the JSON response.")
         return None
-
-
-
-
-
-

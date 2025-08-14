@@ -1,7 +1,9 @@
 from django.db import models
 from apps.users.models import User
 from apps.home.models import Search
+from auditlog.registry import auditlog
 from cloudinary.models import CloudinaryField
+
 
 # Create your models here.
 class Profile(models.Model):
@@ -19,14 +21,19 @@ class Profile(models.Model):
 
     def __str__(self):
         return f"{self.user.name} - {self.user.email}"
-    
+
+
+# Register model for audit logging
+auditlog.register(Profile)
+
 
 class FAQCategory(models.Model):
     name = models.CharField(max_length=255)
 
     def __str__(self):
         return self.name
-    
+
+
 class FAQ(models.Model):
     question = models.CharField(max_length=255)
     answer = models.TextField()
@@ -34,7 +41,7 @@ class FAQ(models.Model):
 
     def __str__(self):
         return self.question
-    
+
 
 # Contact Us
 class ContactUs(models.Model):
@@ -46,7 +53,7 @@ class ContactUs(models.Model):
         ('twitter', 'Twitter'),
         ('website', 'Website'),
     ]
-    platform = models.CharField(max_length=50, choices= PLATFORM_CHOICES, unique=True)
+    platform = models.CharField(max_length=50, choices=PLATFORM_CHOICES, unique=True)
     icon = CloudinaryField('icon', null=True, blank=True)
     link = models.URLField(unique=True, null=True, blank=True)
 
@@ -55,6 +62,7 @@ class ContactUs(models.Model):
         if self.icon:
             return self.icon.url
         return None
+
 
 class NotificationSetting(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='notification_setting')
@@ -69,6 +77,11 @@ class NotificationSetting(models.Model):
     def __str__(self):
         return f"{self.user.name}'s notification setting"
 
+
+# Register model for audit logging
+auditlog.register(NotificationSetting)
+
+
 # Feedback for about smailtalk page
 class Feedback(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -76,6 +89,10 @@ class Feedback(models.Model):
     content = models.TextField()
     rating = models.IntegerField()
     created_at = models.DateField(auto_now_add=True)
+
+
+# Register model for audit logging
+auditlog.register(Feedback)
 
 
 # About SmallTalk
@@ -93,4 +110,4 @@ class AppInfo(models.Model):
     social_media_url = models.URLField(blank=True, null=True)
 
     def __str__(self):
-        return "App Information" 
+        return "App Information"

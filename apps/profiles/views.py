@@ -3,10 +3,10 @@ from rest_framework import status
 from rest_framework.views import APIView
 from apps.community_hubs.models import Post
 from rest_framework.response import Response
-from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from .models import Profile, FAQ, FAQCategory, ContactUs, NotificationSetting, AppInfo
 from .serializers import ProfileSerializer, MyPostSerializer, FAQSerializer, FAQCategorySerializer, ContactUsSerializer, NotificationSettingSerializer, AppInfoSerializer
+
 
 # Profile View
 class ProfileView(APIView):
@@ -14,7 +14,7 @@ class ProfileView(APIView):
 
     def get(self, request):
         try:
-            user=request.user
+            user = request.user
             print(f"ProfileView - user: {user}")
             profile = Profile.objects.get(user=request.user)
             print(f"ProfileView - profile: {profile}")
@@ -25,8 +25,8 @@ class ProfileView(APIView):
                 "success": False,
                 "message": "Profile not found",
             }, status=status.HTTP_404_NOT_FOUND)
-        
-        serializer = ProfileSerializer(profile, context={'request' : request})
+
+        serializer = ProfileSerializer(profile, context={'request': request})
         response = {
             "status": status.HTTP_200_OK,
             "success": True,
@@ -34,36 +34,6 @@ class ProfileView(APIView):
             "data": serializer.data
         }
         return Response(response, status=status.HTTP_200_OK)
-    
-    # def post(self, request):
-    #     # Check if user already has a profile
-    #     if hasattr(request.user, 'profile'):
-    #         response = {
-    #             "status": 400,
-    #             "success": False,
-    #             "message": "Profile already exists for this user.",
-    #             "data": None
-    #         }
-    #         return Response(response, status=status.HTTP_400_BAD_REQUEST)
-        
-    #     # Create profile for the authenticated user
-    #     serializer = ProfileSerializer(data=request.data)
-    #     if serializer.is_valid():
-    #         serializer.save(user=request.user)  # Link profile to the authenticated user
-    #         response = {
-    #             "status": 201,
-    #             "success": True,
-    #             "message": "Profile created successfully.",
-    #             "data": serializer.data
-    #         }
-    #         return Response(response, status=status.HTTP_201_CREATED)
-    #     response = {
-    #         "status": 400,
-    #         "success": False,
-    #         "message": "Failed to create profile.",
-    #         "data": serializer.errors
-    #     }
-    #     return Response(response, status=status.HTTP_400_BAD_REQUEST)
     
     def put(self, request):
         profile = request.user.profile
@@ -77,7 +47,7 @@ class ProfileView(APIView):
                 "data": serializer.data
             }
             return Response(response, status=status.HTTP_200_OK)
-        
+
         # Error handling for invalid data
         response = {
             "status": 400,
@@ -86,7 +56,7 @@ class ProfileView(APIView):
             "data": serializer.errors
         }
         return Response(response, status=status.HTTP_400_BAD_REQUEST)
-    
+
     def delete(self, request):
         try:
             profile = Profile.objects.get(user=request.user)
@@ -196,14 +166,13 @@ class MyPostDetail(APIView):
             "message": "Post deleted successfully"
         }, status=status.HTTP_200_OK)
 
-    
 
 # FAQ View
 class FAQList(APIView):
     def get(self, request):
         category = request.query_params.get('category', None)
         search = request.query_params.get('search', None)
-        
+
         if category:
             faqs = FAQ.objects.filter(category__name=category)
         elif search:
@@ -219,6 +188,7 @@ class FAQList(APIView):
         }
         return Response(response, status=status.HTTP_200_OK)
 
+
 # FAQ Category View
 class FAQCategoryList(APIView):
     def get(self, request):
@@ -231,7 +201,8 @@ class FAQCategoryList(APIView):
             "data": serializer.data
         }
         return Response(response, status=status.HTTP_200_OK)
-    
+
+
 # Contact Us View
 class ContactUsList(APIView):
     def get(self, request):
@@ -244,7 +215,8 @@ class ContactUsList(APIView):
             "data": serializer.data
         }
         return Response(response, status=status.HTTP_200_OK)
-    
+
+
 # Notification Setting View
 class NotificationSettingView(APIView):
     permission_classes = [IsAuthenticated]
@@ -259,7 +231,7 @@ class NotificationSettingView(APIView):
             "data": serializer.data
         }
         return Response(response, status=status.HTTP_200_OK)
-    
+
     def put(self, request):
         settings, created = NotificationSetting.objects.get_or_create(user=request.user)
         serializer = NotificationSettingSerializer(settings, data=request.data, partial=True)
@@ -279,6 +251,7 @@ class NotificationSettingView(APIView):
             "errors": serializer.errors
         }, status=status.HTTP_400_BAD_REQUEST)
 
+
 # App Information View
 class AppInformationView(APIView):
     def get(self, request):
@@ -290,7 +263,7 @@ class AppInformationView(APIView):
                     "success": False,
                     "message": "App information not found"
                 }, status=status.HTTP_404_NOT_FOUND)
-            
+
             serializer = AppInfoSerializer(app_info)
             response = {
                 "status": status.HTTP_200_OK,

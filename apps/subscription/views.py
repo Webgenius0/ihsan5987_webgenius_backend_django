@@ -14,8 +14,9 @@ from .serializers import SubscriptionSerializer, PackageSerializer
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
+
 class PackageView(APIView):
-    def get(self,request,pk=None):
+    def get(self, request, pk=None):
         if pk:
             package = Package.objects.get(pk=pk)
             serializer = PackageSerializer(package)
@@ -35,7 +36,8 @@ class PackageView(APIView):
             "data": serializer.data
         }
         return Response(response)
-    
+
+
 class UserActiveSubscriptionView(APIView):
     def get(self, request):
         try:
@@ -56,6 +58,7 @@ class UserActiveSubscriptionView(APIView):
                 "data": None
             }
             return Response(response)
+
 
 class SubscriptionView(APIView):
     def get(self, request, package_id=None):
@@ -92,16 +95,16 @@ class SubscriptionCreate(APIView):
                 stripe_customer = customers.data[0]
             else:
                 stripe_customer = stripe.Customer.create(
-                    email= user.email,
+                    email=user.email,
                     name=f'{user.name}'
                 )
-        except stripe.error.StripeError as e:
+        except stripe.error.StripeError:
             return Response({
                 'status': status.HTTP_400_BAD_REQUEST,
                 'success': False,
                 'message': 'Failed to create or retrieve customer.'
             }, status=status.HTTP_400_BAD_REQUEST)
-        
+
         try:
             current_subscription = Subscription.objects.filter(user=user, is_active=True).first()
             stripe_subscription = None
@@ -127,10 +130,10 @@ class SubscriptionCreate(APIView):
 
                 new_subscription = Subscription.objects.create(
                     user=user,
-                    package = package,
-                    stripe_subscription_id = update_subscription.id,
-                    end_date = datetime.fromtimestamp(update_subscription['items']['data'][0]['current_period_end']),
-                    is_active = True,
+                    package=package,
+                    stripe_subscription_id=update_subscription.id,
+                    end_date=datetime.fromtimestamp(update_subscription['items']['data'][0]['current_period_end']),
+                    is_active=True,
                 )
                 return Response({
                     'status': status.HTTP_200_OK,
@@ -148,9 +151,9 @@ class SubscriptionCreate(APIView):
         else:
             try:
                 checkout_session = stripe.checkout.Session.create(
-                    payment_method_types= ['card'],
+                    payment_method_types=['card'],
                     mode='subscription',
-                    line_items=[{'price':package.stripe_price_id, 'quantity': 1}],
+                    line_items=[{'price': package.stripe_price_id, 'quantity': 1}],
                     customer=stripe_customer.id,
                     success_url=settings.STRIPE_SUCCESS_URL,
                     cancel_url=settings.STRIPE_CANCEL_URL,
@@ -184,7 +187,6 @@ class SubscriptionCreate(APIView):
                 }, status=status.HTTP_400_BAD_REQUEST)
 
 
-
 @csrf_exempt
 def stripe_webhook_view(request):
     payload = request.body
@@ -197,10 +199,10 @@ def stripe_webhook_view(request):
             payload, sig_header, endpoint_secret
         )
     except stripe.error.SignatureVerificationError:
-        return HttpResponse(status = 400)
-    except ValueError as e:
         return HttpResponse(status=400)
-    
+    except ValueError:
+        return HttpResponse(status=400)
+
     if event['type'] == 'customer.subscription.created':
         data = event['data']['object']
         metadata = data.get('metadata', {})
@@ -214,12 +216,12 @@ def stripe_webhook_view(request):
         user = User.objects.get(id=user_id)
         package = Package.objects.get(id=package_id)
 
-        subscription = Subscription.objects.create(
+        Subscription.objects.create(
             user=user,
             package=package,
             stripe_subscription_id=stripe_subscription_id,
-            end_date = datetime.fromtimestamp(data['items']['data'][0]['current_period_end']),
-            is_active = True,
+            end_date=datetime.fromtimestamp(data['items']['data'][0]['current_period_end']),
+            is_active=True,
         )
     elif event['type'] == 'customer.subscription.updated':
         data = event['data']['object']
@@ -233,9 +235,10 @@ def stripe_webhook_view(request):
 
         Subscription.objects.filter(user=user, package=package).update(
             stripe_subscription_id=stripe_subscription_id,
-            end_date = datetime.fromtimestamp(data['items']['data'][0]['current_period_end']),
+            end_date=datetime.fromtimestamp(data['items']['data'][0]['current_period_end']),
         )
     return HttpResponse(status=200)
+
 
 class CancelSubscription(APIView):
     def post(self, request, subscription_id):
@@ -245,7 +248,7 @@ class CancelSubscription(APIView):
         try:
             stripe.Subscription.cancel(subscription.stripe_subscription_id)
 
-            subscription.is_active= False
+            subscription.is_active = False
             subscription.save()
             return Response({
                 'status': status.HTTP_200_OK,

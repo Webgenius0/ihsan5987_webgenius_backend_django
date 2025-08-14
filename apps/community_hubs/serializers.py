@@ -1,11 +1,10 @@
 from rest_framework import serializers
-from apps.users.models import User
 from django.utils.timesince import timesince
 from django.utils.timezone import now
 from datetime import timedelta
-from apps.profiles.models import Profile
 from apps.users.models import User
 from .models import Post, Comment, Like, CommentReport
+
 
 class PostlistSerializer(serializers.ModelSerializer):
     comment_count = serializers.SerializerMethodField()
@@ -31,7 +30,6 @@ class PostlistSerializer(serializers.ModelSerializer):
             comments = obj._prefetched_objects_cache['comments']
         else:
             comments = obj.comments.select_related('user__profile')
-        
         users_dict = {}
         for comment in comments:
             users_dict[comment.user.id] = comment.user
@@ -44,7 +42,6 @@ class PostlistSerializer(serializers.ModelSerializer):
         if obj.category:
             return obj.category.category_name
         return None
-
 
 
 class CreatePostSerializer(serializers.ModelSerializer):
@@ -65,7 +62,6 @@ class UserSerializer(serializers.ModelSerializer):
         if hasattr(obj, 'profile') and obj.profile.image:
             return obj.profile.image.url
         return None
-
 
 
 class LikeSerializer(serializers.ModelSerializer):
@@ -96,7 +92,7 @@ class CommentSerializer(serializers.ModelSerializer):
         if diff < timedelta(minutes=1):
             return "just now"
         return timesince(obj.created_at) + " ago"
-    
+
 
 class CommentReportSerializer(serializers.ModelSerializer):
 
