@@ -51,7 +51,6 @@ INSTALLED_APPS = [
     "auditlog",
     # cloudinary
     "cloudinary",
-    "easyaudit",
     "django_celery_beat",
     # my apps
     "apps.profiles.apps.ProfilesConfig",
