@@ -571,3 +571,23 @@ class LogoutView(APIView):
             "success": True,
             "message": "Logout successful."
         }, status=status.HTTP_200_OK)
+        
+
+class ProtectedView(APIView):
+    def get(self, request):
+        user = request.supabase_user
+        if not user:
+            response_data = {
+                "status": status.HTTP_401_UNAUTHORIZED,
+                "success": False,
+                "message": "Unauthorized",
+            }
+            return Response(response_data, status=401)
+
+        response_data = {
+            "status": status.HTTP_200_OK,
+            "success": True,
+            "message": "Authenticated!",
+            "user": user,
+        }
+        return Response(response_data, status=status.HTTP_200_OK)

@@ -147,45 +147,9 @@ UNFOLD = {
                         "permission": lambda request: request.user.is_superuser,
                     },
                     {
-                        "title": _("General Fact"),
-                        "icon": "fact_check",
-                        "link": reverse_lazy("admin:home_generalfact_changelist"),
-                        "permission": lambda request: request.user.is_superuser,
-                    },
-                    {
-                        "title": _("News"),
-                        "icon": "newspaper",
-                        "link": reverse_lazy("admin:home_news_changelist"),
-                        "permission": lambda request: request.user.is_superuser,
-                    },
-                    {
-                        "title": _("Interesting Trivia"),
-                        "icon": "lightbulb",
-                        "link": reverse_lazy("admin:home_interestingtrivia_changelist"),
-                        "permission": lambda request: request.user.is_superuser,
-                    },
-                    {
-                        "title": _("Opinion"),
-                        "icon": "question_answer",
-                        "link": reverse_lazy("admin:home_opinion_changelist"),
-                        "permission": lambda request: request.user.is_superuser,
-                    },
-                    {
-                        "title": _("Question"),
-                        "icon": "quiz",
-                        "link": reverse_lazy("admin:home_question_changelist"),
-                        "permission": lambda request: request.user.is_superuser,
-                    },
-                    {
-                        "title": _("Response"),
-                        "icon": "reply",
-                        "link": reverse_lazy("admin:home_response_changelist"),
-                        "permission": lambda request: request.user.is_superuser,
-                    },
-                    {
-                        "title": _("Option"),
-                        "icon": "toggle_on",
-                        "link": reverse_lazy("admin:home_option_changelist"),
+                        "title": _("Search Option"),
+                        "icon": "saved_search",
+                        "link": reverse_lazy("admin:home_searchoption_changelist"),
                         "permission": lambda request: request.user.is_superuser,
                     },
                     {
@@ -198,6 +162,12 @@ UNFOLD = {
                         "title": _("Search Tag"),
                         "icon": "sell",
                         "link": reverse_lazy("admin:home_searchtag_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                    {
+                        "title": _("Search History"),
+                        "icon": "search_activity",
+                        "link": reverse_lazy("admin:home_searchhistory_changelist"),
                         "permission": lambda request: request.user.is_superuser,
                     },
                     {
