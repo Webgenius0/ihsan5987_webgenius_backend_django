@@ -7,87 +7,87 @@ from unfold.contrib.import_export.forms import ExportForm, ImportForm, Selectabl
 
 @admin.register(Profile)
 class ProfileAdmin(ModelAdmin, ImportExportModelAdmin):
-    list_display = ("user", "image", "premium_user",)
+    list_display = ("user", "image", "premium_user", "created_at")
     search_fields = ["user__email"]
     ordering = ["-created_at"]
     list_filter = ["user__is_active"]
     list_per_page = 20
 
-    import_form_class = ImportForm
     export_form_class = ExportForm
     selectable_fields_export_form_class = SelectableFieldsExportForm
+
+    # disable import
+    def has_import_permission(self, request):
+        return False
 
 
 @admin.register(FAQCategory)
 class FAQCategoryAdmin(ModelAdmin, ImportExportModelAdmin):
-    list_display = ("id", "name",)
+    list_display = ("name",)
     search_fields = ["name"]
     ordering = ["name"]
-    list_filter = ["name"]
     list_per_page = 20
 
-    import_form_class = ImportForm
+    # import_form_class = ImportForm
     export_form_class = ExportForm
     selectable_fields_export_form_class = SelectableFieldsExportForm
-    ordering = ["id"]
+
+    def has_import_permission(self, request):
+        return False
 
 
 @admin.register(FAQ)
 class FAQAdmin(ModelAdmin, ImportExportModelAdmin):
-    list_display = ("question", "category")
+    list_display = ("category", "question",)
     search_fields = ["question"]
     ordering = ["category__name"]
     list_filter = ["category"]
     list_per_page = 20
+    list_filter_sheet = False
 
-    import_form_class = ImportForm
     export_form_class = ExportForm
     selectable_fields_export_form_class = SelectableFieldsExportForm
-    ordering = ["id"]
+
+    def has_import_permission(self, request):
+        return False
 
 
 @admin.register(ContactUs)
-class ContactUsAdmin(ModelAdmin, ImportExportModelAdmin):
+class ContactUsAdmin(ModelAdmin):
     list_display = ("platform", "link")
     search_fields = ["platform"]
     ordering = ["platform"]
     list_filter = ["platform"]
     list_per_page = 20
-
-    import_form_class = ImportForm
-    export_form_class = ExportForm
-    selectable_fields_export_form_class = SelectableFieldsExportForm
-    ordering = ["id"]
+    list_filter_sheet = False
+    # import_form_class = ImportForm
+    # export_form_class = ExportForm
+    # selectable_fields_export_form_class = SelectableFieldsExportForm
 
 
 @admin.register(NotificationSetting)
 class NotificationSettingAdmin(ModelAdmin, ImportExportModelAdmin):
     list_display = ("user", "comments_on_posts", "like_on_comments", "trending_topics", "my_recommendations", "posts_on_my_interests")
-    search_fields = ["user__email"]
+    search_fields = ["user__email", "user__name"]
     ordering = ["-created_at"]
-    list_filter = ["user"]
     list_per_page = 20
+    list_filter_sheet = False
 
-    import_form_class = ImportForm
+    # import_form_class = ImportForm
     export_form_class = ExportForm
     selectable_fields_export_form_class = SelectableFieldsExportForm
+
+    def has_import_permission(self, request):
+        return False
 
 
 @admin.register(Feedback)
 class FeedbackAdmin(ModelAdmin, ImportExportModelAdmin):
-    list_display = ("user", "search", "content_snippet", "rating", "created_at")
-    search_fields = ["user__email", "content"]
+    list_display = ("user", "created_at")
+    search_fields = ["user__email"]
     ordering = ["-created_at"]
-    list_filter = ["user", "rating", "created_at"]
+    list_filter = ["user", "created_at"]
     list_per_page = 20
-
-    import_form_class = ImportForm
-    export_form_class = ExportForm
-    selectable_fields_export_form_class = SelectableFieldsExportForm
-
-    def content_snippet(self, obj):
-        return (obj.content[:50] + "...") if len(obj.content) > 50 else obj.content
-    content_snippet.short_description = "Content"
 
 
 @admin.register(AppInfo)
