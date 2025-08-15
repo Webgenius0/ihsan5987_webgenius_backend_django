@@ -68,11 +68,11 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "easyaudit.middleware.easyaudit.EasyAuditMiddleware",
+    # "easyaudit.middleware.easyaudit.EasyAuditMiddleware",
     # 3d party middleware
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "querycount.middleware.QueryCountMiddleware",
-    "apps.users.middleware.supabase_auth.SupabaseJWTMiddleware",
+    # "apps.users.middleware.supabase_auth.SupabaseJWTMiddleware",
 ]
 
 ROOT_URLCONF = "project.urls"
