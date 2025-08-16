@@ -6,17 +6,17 @@ from unfold.contrib.import_export.forms import ExportForm, ImportForm
 from .models import (
     Category,
     Subcategory,
-    TopicTag,
+    # TopicTag,
     Topic,
     SearchOption,
     SearchHistory,
     Search,
     SearchTag,
     Recommendation,
-    KeyWord,
+    # KeyWord,
     Trending,
-    TrendingUser,
-    RecommendationUser,
+    # TrendingUser,
+    # RecommendationUser,
     Bookmark,
     Preference,
     UpdateMe
@@ -68,9 +68,9 @@ class CrontabScheduleAdmin(BaseCrontabScheduleAdmin, ModelAdmin):
     pass
 
 
-@admin.register(SolarSchedule)
-class SolarScheduleAdmin(ModelAdmin):
-    pass
+# @admin.register(SolarSchedule)
+# class SolarScheduleAdmin(ModelAdmin):
+#     pass
 
 
 @admin.register(ClockedSchedule)
@@ -81,7 +81,7 @@ class ClockedScheduleAdmin(BaseClockedScheduleAdmin, ModelAdmin):
 # Category & Subcategory
 @admin.register(Category)
 class CategoryAdmin(ModelAdmin):
-    list_display = ("category_name", "created_at")
+    list_display = ("id", "category_name", "created_at")
     search_fields = ("category_name",)
     ordering = ("-created_at",)
     list_per_page = 20
@@ -107,7 +107,7 @@ class SubcategoryAdmin(ModelAdmin):
 @admin.register(Topic)
 class TopicAdmin(ModelAdmin, ImportExportModelAdmin):
     list_display = ("name", "created_at")
-    search_fields = ("name", "topic_tags")
+    search_fields = ("name",)
     ordering = ("-created_at",)
     list_per_page = 20
     list_filter_sheet = False
@@ -203,15 +203,15 @@ class UpdateMeAdmin(ModelAdmin, ImportExportModelAdmin):
         return qs
 
 
-@admin.register(KeyWord)
-class KeyWordAdmin(ModelAdmin, ImportExportModelAdmin):
-    list_display = ("id", "key_words")
-    search_fields = ("key_words",)
-    ordering = ("id",)
-    list_per_page = 20
+# @admin.register(KeyWord)
+# class KeyWordAdmin(ModelAdmin, ImportExportModelAdmin):
+#     list_display = ("id", "key_words")
+#     search_fields = ("key_words",)
+#     ordering = ("id",)
+#     list_per_page = 20
 
-    import_form_class = ImportForm
-    export_form_class = ExportForm
+#     import_form_class = ImportForm
+#     export_form_class = ExportForm
 
 
 # Trending
@@ -228,29 +228,29 @@ class TrendingAdmin(ModelAdmin, ImportExportModelAdmin):
 
 
 # TrendingUser
-@admin.register(TrendingUser)
-class TrendingUserAdmin(ModelAdmin, ImportExportModelAdmin):
-    list_display = ("user", "trending", "clicked_at")
-    list_filter = ("clicked_at", "user")
-    search_fields = ("user__username",)
-    ordering = ("-clicked_at",)
-    list_per_page = 20
+# @admin.register(TrendingUser)
+# class TrendingUserAdmin(ModelAdmin, ImportExportModelAdmin):
+#     list_display = ("user", "trending", "clicked_at")
+#     list_filter = ("clicked_at", "user")
+#     search_fields = ("user__username",)
+#     ordering = ("-clicked_at",)
+#     list_per_page = 20
 
-    import_form_class = ImportForm
-    export_form_class = ExportForm
+#     import_form_class = ImportForm
+#     export_form_class = ExportForm
 
 
 # RecommendationUser
-@admin.register(RecommendationUser)
-class RecommendationUserAdmin(ModelAdmin, ImportExportModelAdmin):
-    list_display = ("user", "recommendation", "clicked_at")
-    list_filter = ("clicked_at", "user")
-    search_fields = ("user__username",)
-    ordering = ("-clicked_at",)
-    list_per_page = 20
+# @admin.register(RecommendationUser)
+# class RecommendationUserAdmin(ModelAdmin, ImportExportModelAdmin):
+#     list_display = ("user", "recommendation", "clicked_at")
+#     list_filter = ("clicked_at", "user")
+#     search_fields = ("user__username",)
+#     ordering = ("-clicked_at",)
+#     list_per_page = 20
 
-    import_form_class = ImportForm
-    export_form_class = ExportForm
+#     import_form_class = ImportForm
+#     export_form_class = ExportForm
 
 
 # Bookmark

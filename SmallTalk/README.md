@@ -1,153 +1,125 @@
-# Backend Folder Structure & File Descriptions
+# SmallTalk Module
 
+The SmallTalk module provides AI-powered conversation assistance features for the main Django application. It integrates with various external APIs to generate contextual information for small talk conversations.
 
-###  Repository Structure
+## Features
 
-```text
-/SmallTalk
-├── recommendation.py
-├── trending.py
-├── update_me.py
-├── search_bar.py
-├── prompts/
-│   ├── recommendation.txt
-│   ├── trending.txt
-│   ├── update_me.txt
-│   └── search_bar.txt
-├── api_utils.py
-├── llm_utils.py
-├── config.py
-├── schemas.py
-├── example.py
-└── evaluation/
-    └── reports/
-    ├── pipeline.py
-    └── run_evaluation.py
+- News aggregation and summarization
+- Trending topics detection
+- Personalized recommendations
+- Smart search capabilities
+- Natural language processing
+
+## Configuration
+
+API keys are configured in `SmallTalk/config.py`:
+
+```python
+# News API Key (used for news aggregation)
+NEWS_API_KEY = "your_newsapi_key"
+
+# GNews API Key (alternative news source)
+GNEWS_API_KEY = "your_gnews_key"
+
+# OpenAI API Key (for LLM capabilities)
+OPENAI_API_KEY = "your_openai_key"
+
+# Perplexity API Key (for advanced search)
+PERPLEXITY_API_KEY = "your_perplexity_key"
 ```
 
-### `/SmallTalk/recommendation.py`
-- `generate_recommendation`  
-  Build the general *Recommendations* response. Receives key words, prompt version (must have default value) and parameters of the model, returns the json response (without any metrics yet).
-- `validate_recommendation_output`
-  Validate that the TrenRecommendationding JSON conforms to schema.
-- `extract_text_from_recommendations_json`
+## API Key Status
 
----
+To check the status of API keys, run:
+```bash
+python utility/check_api_keys.py
+```
 
-### `/SmallTalk/trending.py`
-- `generate_trending`
-  Build the general *Trending* response. Receives key words, prompt version (must have default value) and parameters of the model, returns the json response (without any metrics yet).
-- `validate_trending_output`  
-  Validate that the Trending JSON conforms to schema.
-- `extract_text_from_update_element_json`
+## Core Components
 
----
+### 1. API Utilities (`api_utils.py`)
 
-### `/SmallTalk/update_me.py`
-- `generate_update_me`  
-  Build the *UpdateMe* response. Receives key words, prompt version (must have default value) and parameters of the model, returns the json response (without any metrics yet).
-- `validate_update_me_output`
-  Ensure the UpdateMe output JSON matches schema/constraints.
-- `extract_text_from_update_element_json`
+Provides helper functions for:
+- News fetching from Google News and RSS feeds
+- Trending topics extraction
+- Image fetching for topics
+- Alternative news sources
 
----
+### 2. LLM Utilities (`llm_utils.py`)
 
-### `/SmallTalk/search_bar.py`
-- `search_bar`
-  Builds the *SearchBar* response. Receives key words, prompt version (must have default value) and parameters of the model, returns the json response (without any metrics yet).
-- `validate_search_bar_output` 
-  Ensure the SearchBar output JSON matches schema constraints. (old validate_json_structure_search_bar)
-- `extract_text_from_search_bar_json`
+Handles interactions with language models:
+- OpenAI GPT integration
+- Perplexity API integration
+- JSON response validation and fixing
+- Prompt building for various use cases
 
+### 3. Recommendation Engine (`recommendation.py`)
 
----
+Generates personalized recommendations based on:
+- User preferences
+- Current trends
+- Historical interactions
 
-### `/SmallTalk/prompts/*.txt`
-Plain-text prompt templates:
+## Usage Examples
 
-- `recommendation_v01.txt` – template for Recommendation
-- `trending_v01.txt` – template for Trending
-- `update_me_v01.txt` – template for UpdateMe
-- `search_bar_v01.txt` – template for SearchBar
+### Basic Search
+```python
+from SmallTalk.search_bar import search_bar
 
----
+# Get search results for a topic
+results = search_bar("artificial intelligence")
+```
 
-### `/SmallTalk/api_utils.py`
-- `get_news` 
-  Fetch and return a list of news items for the given key words.
+### Trending Topics
+```python
+from SmallTalk.trending import generate_trending
 
-- `get_articles` 
-  Fetch and return a list of article metadata for the given query.
+# Generate trending topics
+trending = generate_trending("technology")
+```
 
-- `get_pictures`  
-  Fetch and return image URL(s) matching the query.
+### Recommendations
+```python
+from SmallTalk.recommendation import generate_recommendation
 
-- `get_urls_from_google`
-  Get the urls given the key words and other parameters
+# Generate recommendations
+recommendations = generate_recommendation("science")
+```
 
-- `extract_main_text_from_url`
-  Extracts text given the url of the page 
+## API Integration Details
 
+### OpenAI API
+- Used for natural language processing
+- Model: GPT-3.5-turbo (configurable)
+- Features: Text generation, summarization, question answering
 
----
+### Perplexity API
+- Used for advanced search and information retrieval
+- Model: Sonar series
+- Features: Real-time information retrieval, fact checking
 
-### `/SmallTalk/llm_utils.py`
+### GNews API
+- Used for news aggregation
+- Features: Top headlines, search by keywords, multiple sources
 
-- `get_llm_response`
-  Receives prompt and parameters (optional) and returns its raw JSON response.
+### News API
+- Alternative news source
+- Features: Top headlines, everything endpoint, sources
 
-- `build_prompt`    
-  Receives prompt type, prompt vesion, key words, articles and news if needed 
-  and returns the final prompt string.
+## Error Handling
 
-- `verify_and_fix_json`  
-  Generic JSON-schema validator. Fixes json if possible
----
+The module includes comprehensive error handling for:
+- API rate limits
+- Invalid API keys
+- Network issues
+- JSON parsing errors
+- Timeout errors
 
+## Testing
 
-### `/SmallTalk/config.py`
-API keys
+To test the API keys, run:
+```bash
+python utility/check_api_keys.py
+```
 
----
-
-### `/SmallTalk/schemas.py`
-output schemas
-
----
-
-### `/SmallTalk/example.py`
-example usage
-
----
-
-
-### `/SmallTalk/evaluation/pipeline1.py`
-All functions and calls associated with the evaluation for Variant 1. 
-
----
-
-
-### `/SmallTalk/evaluation/run_evaluation1.ipynb`
-automatical evaluation 
-
----
-
-### `/SmallTalk/evaluation/pipeline2.py`
-All functions and calls associated with the evaluation for Variant 2. 
-
----
-
-
-### `/SmallTalk/evaluation/run_evaluation2.ipynb`
-automatical evaluation 
-
----
-
-### `/SmallTalk/evaluation/test.xlsx`
-examples of the test cases
-
---
-
-### `/SmallTalk/evaluation/reports/`
-folder, where the repots will be saved
-
+This will check the validity of all configured API keys and report any expired or invalid ones.

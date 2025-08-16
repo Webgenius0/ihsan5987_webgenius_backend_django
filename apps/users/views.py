@@ -27,6 +27,7 @@ class SignupView(APIView):
                 message=f"Your OTP is {otp}",
                 from_email=settings.EMAIL_HOST_USER,
                 recipient_list=[user.email],
+                fail_silently=True
             )
 
             EmailOTP.objects.create(
@@ -571,7 +572,7 @@ class LogoutView(APIView):
             "success": True,
             "message": "Logout successful."
         }, status=status.HTTP_200_OK)
-        
+
 
 class ProtectedView(APIView):
     def get(self, request):

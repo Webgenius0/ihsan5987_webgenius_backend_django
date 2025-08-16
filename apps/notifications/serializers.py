@@ -58,7 +58,7 @@ class GeneralNotificationSerializer(serializers.ModelSerializer):
         elif time_diff.lower() == '1 day':
             return f"Yesterday | {time_str}" if created_at < now else f"Tomorrow | {time_str}"
         return f"{time_diff} ago | {time_str}"
-    
+
 
 class SystemNotificationSerializer(serializers.ModelSerializer):
     new = serializers.SerializerMethodField()
@@ -88,10 +88,10 @@ class SystemNotificationSerializer(serializers.ModelSerializer):
         elif time_diff.lower() == '1 day':
             return f"Yesterday | {time_str}" if created_at < now else f"Tomorrow | {time_str}"
         return f"{time_diff} ago | {time_str}"
-    
+
     def get_new(self, obj):
         return not obj.is_read
-    
+
     def get_icon(self, obj):
         icon_key = obj.system_event
         print(f"Serializer get_icon - icon_key: {icon_key}")
