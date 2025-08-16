@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "import_export",
     "schema_viewer",
     "auditlog",
+    "drf_yasg",
     # cloudinary
     "cloudinary",
     "django_celery_beat",
