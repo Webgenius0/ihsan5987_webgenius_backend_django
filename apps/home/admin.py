@@ -1,5 +1,8 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin
+from import_export.admin import ImportExportModelAdmin
+from unfold.contrib.import_export.forms import ExportForm, ImportForm
+
 from .models import (
     Category,
     Subcategory,
@@ -16,82 +19,157 @@ from .models import (
     RecommendationUser,
     Bookmark,
     Preference,
-    UpdateMe,
+    UpdateMe
 )
-from import_export.admin import ImportExportModelAdmin
-from unfold.contrib.import_export.forms import (ExportForm, ImportForm)
+from unfold.widgets import UnfoldAdminSelectWidget, UnfoldAdminTextInputWidget
+
+from django_celery_beat.models import (
+    ClockedSchedule,
+    CrontabSchedule,
+    IntervalSchedule,
+    PeriodicTask,
+    SolarSchedule,
+)
+from django_celery_beat.admin import ClockedScheduleAdmin as BaseClockedScheduleAdmin
+from django_celery_beat.admin import CrontabScheduleAdmin as BaseCrontabScheduleAdmin
+from django_celery_beat.admin import PeriodicTaskAdmin as BasePeriodicTaskAdmin
+from django_celery_beat.admin import PeriodicTaskForm, TaskSelectWidget
+
+admin.site.unregister(PeriodicTask)
+admin.site.unregister(IntervalSchedule)
+admin.site.unregister(CrontabSchedule)
+admin.site.unregister(SolarSchedule)
+admin.site.unregister(ClockedSchedule)
+
+
+class UnfoldTaskSelectWidget(UnfoldAdminSelectWidget, TaskSelectWidget):
+    pass
+
+
+class UnfoldPeriodicTaskForm(PeriodicTaskForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["task"].widget = UnfoldAdminTextInputWidget()
+        self.fields["regtask"].widget = UnfoldTaskSelectWidget()
+
+
+@admin.register(PeriodicTask)
+class PeriodicTaskAdmin(BasePeriodicTaskAdmin, ModelAdmin):
+    form = UnfoldPeriodicTaskForm
+
+
+@admin.register(IntervalSchedule)
+class IntervalScheduleAdmin(ModelAdmin):
+    pass
+
+
+@admin.register(CrontabSchedule)
+class CrontabScheduleAdmin(BaseCrontabScheduleAdmin, ModelAdmin):
+    pass
+
+
+@admin.register(SolarSchedule)
+class SolarScheduleAdmin(ModelAdmin):
+    pass
+
+
+@admin.register(ClockedSchedule)
+class ClockedScheduleAdmin(BaseClockedScheduleAdmin, ModelAdmin):
+    pass
 
 
 # Category & Subcategory
 @admin.register(Category)
-class CategoryAdmin(ModelAdmin, ImportExportModelAdmin):
+class CategoryAdmin(ModelAdmin):
     list_display = ("category_name", "created_at")
     search_fields = ("category_name",)
     ordering = ("-created_at",)
     list_per_page = 20
 
-    # Import/Export configuration
-    import_form_class = ImportForm
-    export_form_class = ExportForm
-
 
 @admin.register(Subcategory)
-class SubcategoryAdmin(ModelAdmin, ImportExportModelAdmin):
+class SubcategoryAdmin(ModelAdmin):
     list_display = ("subcategory_name", "created_at")
     search_fields = ("subcategory_name",)
     ordering = ("-created_at",)
     list_per_page = 20
 
-    # Import/Export configuration
-    import_form_class = ImportForm
-    export_form_class = ExportForm
-
 
 # TopicTag & Topic
-@admin.register(TopicTag)
-class TopicTagAdmin(ModelAdmin, ImportExportModelAdmin):
-    list_display = ("tag_names", "created_at")
-    search_fields = ("tag_names",)
-    ordering = ("-created_at",)
-    list_per_page = 20
-
-    # Import/Export configuration
-    import_form_class = ImportForm
-    export_form_class = ExportForm
+# @admin.register(TopicTag)
+# class TopicTagAdmin(ModelAdmin):
+#     list_display = ("tag_names", "created_at")
+#     search_fields = ("tag_names",)
+#     ordering = ("-created_at",)
+#     list_per_page = 20
 
 
 @admin.register(Topic)
 class TopicAdmin(ModelAdmin, ImportExportModelAdmin):
-    list_display = ("name", "topic_tags", "created_at")
+    list_display = ("name", "created_at")
     search_fields = ("name", "topic_tags")
-    list_filter = ("topic_tags",)
+    ordering = ("-created_at",)
+    list_per_page = 20
+    list_filter_sheet = False
 
-    # Import/Export configuration
-    import_form_class = ImportForm
+    # import_form_class = ImportForm
     export_form_class = ExportForm
+
+    def has_import_permission(self, request):
+        return False
 
 
 # Option
 @admin.register(SearchOption)
-class SearchOptionAdmin(admin.ModelAdmin):
-    pass
+class SearchOptionAdmin(ModelAdmin, ImportExportModelAdmin):
+    list_display = ("keyword", "search_tag", "category", "subcategory", "created_at")
+    search_fields = ("search_tag", "keyword", "category", "subcategory")
+    list_filter = ("category", "subcategory")
+    ordering = ("-created_at",)
+    list_per_page = 20
+
+    # import_form_class = ImportForm
+    export_form_class = ExportForm
+
+    def has_import_permission(self, request):
+        return False
 
 
 # Search
 @admin.register(Search)
-class SearchAdmin(admin.ModelAdmin):
-    pass
+class SearchAdmin(ModelAdmin, ImportExportModelAdmin):
+    list_display = ("topic", "category", "subcategory", "further_key_words", "created_at")
+    list_filter = ("category", "subcategory", "topic")
+    search_fields = ("category", "subcategory", "topic")
+    ordering = ("-created_at",)
+    list_per_page = 20
+
+    # import_form_class = ImportForm
+    export_form_class = ExportForm
+
+    def has_import_permission(self, request):
+        return False
 
 
 # SearchTag
 @admin.register(SearchTag)
-class SearchTagAdmin(admin.ModelAdmin):
-    pass
+class SearchTagAdmin(ModelAdmin):
+    list_display = ("tag_name", "created_at")
+    search_fields = ("tag_name",)
+    ordering = ("-created_at",)
+    list_per_page = 20
+
+    # import_form_class = ImportForm
+    # export_form_class = ExportForm
 
 
 @admin.register(SearchHistory)
-class SearchHistoryAdmin(admin.ModelAdmin):
-    pass
+class SearchHistoryAdmin(ModelAdmin):
+    list_display = ("user__email", "search_term", "is_delete", "created_at")
+    list_filter = ("user__email", "is_delete")
+    search_fields = ("user__email", "search_term")
+    ordering = ("-created_at",)
+    list_per_page = 20
 
 
 # Recommendation
@@ -103,7 +181,6 @@ class RecommendationAdmin(ModelAdmin, ImportExportModelAdmin):
     ordering = ('-created_at',)
     list_per_page = 20
 
-    # Import/Export configuration
     import_form_class = ImportForm
     export_form_class = ExportForm
 
@@ -116,19 +193,23 @@ class UpdateMeAdmin(ModelAdmin, ImportExportModelAdmin):
     ordering = ("-created_at",)
     list_per_page = 20
 
-    # Import/Export configuration
     import_form_class = ImportForm
     export_form_class = ExportForm
 
+    # optimize queryset
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        qs = qs.select_related("category", "subcategory", "topic")
+        return qs
 
-# KeyWord
+
 @admin.register(KeyWord)
 class KeyWordAdmin(ModelAdmin, ImportExportModelAdmin):
     list_display = ("id", "key_words")
     search_fields = ("key_words",)
+    ordering = ("id",)
     list_per_page = 20
 
-    # Import/Export configuration
     import_form_class = ImportForm
     export_form_class = ExportForm
 
@@ -139,9 +220,9 @@ class TrendingAdmin(ModelAdmin, ImportExportModelAdmin):
     list_display = ("description", "why_trending", "picture_url", "created_at")
     list_filter = ("created_at",)
     search_fields = ("description", "why_trending", "key_points", "outlook")
+    ordering = ("-created_at",)
     list_per_page = 20
 
-    # Import/Export configuration
     import_form_class = ImportForm
     export_form_class = ExportForm
 
@@ -152,9 +233,9 @@ class TrendingUserAdmin(ModelAdmin, ImportExportModelAdmin):
     list_display = ("user", "trending", "clicked_at")
     list_filter = ("clicked_at", "user")
     search_fields = ("user__username",)
+    ordering = ("-clicked_at",)
     list_per_page = 20
 
-    # Import/Export configuration
     import_form_class = ImportForm
     export_form_class = ExportForm
 
@@ -165,9 +246,9 @@ class RecommendationUserAdmin(ModelAdmin, ImportExportModelAdmin):
     list_display = ("user", "recommendation", "clicked_at")
     list_filter = ("clicked_at", "user")
     search_fields = ("user__username",)
+    ordering = ("-clicked_at",)
     list_per_page = 20
 
-    # Import/Export configuration
     import_form_class = ImportForm
     export_form_class = ExportForm
 
@@ -175,13 +256,12 @@ class RecommendationUserAdmin(ModelAdmin, ImportExportModelAdmin):
 # Bookmark
 @admin.register(Bookmark)
 class BookmarkAdmin(ModelAdmin, ImportExportModelAdmin):
-    list_display = ("user", "content_type", "object_id", "obj", "created_at")
-    list_filter = ("created_at", "user")
-    search_fields = ("user__username", "content_type")
+    list_display = ("user__email", "content_type", "object_id", "created_at")
+    list_filter = ("user__email", "content_type", "object_id")
+    search_fields = ("user__email", "content_type", "object_id")
     ordering = ("-created_at",)
     list_per_page = 20
 
-    # Import/Export configuration
     import_form_class = ImportForm
     export_form_class = ExportForm
 
@@ -194,6 +274,5 @@ class PreferenceAdmin(ModelAdmin, ImportExportModelAdmin):
     ordering = ("-created_at",)
     list_per_page = 20
 
-    # Import/Export configuration
     import_form_class = ImportForm
     export_form_class = ExportForm

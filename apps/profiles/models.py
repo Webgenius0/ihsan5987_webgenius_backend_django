@@ -85,9 +85,7 @@ auditlog.register(NotificationSetting)
 # Feedback for about smailtalk page
 class Feedback(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    search = models.ForeignKey(Search, on_delete=models.CASCADE)
     content = models.TextField()
-    rating = models.IntegerField()
     created_at = models.DateField(auto_now_add=True)
 
 

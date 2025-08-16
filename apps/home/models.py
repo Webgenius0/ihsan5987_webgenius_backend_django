@@ -49,75 +49,11 @@ auditlog.register(TopicTag)
 # Topic
 class Topic(models.Model):
     name = models.CharField(max_length=255)
-    topic_tags = models.ForeignKey(TopicTag, on_delete=models.SET_NULL, null=True)
+    topic_tags = models.ForeignKey(TopicTag, on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateField(auto_now_add=True)
 
     def __str__(self):
         return self.name
-
-
-# Register model for audit logging
-auditlog.register(Topic)
-
-
-# # General Facts
-# class GeneralFact(models.Model):
-#     general_definition = models.TextField()
-#     general_points = models.TextField()
-#     general_fun_fact = models.TextField()
-#     general_created_at = models.DateField()
-#     key_facts_text = models.TextField()
-#     key_facts_fun_fact = models.TextField()
-#     key_facts_created_at = models.DateField()
-#     picture_url = models.URLField()
-#     picture_created_at = models.DateField()
-
-
-# # News
-# class News(models.Model):
-#     news_text = models.TextField()
-#     news_fun_facts = models.TextField()
-#     news_oldest_article_date = models.DateField()
-#     news_newest_article_date = models.DateField()
-#     news_picture_url = models.URLField()
-#     news_picture_created_at = models.DateField()
-
-
-# # Interesting Trivia
-# class InterestingTrivia(models.Model):
-#     trivia_text = models.TextField()
-#     picture_url = models.URLField()
-#     trivia_fun_fact = models.TextField()
-#     trivia_text_created_at = models.DateField()
-#     trivia_picture_created_at = models.DateField()
-
-
-# # Opinions
-# class Opinion(models.Model):
-#     opinions_text = models.TextField()
-#     opinions_fun_fact = models.TextField()
-#     opinions_created_at = models.DateField()
-
-
-# # Questions
-# class Question(models.Model):
-#     questions_text = models.TextField()
-#     questions_fun_fact = models.TextField()
-#     questions_created_at = models.DateField()
-
-
-# # Response
-# class Response(models.Model):
-#     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True)
-#     subcategory = models.ForeignKey(Subcategory, on_delete=models.CASCADE, null=True, blank=True)
-#     topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
-#     general_fact = models.ForeignKey(GeneralFact, on_delete=models.SET_NULL, null=True)
-#     news = models.ForeignKey(News, on_delete=models.SET_NULL, null=True)
-#     interesting_trivia = models.ForeignKey(InterestingTrivia, on_delete=models.SET_NULL, null=True)
-#     opinion = models.ForeignKey(Opinion, on_delete=models.SET_NULL, null=True)
-#     question = models.ForeignKey(Question, on_delete=models.SET_NULL, null=True)
-#     further_key_words = models.TextField(blank=True)
-#     created_at = models.DateField(auto_now_add=True)
 
 
 # Search
@@ -185,7 +121,7 @@ class SearchHistory(models.Model):
     created_at = models.DateField(auto_now_add=True)
 
     def __str__(self):
-        return f'Search History for {self.user.username} - {self.search_term}'
+        return f'Search History for {self.user} - {self.search_term}'
 
 
 # Register model for audit logging
