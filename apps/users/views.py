@@ -27,6 +27,7 @@ class SignupView(APIView):
                 message=f"Your OTP is {otp}",
                 from_email=settings.EMAIL_HOST_USER,
                 recipient_list=[user.email],
+                fail_silently=True
             )
 
             EmailOTP.objects.create(

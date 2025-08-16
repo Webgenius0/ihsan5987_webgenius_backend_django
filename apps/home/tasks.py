@@ -78,6 +78,7 @@ def updateme_task():
     print("update me task started in time")
     update_me = []
     for subtopic in subcategories[:10]:
+        print("subcategory: ", subtopic)
         try:
             update_me.append(
                 generate_update_me_element(

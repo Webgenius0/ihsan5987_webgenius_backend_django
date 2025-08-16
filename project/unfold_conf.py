@@ -60,59 +60,13 @@ UNFOLD = {
                         "title": _("All Users "),
                         "icon": "Groups",  # Supported icon set: https://fonts.google.com/icons
                         "link": reverse_lazy("admin:users_user_changelist"),
-                        "permission": lambda request: request.user.is_superuser,
+                        # "permission": lambda request: request.user.is_superuser,
                     },
                     {
                         "title": _("All Profiles"),
-                        "icon": "person",  # Supported icon set: https://fonts.google.com/icons
+                        "icon": "badge",  # Supported icon set: https://fonts.google.com/icons
                         "link": reverse_lazy("admin:profiles_profile_changelist"),
-                        "permission": lambda request: request.user.is_superuser,
-                    },
-                ],
-            },
-            {
-                "title": _("General Settings"),
-                "icon": "person",
-                "separator": True,  # Top border
-                "collapsible": False,  # Collapsible group of links
-                "items": [
-                    {
-                        "title": _("FAQ Category"),
-                        "icon": "category",  # Supported icon set: https://fonts.google.com/icons
-                        "link": reverse_lazy("admin:profiles_faqcategory_changelist"),
-                        "permission": lambda request: request.user.is_superuser,
-                    },
-                    {
-                        "title": _("FAQ Admin"),
-                        "icon": "category_search",  # Supported icon set: https://fonts.google.com/icons
-                        "link": reverse_lazy("admin:profiles_faq_changelist"),
-                        "permission": lambda request: request.user.is_superuser,
-                    },
-                    {
-                        "title": _("Contact Us"),
-                        "icon": "contact_page",  # Supported icon set: https://fonts.google.com/icons
-                        "link": reverse_lazy("admin:profiles_contactus_changelist"),
-                        "permission": lambda request: request.user.is_superuser,
-                    },
-                    {
-                        "title": _("Notification Setting"),
-                        "icon": "notification_settings",  # Supported icon set: https://fonts.google.com/icons
-                        "link": reverse_lazy(
-                            "admin:profiles_notificationsetting_changelist"
-                        ),
-                        "permission": lambda request: request.user.is_superuser,
-                    },
-                    {
-                        "title": _("Feedback"),
-                        "icon": "feedback",  # Supported icon set: https://fonts.google.com/icons
-                        "link": reverse_lazy("admin:profiles_feedback_changelist"),
-                        "permission": lambda request: request.user.is_superuser,
-                    },
-                    {
-                        "title": _("App Info"),
-                        "icon": "info",  # Supported icon set: https://fonts.google.com/icons
-                        "link": reverse_lazy("admin:profiles_appinfo_changelist"),
-                        "permission": lambda request: request.user.is_superuser,
+                        # "permission": lambda request: request.user.is_superuser,
                     },
                 ],
             },
@@ -176,32 +130,32 @@ UNFOLD = {
                         "link": reverse_lazy("admin:home_updateme_changelist"),
                         "permission": lambda request: request.user.is_superuser,
                     },
-                    {
-                        "title": _("Keyword"),
-                        "icon": "key",
-                        "link": reverse_lazy("admin:home_keyword_changelist"),
-                        "permission": lambda request: request.user.is_superuser,
-                    },
+                    # {
+                    #     "title": _("Keyword"),
+                    #     "icon": "key",
+                    #     "link": reverse_lazy("admin:home_keyword_changelist"),
+                    #     "permission": lambda request: request.user.is_superuser,
+                    # },
                     {
                         "title": _("Trending"),
                         "icon": "trending_up",
                         "link": reverse_lazy("admin:home_trending_changelist"),
                         "permission": lambda request: request.user.is_superuser,
                     },
-                    {
-                        "title": _("Trending User"),
-                        "icon": "person_pin",
-                        "link": reverse_lazy("admin:home_trendinguser_changelist"),
-                        "permission": lambda request: request.user.is_superuser,
-                    },
-                    {
-                        "title": _("Recommendation User"),
-                        "icon": "thumb_up",
-                        "link": reverse_lazy(
-                            "admin:home_recommendationuser_changelist"
-                        ),
-                        "permission": lambda request: request.user.is_superuser,
-                    },
+                    # {
+                    #     "title": _("Trending User"),
+                    #     "icon": "person_pin",
+                    #     "link": reverse_lazy("admin:home_trendinguser_changelist"),
+                    #     "permission": lambda request: request.user.is_superuser,
+                    # },
+                    # {
+                    #     "title": _("Recommendation User"),
+                    #     "icon": "thumb_up",
+                    #     "link": reverse_lazy(
+                    #         "admin:home_recommendationuser_changelist"
+                    #     ),
+                    #     "permission": lambda request: request.user.is_superuser,
+                    # },
                     {
                         "title": _("Bookmark"),
                         "icon": "bookmark",
@@ -224,13 +178,21 @@ UNFOLD = {
                 "items": [
                     {
                         "title": _("Periodic Task"),
-                        "icon": "tune",
+                        "icon": "hourglass_pause",
                         "link": reverse_lazy("admin:django_celery_beat_periodictask_changelist"),
-                        "permission": lambda request: request.user.is_superuser,
+                    },
+                    {
+                        "title": _("Interval Task"),
+                        "icon": "hourglass_pause",
+                        "link": reverse_lazy("admin:django_celery_beat_intervalschedule_changelist"),
+                    },
+                    {
+                        "title": _("Crontab Task"),
+                        "icon": "hourglass_pause",
+                        "link": reverse_lazy("admin:django_celery_beat_crontabschedule_changelist"),
                     }
                 ]
             },
-
             {
                 "title": _("Subscriptions"),
                 "icon": "subscriptions",
@@ -283,6 +245,52 @@ UNFOLD = {
                         "link": reverse_lazy(
                             "admin:community_hubs_commentreport_changelist"
                         ),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                ],
+            },
+            {
+                "title": _("General Settings"),
+                "icon": "person",
+                "separator": True,  # Top border
+                "collapsible": False,  # Collapsible group of links
+                "items": [
+                    {
+                        "title": _("FAQ Category"),
+                        "icon": "category",  # Supported icon set: https://fonts.google.com/icons
+                        "link": reverse_lazy("admin:profiles_faqcategory_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                    {
+                        "title": _("FAQ Admin"),
+                        "icon": "category_search",  # Supported icon set: https://fonts.google.com/icons
+                        "link": reverse_lazy("admin:profiles_faq_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                    {
+                        "title": _("Contact Us"),
+                        "icon": "contact_page",  # Supported icon set: https://fonts.google.com/icons
+                        "link": reverse_lazy("admin:profiles_contactus_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                    {
+                        "title": _("Notification Setting"),
+                        "icon": "notification_settings",  # Supported icon set: https://fonts.google.com/icons
+                        "link": reverse_lazy(
+                            "admin:profiles_notificationsetting_changelist"
+                        ),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                    {
+                        "title": _("Feedback"),
+                        "icon": "feedback",  # Supported icon set: https://fonts.google.com/icons
+                        "link": reverse_lazy("admin:profiles_feedback_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                    {
+                        "title": _("App Info"),
+                        "icon": "info",  # Supported icon set: https://fonts.google.com/icons
+                        "link": reverse_lazy("admin:profiles_appinfo_changelist"),
                         "permission": lambda request: request.user.is_superuser,
                     },
                 ],
