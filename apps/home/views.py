@@ -3,6 +3,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.validators import ValidationError
 from rest_framework import status
+from django.db import transaction
+from apps.home.models import SearchTag, SearchOption
+from SmallTalk.search_bar import search_bar
 from django.shortcuts import get_object_or_404
 from django.forms.models import model_to_dict
 from django.contrib.contenttypes.models import ContentType
@@ -319,7 +322,7 @@ class BookmarkAPIView(APIView):
         data = request.data
 
         try:
-            content_type = ContentType.objects.get(model=data["obj_type"]) 
+            content_type = ContentType.objects.get(model=data["obj_type"])
             model_class = content_type.model_class()
             # obj = model_class.objects.get(pk=data["obj_id"])
         except ContentType.DoesNotExist:
@@ -428,32 +431,23 @@ class BookmarkAPIView(APIView):
         return Response(response_data, status=status.HTTP_200_OK)
 
 
-# import transaction atomic
-from django.db import transaction
-from apps.home.models import SearchTag, SearchOption
-from SmallTalk.search_bar import search_bar
-
-
 # class SearchAPIView(APIView):
 #     permission_classes = [IsAuthenticated]
 
 #     def post(self, request):
 #         data = request.data
 #         get_news = data.get("get_news", False)
-
-
-
 #         print(f"get_news: {get_news}")
 #         search_term = data["search_term"].lower()
 #         print(f"Search term received: {search_term}")
-        
+
 #         # save search term in search history if it is not already there
 #         search_history = SearchHistory.objects.filter(search_term=search_term).first()
 #         if not search_history:
 #             SearchHistory.objects.create(search_term=search_term,user=request.user)
 #             print("search history created")
-        
-        
+
+
 #         # get or create search_term
 #         try:
 #             search_tag = SearchTag.objects.get(tag_name__iexact=search_term)

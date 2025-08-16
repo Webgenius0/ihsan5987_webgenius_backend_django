@@ -7,7 +7,7 @@ from .models import Profile, FAQ, FAQCategory, ContactUs, NotificationSetting, A
 # Profile Serializer
 class ProfileSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source='user.name', required=False)
-    image = serializers.ImageField(required=False) 
+    image = serializers.ImageField(required=False)
 
     class Meta:
         model = Profile
@@ -53,14 +53,14 @@ class MyPostSerializer(serializers.ModelSerializer):
             comments = obj._prefetched_objects_cache['comments']
         else:
             comments = obj.comments.select_related('user__profile')
-        
+
         users = {comment.user.id: comment.user for comment in comments}.values()
-    
+
         # Limit to 5 for avatars (you can make this dynamic or full list based on your UI)
         max_users = 5
         user_list = list(users)[:max_users]
         # overflow = len(users) - max_users if len(users) > max_users else 0
-        
+
         return {
             'avatars': UserSerializer(user_list, many=True, context=self.context).data,
         }
@@ -70,7 +70,7 @@ class MyPostSerializer(serializers.ModelSerializer):
         if hasattr(obj, '_prefetched_objects_cache') and 'comments' in obj._prefetched_objects_cache:
             return len(obj._prefetched_objects_cache['comments'])
         return obj.comments.count()
-    
+
 
 # FAQ Serializer
 class FAQSerializer(serializers.ModelSerializer):

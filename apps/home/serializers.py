@@ -47,7 +47,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 class FeedbackSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
-    
+
     class Meta:
         model = Feedback
         fields = ["id", "user", "content", "rating", "created_at"]
