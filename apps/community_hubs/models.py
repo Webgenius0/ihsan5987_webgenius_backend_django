@@ -2,28 +2,14 @@ from django.db import models
 from apps.users.models import User
 from auditlog.registry import auditlog
 from cloudinary.models import CloudinaryField
+from django.utils.functional import cached_property
 from apps.home.models import Category
 
 
 class Post(models.Model):
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name="posts"
-    )
-    category = models.ForeignKey(
-        'home.Category',
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True
-    )
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="posts")
     title = models.CharField(max_length=255, null=True, blank=True)
-    category = models.ForeignKey(
-        Category,
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True
-    )
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True)
     content = models.TextField()
     image = CloudinaryField('image', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -34,6 +20,7 @@ class Post(models.Model):
             return self.image.url
         return None
 
+    @cached_property
     def comment_count(self):
         return self.comments.count()
 

@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "import_export",
     "schema_viewer",
     "auditlog",
+    "drf_yasg",
     # cloudinary
     "cloudinary",
     "django_celery_beat",
@@ -178,14 +179,14 @@ REST_FRAMEWORK = {
 
 # Email sending setup
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp.gmail.com"  # or your SMTP provider
+EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "towhidulislam.mail@gmail.com"
-EMAIL_HOST_PASSWORD = "bdui nxzn dogt fqxl"
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-ADMIN_EMAIL = "towhidulislam.mail@gmail.com"
+ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", EMAIL_HOST_USER)
 
 # CORS setup
 CORS_ALLOWED_ORIGINS = [

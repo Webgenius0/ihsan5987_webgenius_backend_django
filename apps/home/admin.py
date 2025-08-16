@@ -81,7 +81,7 @@ class ClockedScheduleAdmin(BaseClockedScheduleAdmin, ModelAdmin):
 # Category & Subcategory
 @admin.register(Category)
 class CategoryAdmin(ModelAdmin):
-    list_display = ("category_name", "created_at")
+    list_display = ("id", "category_name", "created_at")
     search_fields = ("category_name",)
     ordering = ("-created_at",)
     list_per_page = 20

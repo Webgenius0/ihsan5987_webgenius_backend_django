@@ -34,7 +34,7 @@ class ProfileView(APIView):
             "data": serializer.data
         }
         return Response(response, status=status.HTTP_200_OK)
-    
+
     def put(self, request):
         profile = request.user.profile
         serializer = ProfileSerializer(profile, data=request.data, partial=True)
