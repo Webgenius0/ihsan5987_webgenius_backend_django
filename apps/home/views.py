@@ -47,7 +47,13 @@ class CategoryListAPIView(APIView):
     def get(self, request):
         categories = Category.objects.all()
         serializer = CategorySerializer(categories, many=True)
-        return Response(serializer.data)
+        response = {
+            "status": status.HTTP_200_OK,
+            "success": True,
+            "message": "Categories fetched successfully",
+            "data": serializer.data
+        }
+        return Response(response, status=status.HTTP_200_OK)
 
 
 class CategoryDetailAPIView(APIView):
@@ -435,7 +441,7 @@ from SmallTalk.search_bar import search_bar
 #         data = request.data
 #         get_news = data.get("get_news", False)
 
-        
+
 
 #         print(f"get_news: {get_news}")
 #         search_term = data["search_term"].lower()
@@ -543,7 +549,6 @@ from SmallTalk.search_bar import search_bar
 #             }
 #             return Response(response_data, status=status.HTTP_200_OK)
 #         return Response(status=status.HTTP_404_NOT_FOUND)
-
 
 
 class SearchAPIView(APIView):

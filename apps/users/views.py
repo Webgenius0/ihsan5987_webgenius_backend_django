@@ -571,7 +571,7 @@ class LogoutView(APIView):
             "success": True,
             "message": "Logout successful."
         }, status=status.HTTP_200_OK)
-        
+
 
 class ProtectedView(APIView):
     def get(self, request):

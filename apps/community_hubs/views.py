@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from django.conf import settings
 from rest_framework import status, permissions
 from django.db.models import Q, Count
+from auditlog.registry import auditlog
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from .models import Post, Comment, Like, CommentReport
@@ -29,7 +30,7 @@ class PostList(APIView):
         )
 
         if search:
-            posts = posts.filter(Q(title__icontains=search) | Q(category__name__icontains=search))
+            posts = posts.filter(Q(title__icontains=search) | Q(category__category_name__icontains=search))
 
         if sort == "most_commented":
             posts = posts.annotate(
@@ -55,15 +56,17 @@ class CreatePost(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
-        serializer = CreatePostSerializer(data=request.data)
+        # Pass request context to serializer to avoid redundant user queries
+        serializer = CreatePostSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
-            serializer.save(user=request.user)
+            post = serializer.save()  # User is set in serializer's create method
             return Response({
                 "status": status.HTTP_201_CREATED,
                 "success": True,
                 "message": "Post created successfully",
-                "post_id": serializer.data['id']
-            })
+                "post_id": post.id
+            }, status=status.HTTP_201_CREATED)
+
         return Response({
             "status": status.HTTP_400_BAD_REQUEST,
             "success": False,

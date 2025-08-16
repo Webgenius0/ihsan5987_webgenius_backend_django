@@ -10,7 +10,7 @@ from django.shortcuts import get_object_or_404
 
 class GeneralNotificationListView(APIView):
     permission_classes = [IsAuthenticated]
-    
+
     def get(self, request):
         try:
             notifications = Notification.objects.filter(recipient=request.user, category='general')\
@@ -38,7 +38,7 @@ class GeneralNotificationListView(APIView):
 
 class UnreadNotificationCountView(APIView):
     permission_classes = [IsAuthenticated]
-    
+
     def get(self, request):
         count = Notification.objects.filter(recipient=request.user, is_read=False).count()
         return Response({
@@ -51,7 +51,7 @@ class UnreadNotificationCountView(APIView):
 
 class MarkAsReadView(APIView):
     permission_classes = [IsAuthenticated]
-    
+
     def patch(self, request, pk):
         notification = get_object_or_404(Notification, pk=pk, recipient=request.user)
 
@@ -60,7 +60,7 @@ class MarkAsReadView(APIView):
         notification.save()
 
         serializer = NotificationUpdateSerializer(notification, data=request.data, partial=True)
-            
+
         if serializer.is_valid():
             serializer.save()
             response = {
@@ -75,13 +75,13 @@ class MarkAsReadView(APIView):
 
 class MarkAllAsReadView(APIView):
     permission_classes = [IsAuthenticated]
-    
+
     def post(self, request):
         updated = Notification.objects.filter(
-            recipient=request.user, 
+            recipient=request.user,
             is_read=False
         ).update(is_read=True)
-        
+
         return Response(
             {
                 "success": True,
@@ -108,8 +108,8 @@ class RegisterDeviceView(APIView):
             "success": True,
             "message": "Device registered successfully",
         }, status=status.HTTP_200_OK)
-    
-    
+
+
 class DeleteDeviceView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -126,14 +126,14 @@ class DeleteDeviceView(APIView):
                 "success": True,
                 "message": "Device deleted successfully",
             }, status=status.HTTP_200_OK)
-        
+
         except FCMDevice.DoesNotExist:
             return Response({
                 "status": status.HTTP_404_NOT_FOUND,
                 "success": False,
                 "message": "Device not found",
             }, status=status.HTTP_404_NOT_FOUND)
-        
+
 
 # System notifications
 class SystemNotificationListView(APIView):
@@ -158,8 +158,8 @@ class UnreadSystemNotificationCountView(APIView):
 
     def get(self, request):
         count = Notification.objects.filter(
-            recipient=request.user, 
-            category='system', 
+            recipient=request.user,
+            category='system',
             is_read=False
         ).count()
         return Response({'unread_count': count}, status=status.HTTP_200_OK)

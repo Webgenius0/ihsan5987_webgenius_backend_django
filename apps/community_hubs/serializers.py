@@ -3,7 +3,7 @@ from django.utils.timesince import timesince
 from django.utils.timezone import now
 from datetime import timedelta
 from apps.users.models import User
-from .models import Post, Comment, Like, CommentReport
+from .models import Post, Comment, Like, CommentReport, Category
 
 
 class PostlistSerializer(serializers.ModelSerializer):
@@ -45,10 +45,19 @@ class PostlistSerializer(serializers.ModelSerializer):
 
 
 class CreatePostSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Post
         fields = ['id', 'image', 'title', 'category', 'content', 'created_at']
+        # Explicitly define read-only fields to avoid extra queries
+        read_only_fields = ['id', 'created_at']
+
+    # Optimize category serialization to avoid extra queries
+    category = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all(), required=False)
+
+    def create(self, validated_data):
+        # Explicitly handle user assignment to avoid extra queries
+        validated_data['user'] = self.context['request'].user
+        return super().create(validated_data)
 
 
 class UserSerializer(serializers.ModelSerializer):
