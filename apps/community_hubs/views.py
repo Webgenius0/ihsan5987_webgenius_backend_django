@@ -181,10 +181,10 @@ class CommentView(APIView):
 
         comment.delete()
         return Response({
-            "status": status.HTTP_204_NO_CONTENT,
+            "status": status.HTTP_200_OK,
             "success": True,
             "message": "Comment deleted successfully"
-        }, status=status.HTTP_204_NO_CONTENT)
+        }, status=status.HTTP_200_OK)
 
 
 class LikeView(APIView):
