@@ -33,23 +33,23 @@ class Subcategory(models.Model):
 auditlog.register(Subcategory)
 
 
-# Topic Tags
-class TopicTag(models.Model):
-    tag_names = models.TextField()
-    created_at = models.DateField(auto_now_add=True)
+# # Topic Tags
+# class TopicTag(models.Model):
+#     tag_names = models.TextField()
+#     created_at = models.DateField(auto_now_add=True)
 
-    def __str__(self):
-        return self.tag_names
+#     def __str__(self):
+#         return self.tag_names
 
 
-# Register model for audit logging
-auditlog.register(TopicTag)
+# # Register model for audit logging
+# auditlog.register(TopicTag)
 
 
 # Topic
 class Topic(models.Model):
     name = models.CharField(max_length=255)
-    topic_tags = models.ForeignKey(TopicTag, on_delete=models.SET_NULL, null=True, blank=True)
+    # topic_tags = models.ForeignKey(TopicTag, on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateField(auto_now_add=True)
 
     def __str__(self):
@@ -77,12 +77,9 @@ class Search(models.Model):
 auditlog.register(Search)
 
 
-class SearchUser(models.Model):
-    pass
-
-
 # Search Tags
 class SearchTag(models.Model):
+    """SEARCH TERM, USED FOR SEARCHING"""
     # search = models.ForeignKey(Search, on_delete=models.CASCADE)
     tag_name = models.CharField(max_length=200)
     created_at = models.DateField(auto_now_add=True)
@@ -100,6 +97,7 @@ auditlog.register(SearchTag)
 
 
 class SearchOption(models.Model):
+    """GENERATED OPTIONS FOR SEARCHING"""
     search_tag = models.ForeignKey(SearchTag, on_delete=models.CASCADE, related_name='options')
     keyword = models.CharField(max_length=200)
     category = models.CharField(max_length=200, blank=True, null=True)
@@ -115,6 +113,7 @@ auditlog.register(SearchOption)
 
 
 class SearchHistory(models.Model):
+    """SEARCH HISTORY FOR EACH USERS"""
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='search_history')
     search_term = models.CharField(max_length=200)
     is_delete = models.BooleanField(default=False)
@@ -186,22 +185,22 @@ class UpdateMe(models.Model):
 auditlog.register(UpdateMe)
 
 
-class UpdateMeUser(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    update_me = models.ForeignKey(UpdateMe, on_delete=models.CASCADE)
-    clicked_at = models.DateField(auto_now_add=True)
+# class UpdateMeUser(models.Model):
+#     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+#     update_me = models.ForeignKey(UpdateMe, on_delete=models.CASCADE)
+#     clicked_at = models.DateField(auto_now_add=True)
 
-    def __str__(self):
-        return self.user.name
+#     def __str__(self):
+#         return self.user.name
 
 
 # Register model for audit logging
-auditlog.register(UpdateMeUser)
+# auditlog.register(UpdateMeUser)
 
 
 # Keywords
-class KeyWord(models.Model):
-    key_words = models.TextField()
+# class KeyWord(models.Model):
+#     key_words = models.TextField()
 
 
 # Trending
@@ -226,24 +225,24 @@ auditlog.register(Trending)
 
 
 # User-Interaction Tables
-class TrendingUser(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    trending = models.ForeignKey(Trending, on_delete=models.CASCADE)
-    clicked_at = models.DateField()
+# class TrendingUser(models.Model):
+#     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+#     trending = models.ForeignKey(Trending, on_delete=models.CASCADE)
+#     clicked_at = models.DateField()
 
 
-# Register model for audit logging
-auditlog.register(TrendingUser)
+# # Register model for audit logging
+# auditlog.register(TrendingUser)
 
 
-class RecommendationUser(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    recommendation = models.ForeignKey(Recommendation, on_delete=models.CASCADE)
-    clicked_at = models.DateField()
+# class RecommendationUser(models.Model):
+#     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+#     recommendation = models.ForeignKey(Recommendation, on_delete=models.CASCADE)
+#     clicked_at = models.DateField()
 
 
-# Register model for audit logging
-auditlog.register(RecommendationUser)
+# # Register model for audit logging
+# auditlog.register(RecommendationUser)
 
 
 # class Bookmark(models.Model):
