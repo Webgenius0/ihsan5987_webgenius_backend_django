@@ -51,7 +51,7 @@ def notify_on_comment_creation(sender, instance, created, **kwargs):
         if post_creator != instance.user:
             try:
                 settings = NotificationSetting.objects.get(user=post_creator)
-                if settings.comment_on_posts:
+                if settings.comments_on_posts:
                     message = f"{instance.user.name} commented on your post: {instance.post.title}"
                     send_notification(
                         sender=instance.user,  # ✅ Use instance.user here
