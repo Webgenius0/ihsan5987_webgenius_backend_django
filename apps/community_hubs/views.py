@@ -198,10 +198,10 @@ class LikeView(APIView):
         if like_qs.exists():
             like_qs.delete()
             return Response({
-                "status": status.HTTP_204_NO_CONTENT,
+                "status": status.HTTP_200_OK,
                 "success": True,
                 "message": "Like removed successfully"
-            }, status=status.HTTP_204_NO_CONTENT)
+            }, status=status.HTTP_200_OKR)
 
         else:
             like = Like.objects.create(user=request.user, comment=comment)
