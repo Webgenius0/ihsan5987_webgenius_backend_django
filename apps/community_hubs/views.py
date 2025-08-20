@@ -201,7 +201,7 @@ class LikeView(APIView):
                 "status": status.HTTP_200_OK,
                 "success": True,
                 "message": "Like removed successfully"
-            }, status=status.HTTP_200_OKR)
+            }, status=status.HTTP_200_OK)
 
         else:
             like = Like.objects.create(user=request.user, comment=comment)
