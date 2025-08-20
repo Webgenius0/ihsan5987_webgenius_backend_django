@@ -2,6 +2,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from apps.community_hubs.models import Post, Comment, Like
 from apps.users.models import User
+from firebase_admin import messaging
 from django.db.models import Q
 from .services import send_notification
 from apps.notifications.models import Notification
@@ -38,10 +39,14 @@ def notify_on_post_creation(sender, instance, created, **kwargs):
     devices = FCMDevice.objects.filter(user_id__in=recipient_ids, active=True)
 
     if devices.exists():
-        devices.send_message(
-            title="New Post",
-            body=f"{instance.user.name} created a new post: {instance.title}"
+        # Build the FCM message
+        message = messaging.Message(
+            notification=messaging.Notification(
+                title="New Post",
+                body=f"{instance.user.name} created a new post: {instance.title}"
+            )
         )
+        devices.send_message(message)
 
 
 @receiver(post_save, sender=Comment)

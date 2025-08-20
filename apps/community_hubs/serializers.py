@@ -83,18 +83,12 @@ class LikeSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
-    like_count = serializers.SerializerMethodField()
+    like_count = serializers.IntegerField(read_only=True)  # Use annotated field
     create_time = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
-        fields = ['id', 'user', 'text', 'create_time', 'like_count',]
-
-    def get_like_count(self, obj):
-        # Use cached property if available, otherwise count
-        if hasattr(obj, '_prefetched_objects_cache') and 'likes' in obj._prefetched_objects_cache:
-            return len(obj._prefetched_objects_cache['likes'])
-        return obj.likes.count()
+        fields = ['id', 'user', 'text', 'create_time', 'like_count']
 
     def get_create_time(self, obj):
         diff = now() - obj.created_at

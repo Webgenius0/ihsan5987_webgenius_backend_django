@@ -4,6 +4,9 @@ from pathlib import Path
 import cloudinary
 from datetime import timedelta
 from dotenv import load_dotenv
+import firebase_admin
+from firebase_admin import credentials
+
 
 load_dotenv()
 
@@ -279,3 +282,10 @@ LOGGING = {
 
 CELERY_BROKER_URL = "redis://localhost:6379/0"  # or RabbitMQ if you're using it
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+
+
+cred = credentials.Certificate("firebase-adminsdk.json")
+
+# Prevent re-initialization if it's already initialized
+if not firebase_admin._apps:
+    firebase_admin.initialize_app(cred)
