@@ -1,5 +1,14 @@
 from django.urls import path
-from .views import ProfileView, MyPostList, MyPostDetail, FAQList, FAQCategoryList, ContactUsList, NotificationSettingView, AppInformationView
+from .views import (
+    ProfileView,
+    MyPostList,
+    MyPostDetail,
+    FAQList,
+    FAQCategoryList,
+    ContactUsList,
+    NotificationSettingView,
+    AppInformationView
+)
 
 urlpatterns = [
     path('profile/', ProfileView.as_view(), name='profile'),

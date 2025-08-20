@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from apps.community_hubs.models import Post
-from apps.community_hubs.serializers import UserSerializer
+from apps.community_hubs.serializers import UserSerializer, CommentSerializer
 from .models import Profile, FAQ, FAQCategory, ContactUs, NotificationSetting, AppInfo
 
 
@@ -38,38 +38,38 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 # My Post Serializer
 class MyPostSerializer(serializers.ModelSerializer):
-    # user = ProfileSerializer(source='user.profile', read_only=True)
-    comment_count = serializers.SerializerMethodField()
+    comment_count = serializers.IntegerField(read_only=True)  # Use annotated field
     commented_users = serializers.SerializerMethodField()
-    image = serializers.ImageField(required=False)
+    image_url = serializers.SerializerMethodField()
+    category_name = serializers.CharField(source="category.name", read_only=True, allow_null=True)
+    comments = CommentSerializer(many=True, read_only=True)
 
     class Meta:
         model = Post
-        fields = ['id', 'image', 'title', 'category', 'content', 'created_at', 'comment_count', 'commented_users']
+        fields = [
+            'id',
+            'image_url',
+            'title',
+            'category_name',
+            'content',
+            'created_at',
+            'comment_count',
+            'commented_users',
+            'comments'
+        ]
+
+    def get_image_url(self, obj):
+        return obj.image.url if obj.image else None
 
     def get_commented_users(self, obj):
-        # Use prefetched comments if available
-        if hasattr(obj, '_prefetched_objects_cache') and 'comments' in obj._prefetched_objects_cache:
-            comments = obj._prefetched_objects_cache['comments']
-        else:
-            comments = obj.comments.select_related('user__profile')
-
+        # Use prefetched comments
+        comments = obj._prefetched_objects_cache.get('comments', [])
         users = {comment.user.id: comment.user for comment in comments}.values()
-
-        # Limit to 5 for avatars (you can make this dynamic or full list based on your UI)
         max_users = 5
         user_list = list(users)[:max_users]
-        # overflow = len(users) - max_users if len(users) > max_users else 0
-
         return {
             'avatars': UserSerializer(user_list, many=True, context=self.context).data,
         }
-
-    def get_comment_count(self, obj):
-        # Use cached property if available, otherwise count
-        if hasattr(obj, '_prefetched_objects_cache') and 'comments' in obj._prefetched_objects_cache:
-            return len(obj._prefetched_objects_cache['comments'])
-        return obj.comments.count()
 
 
 # FAQ Serializer

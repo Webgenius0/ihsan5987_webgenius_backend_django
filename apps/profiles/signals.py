@@ -15,5 +15,3 @@ def create_user_profile(sender, instance, created, **kwargs):
 def create_notification_setting(sender, instance, created, **kwargs):
     if created:
         NotificationSetting.objects.create(user=instance)
-
-
