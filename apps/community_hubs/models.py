@@ -14,15 +14,15 @@ class Post(models.Model):
     image = CloudinaryField('image', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    @property
-    def image_url(self):
-        if self.image:
-            return self.image.url
-        return None
+    # @property
+    # def image_url(self):
+    #     if self.image:
+    #         return self.image.url
+    #     return None
 
-    @cached_property
-    def comment_count(self):
-        return self.comments.count()
+    # @cached_property
+    # def comment_count(self):
+    #     return self.comments.count()
 
     def __str__(self):
         return f"{self.title} - {self.user.name}"

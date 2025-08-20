@@ -3,8 +3,9 @@ from rest_framework import status
 from rest_framework.views import APIView
 from apps.community_hubs.models import Post
 from django.shortcuts import get_object_or_404
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Count
 from rest_framework.response import Response
+from apps.community_hubs.models import Comment
 from rest_framework.permissions import IsAuthenticated
 from .models import Profile, FAQ, FAQCategory, ContactUs, NotificationSetting, AppInfo
 from .serializers import ProfileSerializer, MyPostSerializer, FAQSerializer, FAQCategorySerializer, ContactUsSerializer, NotificationSettingSerializer, AppInfoSerializer
@@ -104,15 +105,20 @@ class MyPostDetail(APIView):
 
     def get_object(self, pk, user, optimized=False):
         """
-        Reusable method to fetch a post.
-        If optimized=True, fetch related fields for read (GET).
+        Fetch a post with optional optimization for GET requests.
+        If optimized=True, fetch related fields and annotate counts.
         Otherwise, fetch minimal fields for update/delete.
         """
         qs = Post.objects.filter(pk=pk, user=user)
         if optimized:
             qs = qs.select_related("user__profile", "category").prefetch_related(
-                Prefetch("comments", queryset=Comment.objects.select_related("user__profile"))
-            )
+                Prefetch(
+                    "comments",
+                    queryset=Comment.objects.select_related("user__profile").filter(is_active=True).annotate(
+                        like_count=Count("likes", filter=Q(likes__is_active=True))
+                    )
+                )
+            ).annotate(comment_count=Count("comments", filter=Q(comments__is_active=True)))
         return get_object_or_404(qs)
 
     def get(self, request, pk):
@@ -126,7 +132,7 @@ class MyPostDetail(APIView):
         }, status=status.HTTP_200_OK)
 
     def put(self, request, pk):
-        post = self.get_object(pk, request.user)  # minimal fetch for update
+        post = self.get_object(pk, request.user)  # Minimal fetch for update
         serializer = MyPostSerializer(post, data=request.data, partial=True, context={"request": request})
         if serializer.is_valid():
             serializer.save()
@@ -136,7 +142,6 @@ class MyPostDetail(APIView):
                 "message": "Post updated successfully",
                 "data": serializer.data,
             }, status=status.HTTP_200_OK)
-
         return Response({
             "status": status.HTTP_400_BAD_REQUEST,
             "success": False,
@@ -145,13 +150,14 @@ class MyPostDetail(APIView):
         }, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
-        post = self.get_object(pk, request.user)  # minimal fetch
+        post = self.get_object(pk, request.user)  # Minimal fetch
         post.delete()
         return Response({
             "status": status.HTTP_200_OK,
             "success": True,
             "message": "Post deleted successfully",
         }, status=status.HTTP_200_OK)
+
 
 # FAQ View
 class FAQList(APIView):
