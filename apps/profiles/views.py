@@ -2,6 +2,8 @@ from django.db.models import Q
 from rest_framework import status
 from rest_framework.views import APIView
 from apps.community_hubs.models import Post
+from django.shortcuts import get_object_or_404
+from django.db.models import Prefetch
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from .models import Profile, FAQ, FAQCategory, ContactUs, NotificationSetting, AppInfo
@@ -100,72 +102,56 @@ class MyPostList(APIView):
 class MyPostDetail(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, pk):
-        try:
-            post = Post.objects.select_related('user__profile', 'category').prefetch_related(
-                'comments__user__profile'
-            ).get(pk=pk, user=request.user)
-        except Post.DoesNotExist:
-            return Response({
-                "status": status.HTTP_404_NOT_FOUND,
-                "success": False,
-                "message": "Post not found"
-            }, status=status.HTTP_404_NOT_FOUND)
+    def get_object(self, pk, user, optimized=False):
+        """
+        Reusable method to fetch a post.
+        If optimized=True, fetch related fields for read (GET).
+        Otherwise, fetch minimal fields for update/delete.
+        """
+        qs = Post.objects.filter(pk=pk, user=user)
+        if optimized:
+            qs = qs.select_related("user__profile", "category").prefetch_related(
+                Prefetch("comments", queryset=Comment.objects.select_related("user__profile"))
+            )
+        return get_object_or_404(qs)
 
-        serializer = MyPostSerializer(post, context={'request': request})
-        response = {
+    def get(self, request, pk):
+        post = self.get_object(pk, request.user, optimized=True)
+        serializer = MyPostSerializer(post, context={"request": request})
+        return Response({
             "status": status.HTTP_200_OK,
             "success": True,
             "message": "Post retrieved successfully",
-            "data": serializer.data
-        }
-        return Response(response, status=status.HTTP_200_OK)
+            "data": serializer.data,
+        }, status=status.HTTP_200_OK)
 
     def put(self, request, pk):
-        try:
-            post = Post.objects.get(pk=pk, user=request.user)
-        except Post.DoesNotExist:
-            return Response({
-                "status": status.HTTP_404_NOT_FOUND,
-                "success": False,
-                "message": "Post not found"
-            }, status=status.HTTP_404_NOT_FOUND)
-
-        serializer = MyPostSerializer(post, data=request.data, partial=True, context={'request': request})
+        post = self.get_object(pk, request.user)  # minimal fetch for update
+        serializer = MyPostSerializer(post, data=request.data, partial=True, context={"request": request})
         if serializer.is_valid():
             serializer.save()
-            response = {
+            return Response({
                 "status": status.HTTP_200_OK,
                 "success": True,
                 "message": "Post updated successfully",
-                "data": serializer.data
-            }
-            return Response(response, status=status.HTTP_200_OK)
+                "data": serializer.data,
+            }, status=status.HTTP_200_OK)
 
         return Response({
             "status": status.HTTP_400_BAD_REQUEST,
             "success": False,
             "message": "Invalid data",
-            "errors": serializer.errors
+            "errors": serializer.errors,
         }, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
-        try:
-            post = Post.objects.get(pk=pk, user=request.user)
-        except Post.DoesNotExist:
-            return Response({
-                "status": status.HTTP_404_NOT_FOUND,
-                "success": False,
-                "message": "Post not found"
-            }, status=status.HTTP_404_NOT_FOUND)
-
+        post = self.get_object(pk, request.user)  # minimal fetch
         post.delete()
         return Response({
             "status": status.HTTP_200_OK,
             "success": True,
-            "message": "Post deleted successfully"
+            "message": "Post deleted successfully",
         }, status=status.HTTP_200_OK)
-
 
 # FAQ View
 class FAQList(APIView):
