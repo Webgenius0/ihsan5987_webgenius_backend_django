@@ -99,6 +99,27 @@ class PostDetail(APIView):
             "data": serializer.data
         }, status=status.HTTP_200_OK)
 
+    def delete(self, request, post_id):
+        post = Post.objects.filter(id=post_id, user=request.user).first()
+        if not post:
+            return Response({
+                "status": status.HTTP_403_FORBIDDEN,
+                "success": False,
+                "message": "You do not have permission to delete this post"
+            }, status=status.HTTP_403_FORBIDDEN)
+
+        # Bulk delete related objects to avoid N+1 queries
+        CommentReport.objects.only('id').filter(comment__post=post).delete()
+        Like.objects.only('id').filter(comment__post=post).delete()
+        Comment.objects.only('id').filter(post=post).delete()
+        post.delete()
+
+        return Response({
+            "status": status.HTTP_204_NO_CONTENT,
+            "success": True,
+            "message": "Post deleted successfully"
+        }, status=status.HTTP_204_NO_CONTENT)
+
 
 class CommentView(APIView):
     permission_classes = [permissions.IsAuthenticated]
