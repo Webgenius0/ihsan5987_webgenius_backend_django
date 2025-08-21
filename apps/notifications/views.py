@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from .models import Notification
+from django.db.models import Q
 from .serializers import GeneralNotificationSerializer, NotificationUpdateSerializer, SystemNotificationSerializer
 from fcm_django.models import FCMDevice
 from django.shortcuts import get_object_or_404
@@ -13,10 +14,11 @@ class GeneralNotificationListView(APIView):
 
     def get(self, request):
         try:
-            notifications = Notification.objects.filter(recipient=request.user, category='general')\
-                .select_related('recipient', 'sender', 'related_post')\
-                .prefetch_related('sender__profile', 'recipient__profile')\
-                .order_by('-created_at')
+            notifications = (Notification.objects.filter(
+                Q(recipient=request.user) | Q(notification_type='post'))
+                .select_related("sender__profile", "related_post")
+                .order_by("-created_at")
+            )
             serializer = GeneralNotificationSerializer(notifications, many=True)
             response = {
                 "status": status.HTTP_200_OK,

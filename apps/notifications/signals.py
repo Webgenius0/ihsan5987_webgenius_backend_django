@@ -15,38 +15,35 @@ def notify_on_post_creation(sender, instance, created, **kwargs):
     if not created:
         return
 
-    # Fetch all users with notification settings in one query
-    settings_qs = NotificationSetting.objects.exclude(user=instance.user).filter(
-        Q(posts_on_my_interests=True) | Q(trending_topics=True) | Q(my_recommendations=True)
-    ).select_related('user')
+    # Create only one notification record (like comments/likes)
+    notification = Notification.objects.create(
+        sender=instance.user,
+        recipient=None,   # 🚨 Make this nullable if not already
+        notification_type='post',
+        message=f"{instance.user.name} created a new post: {instance.title}",
+        related_post=instance
+    )
 
-    notifications = [
-        Notification(
-            sender=instance.user,
-            recipient=setting.user,
-            notification_type='post',
-            message=f"{instance.user.name} created a new post: {instance.title}",
-            related_post=instance
-        )
-        for setting in settings_qs
-    ]
+    # Fetch recipients based on NotificationSetting
+    recipient_ids = list(
+        NotificationSetting.objects.exclude(user=instance.user)
+        .filter(posts_on_my_interests=True)  # apply filters as needed
+        .values_list('user_id', flat=True)
+    )
 
-    # Bulk create notifications
-    Notification.objects.bulk_create(notifications)
-
-    # Fetch all devices for recipients in one query
-    recipient_ids = [setting.user.id for setting in settings_qs]
+    # Fetch all devices at once
     devices = FCMDevice.objects.filter(user_id__in=recipient_ids, active=True)
 
     if devices.exists():
-        # Build the FCM message
-        message = messaging.Message(
-            notification=messaging.Notification(
-                title="New Post",
-                body=f"{instance.user.name} created a new post: {instance.title}"
-            )
+        devices.send_message(
+            title="New Post",
+            body=f"{instance.user.name} created a new post: {instance.title}",
+            data={
+                "notification_id": str(notification.id),
+                "related_post_id": instance.id,
+                "type": "post",
+            }
         )
-        devices.send_message(message)
 
 
 @receiver(post_save, sender=Comment)
