@@ -34,7 +34,7 @@ class Notification(models.Model):
     }
 
     sender = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="sent_notifications")
-    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications', null=True, blank=True)
     category = models.CharField(max_length=20, choices=CATEGORIES, default='general')
     notification_type = models.CharField(max_length=20, choices=NOTIFICATION_TYPES)
     system_event = models.CharField(max_length=30, choices=SYSTEM_EVENTS, null=True, blank=True)
@@ -48,7 +48,8 @@ class Notification(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.recipient.name} - {self.category} - {self.notification_type} - {self.message}"
+        recipient_name = self.recipient.name if self.recipient else "All Users"
+        return f"{recipient_name} - {self.category} - {self.notification_type} - {self.message}"
 
     class Meta:
         ordering = ['-created_at']
@@ -69,7 +70,3 @@ class Notification(models.Model):
         if self.system_event in self.CLOUDINARY_ICON_MAP:
             self.icon = self.CLOUDINARY_ICON_MAP[self.system_event]
         super().save(*args, **kwargs)
-
-
-# Register model for audit logging
-auditlog.register(Notification)
