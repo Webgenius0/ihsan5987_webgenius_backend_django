@@ -72,4 +72,4 @@ class Notification(models.Model):
 
 
 # Register model for audit logging
-auditlog.register(Notification)
+# auditlog.register(Notification)
