@@ -62,13 +62,17 @@ class MyPostSerializer(serializers.ModelSerializer):
         return obj.image.url if obj.image else None
 
     def get_commented_users(self, obj):
-        # Use prefetched comments
-        comments = obj._prefetched_objects_cache.get('comments', [])
+        # Use prefetched comments if available, else fallback to DB query
+        if hasattr(obj, "_prefetched_objects_cache") and "comments" in obj._prefetched_objects_cache:
+            comments = obj._prefetched_objects_cache["comments"]
+        else:
+            comments = obj.comments.select_related("user__profile").all()
+
         users = {comment.user.id: comment.user for comment in comments}.values()
         max_users = 5
         user_list = list(users)[:max_users]
         return {
-            'avatars': UserSerializer(user_list, many=True, context=self.context).data,
+            "avatars": UserSerializer(user_list, many=True, context=self.context).data,
         }
 
 
