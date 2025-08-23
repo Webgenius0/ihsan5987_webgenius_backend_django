@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.conf import settings
 from rest_framework import status, permissions
-from django.db.models import Q, Count
+from django.db.models import Q, Count, Prefetch
 from auditlog.registry import auditlog
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
@@ -80,24 +80,30 @@ class PostDetail(APIView):
 
     def get(self, request, post_id):
         try:
-            post = Post.objects.select_related(
-                'user__profile', 'category').prefetch_related(
-                'comments__user__profile', 'comments__likes'
+            comments_qs = Comment.objects.filter(is_active=True).select_related(
+                'user__profile'
+            ).annotate(
+                like_count=Count('likes')
+            ).order_by('-created_at')
+
+            post = Post.objects.select_related('user__profile', 'category').prefetch_related(
+                Prefetch('comments', queryset=comments_qs, to_attr='prefetched_comments')
             ).get(id=post_id)
+
         except Post.DoesNotExist:
             return Response({
-                "status": status.HTTP_404_NOT_FOUND,
+                "status": 404,
                 "success": False,
                 "message": "Post not found"
-            }, status=status.HTTP_404_NOT_FOUND)
+            }, status=404)
 
         serializer = PostDetailSerializer(post)
         return Response({
-            "status": status.HTTP_200_OK,
+            "status": 200,
             "success": True,
             "message": "Post details fetched successfully",
             "data": serializer.data
-        }, status=status.HTTP_200_OK)
+        })
 
     def delete(self, request, post_id):
         post = Post.objects.filter(id=post_id, user=request.user).first()
@@ -126,8 +132,15 @@ class CommentView(APIView):
 
     def get(self, request, post_id):
         comments = Comment.objects.filter(
-            post_id=post_id, is_active=True).select_related(
-            'user__profile').prefetch_related('likes').order_by("-created_at")
+            post_id=post_id, is_active=True
+        ).select_related(
+            'user__profile'
+        ).prefetch_related(
+            'likes'
+        ).annotate(
+            like_count=Count('likes')   # ✅ annotate like count
+        ).order_by("-created_at")
+
         serializer = CommentSerializer(comments, many=True)
         return Response({
             "status": status.HTTP_200_OK,

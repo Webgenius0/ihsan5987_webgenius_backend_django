@@ -83,7 +83,7 @@ class LikeSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
-    like_count = serializers.IntegerField(read_only=True)  # Use annotated field
+    like_count = serializers.SerializerMethodField()
     create_time = serializers.SerializerMethodField()
 
     class Meta:
@@ -95,6 +95,9 @@ class CommentSerializer(serializers.ModelSerializer):
         if diff < timedelta(minutes=1):
             return "just now"
         return timesince(obj.created_at) + " ago"
+
+    def get_like_count(self, obj):
+        return obj.likes.count()
 
 
 class CommentReportSerializer(serializers.ModelSerializer):
