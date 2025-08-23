@@ -103,21 +103,19 @@ class MyPostList(APIView):
 class MyPostDetail(APIView):
     permission_classes = [IsAuthenticated]
 
-    # def get_object(self, pk, user, optimized=False):
-    #     qs = Post.objects.filter(pk=pk, user=user)
-    #     if optimized:
-    #         qs = qs.select_related("user__profile", "category").prefetch_related(
-    #             Prefetch(
-    #                 "comments",
-    #                 queryset=Comment.objects.select_related("user__profile")
-    #                     .prefetch_related("likes__user")  # If likes are used in CommentSerializer
-    #                     .filter(is_active=True)
-    #             ),
-    #             "comments__user__profile",
-    #             "comments__likes",
-    #             "comments__likes__user",
-    #         ).annotate(comment_count=Count("comments", filter=Q(comments__is_active=True)))
-    #     return get_object_or_404(qs)
+    def get_object(self, pk, user, optimized=False):
+        qs = Post.objects.filter(pk=pk, user=user)
+        if optimized:
+            qs = qs.select_related("user__profile", "category").prefetch_related(
+                Prefetch(
+                    "comments",
+                    queryset=Comment.objects.select_related("user__profile").prefetch_related("likes__user").filter(is_active=True)
+                ),
+                "comments__user__profile",
+                "comments__likes",
+                "comments__likes__user",
+            ).annotate(comment_count=Count("comments", filter=Q(comments__is_active=True)))
+        return get_object_or_404(qs)
 
     def get(self, request, pk):
         post = self.get_object(pk, request.user, optimized=True)
@@ -172,7 +170,6 @@ class MyPostDetail(APIView):
             },
             status=status.HTTP_403_FORBIDDEN
         )
-
 
 
 # FAQ View
