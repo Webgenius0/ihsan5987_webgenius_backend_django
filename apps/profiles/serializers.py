@@ -41,7 +41,7 @@ class MyPostSerializer(serializers.ModelSerializer):
     comment_count = serializers.IntegerField(read_only=True)  # Use annotated field
     commented_users = serializers.SerializerMethodField()
     image_url = serializers.SerializerMethodField()
-    category_name = serializers.CharField(source="category.name", read_only=True, allow_null=True)
+    category_name = serializers.CharField(source="category.category_name", read_only=True, allow_null=True)
     comments = CommentSerializer(many=True, read_only=True)
 
     class Meta:
