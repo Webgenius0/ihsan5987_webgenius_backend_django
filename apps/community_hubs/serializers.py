@@ -83,12 +83,13 @@ class LikeSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
-    like_count = serializers.SerializerMethodField()
+    like_count = serializers.IntegerField(source="likes.count", read_only=True)
     create_time = serializers.SerializerMethodField()
+    is_liked_by_user = serializers.SerializerMethodField()  # ✅ new field
 
     class Meta:
         model = Comment
-        fields = ['id', 'user', 'text', 'create_time', 'like_count']
+        fields = ['id', 'user', 'text', 'create_time', 'like_count', 'is_liked_by_user']
 
     def get_create_time(self, obj):
         diff = now() - obj.created_at
@@ -98,6 +99,10 @@ class CommentSerializer(serializers.ModelSerializer):
 
     def get_like_count(self, obj):
         return obj.likes.count()
+
+    def get_is_liked_by_user(self, obj):
+        user = self.context.get('request').user
+        return obj.likes.filter(user=user, is_like=True).exists()
 
 
 class CommentReportSerializer(serializers.ModelSerializer):
