@@ -341,10 +341,12 @@ class BookmarkAPIView(APIView):
             }
             return Response(response_data, status=status.HTTP_201_CREATED)
         else:
+            # remove from bookmark
+            bookmark.delete()
             response_data = {
-                "code": status.HTTP_400_BAD_REQUEST,
-                "success": False,
-                "message": "Bookmark already exists",
+                'code': status.HTTP_200_OK,
+                'success': True,
+                'message': 'Bookmark Removed Successfully'
             }
             return Response(response_data, status=status.HTTP_400_BAD_REQUEST)
 
