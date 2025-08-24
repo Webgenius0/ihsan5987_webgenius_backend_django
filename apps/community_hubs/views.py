@@ -141,7 +141,7 @@ class CommentView(APIView):
             like_count=Count('likes')   # ✅ annotate like count
         ).order_by("-created_at")
 
-        serializer = CommentSerializer(comments, many=True)
+        serializer = CommentSerializer(comments, many=True, context={'request': request})
         return Response({
             "status": status.HTTP_200_OK,
             "success": True,
@@ -227,10 +227,16 @@ class LikeView(APIView):
     def post(self, request, pk):
         comment = get_object_or_404(Comment, pk=pk)
 
-        like_qs = Like.objects.filter(user=request.user, comment=comment)
+        like, created = Like.objects.get_or_create(
+            user=request.user,
+            comment=comment,
+            defaults={"is_like": True}
+        )
 
-        if like_qs.exists():
-            like_qs.delete()
+        if not created and like.is_like:
+            # User already liked → toggle off
+            like.is_like = False
+            like.save()
             return Response({
                 "status": status.HTTP_200_OK,
                 "success": True,
@@ -238,7 +244,9 @@ class LikeView(APIView):
             }, status=status.HTTP_200_OK)
 
         else:
-            like = Like.objects.create(user=request.user, comment=comment)
+            # New like OR previously unliked → like again
+            like.is_like = True
+            like.save()
             serializer = LikeSerializer(like)
             return Response({
                 "status": status.HTTP_201_CREATED,
