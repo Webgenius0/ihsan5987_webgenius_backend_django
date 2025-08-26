@@ -97,9 +97,6 @@ class CommentSerializer(serializers.ModelSerializer):
             return "just now"
         return timesince(obj.created_at) + " ago"
 
-    def get_like_count(self, obj):
-        return obj.likes.count()
-
     def get_is_liked_by_user(self, obj):
         request = self.context.get("request", None)  # ✅ safe lookup
         if request and request.user.is_authenticated:
@@ -116,19 +113,23 @@ class CommentReportSerializer(serializers.ModelSerializer):
 
 
 class PostDetailSerializer(serializers.ModelSerializer):
-    comments = CommentSerializer(many=True, read_only=True)
+    comments = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
         fields = ['image_url', 'title', 'content', 'comments']
 
+    def get_comments(self, obj):
+        # Use prefetched_comments if available; fallback to normal manager
+        comments = getattr(obj, 'prefetched_comments', obj.comments.all())
+        serializer = CommentSerializer(comments, many=True, context=self.context)
+        return serializer.data
+
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        # Reorder fields to match requested structure: image, title, content, then comments
-        ordered_data = {
+        return {
             'image': representation['image_url'],
             'title': representation['title'],
             'content': representation['content'],
             'comments': representation['comments'],
         }
-        return ordered_data
