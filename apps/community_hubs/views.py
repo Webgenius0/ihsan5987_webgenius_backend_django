@@ -80,14 +80,12 @@ class PostDetail(APIView):
 
     def get(self, request, post_id):
         try:
-            # Annotate comments with like_count
             comments_qs = Comment.objects.filter(is_active=True).select_related(
                 'user__profile'
             ).annotate(
-                like_count=Count('likes', filter=Q(likes__is_like=True))
+                like_count=Count('likes')
             ).order_by('-created_at')
 
-            # Prefetch annotated comments for the post
             post = Post.objects.select_related('user__profile', 'category').prefetch_related(
                 Prefetch('comments', queryset=comments_qs, to_attr='prefetched_comments')
             ).get(id=post_id)
@@ -99,16 +97,15 @@ class PostDetail(APIView):
                 "message": "Post not found"
             }, status=404)
 
-        serializer = PostDetailSerializer(post, context={"request": request})
+        serializer = PostDetailSerializer(post, context={'request': request})
         return Response({
             "status": 200,
             "success": True,
-            "message": "Post details fetched successfully",
+            "message": "Post retrieved successfully",
             "data": serializer.data
         })
 
     def delete(self, request, post_id):
-        # Ensure user owns the post
         post = Post.objects.filter(id=post_id, user=request.user).first()
         if not post:
             return Response({
@@ -118,11 +115,9 @@ class PostDetail(APIView):
             }, status=status.HTTP_403_FORBIDDEN)
 
         # Bulk delete related objects to avoid N+1 queries
-        CommentReport.objects.filter(comment__post=post).delete()
-        Like.objects.filter(comment__post=post).delete()
-        Comment.objects.filter(post=post).delete()
-
-        # Delete post
+        CommentReport.objects.only('id').filter(comment__post=post).delete()
+        Like.objects.only('id').filter(comment__post=post).delete()
+        Comment.objects.only('id').filter(post=post).delete()
         post.delete()
 
         return Response({
@@ -143,7 +138,7 @@ class CommentView(APIView):
         ).prefetch_related(
             'likes'
         ).annotate(
-            like_count=Count('likes', filter=Q(likes__is_like=True))
+            like_count=Count('likes')   # ✅ annotate like count
         ).order_by("-created_at")
 
         serializer = CommentSerializer(comments, many=True, context={'request': request})
