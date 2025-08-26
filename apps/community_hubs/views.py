@@ -138,7 +138,7 @@ class CommentView(APIView):
         ).prefetch_related(
             'likes'
         ).annotate(
-            like_count=Count('likes')   # ✅ annotate like count
+            like_count=Count('likes', filter=Q(likes__is_like=True))
         ).order_by("-created_at")
 
         serializer = CommentSerializer(comments, many=True, context={'request': request})
