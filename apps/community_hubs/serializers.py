@@ -82,14 +82,30 @@ class LikeSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
-    like_count = serializers.IntegerField(read_only=True)
+    user = serializers.SerializerMethodField()
+    like_count = serializers.SerializerMethodField()  # ✅ use method field
     create_time = serializers.SerializerMethodField()
-    is_liked_by_user = serializers.SerializerMethodField()  # ✅ new field
+    is_liked_by_user = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
         fields = ['id', 'user', 'text', 'create_time', 'like_count', 'is_liked_by_user']
+
+    def get_like_count(self, obj):
+        # Use annotated like_count if available, else fallback
+        if hasattr(obj, 'like_count'):
+            return obj.like_count
+        return obj.likes.filter(is_like=True).count()
+
+    def get_user(self, obj):
+        profile_image = ''
+        if hasattr(obj.user, 'profile') and obj.user.profile.image:
+            profile_image = str(obj.user.profile.image)
+        return {
+            'id': obj.user.id,
+            'name': obj.user.name,
+            'image': profile_image
+        }
 
     def get_create_time(self, obj):
         diff = now() - obj.created_at
@@ -98,7 +114,7 @@ class CommentSerializer(serializers.ModelSerializer):
         return timesince(obj.created_at) + " ago"
 
     def get_is_liked_by_user(self, obj):
-        request = self.context.get("request", None)  # ✅ safe lookup
+        request = self.context.get("request", None)
         if request and request.user.is_authenticated:
             return obj.likes.filter(user=request.user, is_like=True).exists()
         return False
@@ -114,22 +130,51 @@ class CommentReportSerializer(serializers.ModelSerializer):
 
 class PostDetailSerializer(serializers.ModelSerializer):
     comments = serializers.SerializerMethodField()
+    comment_count = serializers.SerializerMethodField()
+    commented_users = serializers.SerializerMethodField()
+    category_name = serializers.SerializerMethodField()
+    created_at = serializers.DateTimeField(read_only=True)
+    image_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
-        fields = ['image_url', 'title', 'content', 'comments']
+        fields = [
+            'id', 'image_url', 'title', 'category_name', 'content', 'created_at',
+            'comment_count', 'commented_users', 'comments'
+        ]
+
+    def get_image_url(self, obj):
+        if obj.image_url:
+            return str(obj.image_url)  # convert CloudinaryResource to string
+        return None
 
     def get_comments(self, obj):
-        # Use prefetched_comments if available; fallback to normal manager
+        # use prefetched annotated comments
         comments = getattr(obj, 'prefetched_comments', obj.comments.all())
         serializer = CommentSerializer(comments, many=True, context=self.context)
         return serializer.data
 
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        return {
-            'image': representation['image_url'],
-            'title': representation['title'],
-            'content': representation['content'],
-            'comments': representation['comments'],
-        }
+    def get_comment_count(self, obj):
+        return obj.comments.filter(is_active=True).count()
+
+    def get_category_name(self, obj):
+        if obj.category:
+            return obj.category.category_name
+        return None
+
+    def get_commented_users(self, obj):
+        # get unique users who commented
+        comments = obj.comments.filter(is_active=True).select_related('user__profile')
+        unique_users = {}
+        for comment in comments:
+            user = comment.user
+            if user.id not in unique_users:
+                profile_image = ''
+                if hasattr(user, 'profile') and user.profile.image:
+                    profile_image = str(user.profile.image)
+                unique_users[user.id] = {
+                    'id': user.id,
+                    'name': user.name,
+                    'image': profile_image
+                }
+        return {'avatars': list(unique_users.values())}
