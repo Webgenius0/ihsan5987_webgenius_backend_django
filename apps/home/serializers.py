@@ -69,6 +69,9 @@ class TrendingNewsSerializer(serializers.ModelSerializer):
 
 
 class RecommendationSerializer(serializers.ModelSerializer):
+    category = serializers.StringRelatedField()
+    subcategory = serializers.StringRelatedField()
+    topic = serializers.StringRelatedField()
     class Meta:
         model = Recommendation
         fields = "__all__"
