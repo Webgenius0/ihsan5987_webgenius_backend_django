@@ -101,8 +101,10 @@ class CommentSerializer(serializers.ModelSerializer):
         return obj.likes.count()
 
     def get_is_liked_by_user(self, obj):
-        user = self.context.get('request').user
-        return obj.likes.filter(user=user, is_like=True).exists()
+        request = self.context.get("request", None)  # ✅ safe lookup
+        if request and request.user.is_authenticated:
+            return obj.likes.filter(user=request.user, is_like=True).exists()
+        return False
 
 
 class CommentReportSerializer(serializers.ModelSerializer):
