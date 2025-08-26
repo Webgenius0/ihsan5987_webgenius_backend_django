@@ -1,6 +1,6 @@
 # trending.py
 import os
-from turtle import pd
+import pandas as pd
 from .api_utils import get_trending_topics
 from .llm_utils import build_prompt, generate_perplexity_output, verify_and_fix_json
 
