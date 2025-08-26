@@ -83,13 +83,19 @@ class LikeSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     user = serializers.SerializerMethodField()
-    like_count = serializers.IntegerField(source="likes.count", read_only=True)
+    like_count = serializers.SerializerMethodField()  # ✅ use method field
     create_time = serializers.SerializerMethodField()
     is_liked_by_user = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
         fields = ['id', 'user', 'text', 'create_time', 'like_count', 'is_liked_by_user']
+
+    def get_like_count(self, obj):
+        # Use annotated like_count if available, else fallback
+        if hasattr(obj, 'like_count'):
+            return obj.like_count
+        return obj.likes.filter(is_like=True).count()
 
     def get_user(self, obj):
         profile_image = ''
@@ -108,8 +114,8 @@ class CommentSerializer(serializers.ModelSerializer):
         return timesince(obj.created_at) + " ago"
 
     def get_is_liked_by_user(self, obj):
-        request = self.context.get('request', None)
-        if request and hasattr(request, "user") and request.user.is_authenticated:
+        request = self.context.get("request", None)
+        if request and request.user.is_authenticated:
             return obj.likes.filter(user=request.user, is_like=True).exists()
         return False
 
@@ -123,7 +129,7 @@ class CommentReportSerializer(serializers.ModelSerializer):
 
 
 class PostDetailSerializer(serializers.ModelSerializer):
-    comments = CommentSerializer(many=True, read_only=True)
+    comments = serializers.SerializerMethodField()
     comment_count = serializers.SerializerMethodField()
     commented_users = serializers.SerializerMethodField()
     category_name = serializers.SerializerMethodField()
@@ -142,9 +148,15 @@ class PostDetailSerializer(serializers.ModelSerializer):
             return str(obj.image_url)  # convert CloudinaryResource to string
         return None
 
+    def get_comments(self, obj):
+        # use prefetched annotated comments
+        comments = getattr(obj, 'prefetched_comments', obj.comments.all())
+        serializer = CommentSerializer(comments, many=True, context=self.context)
+        return serializer.data
+
     def get_comment_count(self, obj):
         return obj.comments.filter(is_active=True).count()
-    
+
     def get_category_name(self, obj):
         if obj.category:
             return obj.category.category_name

@@ -83,7 +83,7 @@ class PostDetail(APIView):
             comments_qs = Comment.objects.filter(is_active=True).select_related(
                 'user__profile'
             ).annotate(
-                like_count=Count('likes')
+                like_count=Count('likes', filter=Q(likes__is_like=True))
             ).order_by('-created_at')
 
             post = Post.objects.select_related('user__profile', 'category').prefetch_related(
@@ -138,7 +138,7 @@ class CommentView(APIView):
         ).prefetch_related(
             'likes'
         ).annotate(
-            like_count=Count('likes')   # ✅ annotate like count
+            like_count=Count('likes', filter=Q(likes__is_like=True))  # ✅ only count likes
         ).order_by("-created_at")
 
         serializer = CommentSerializer(comments, many=True, context={'request': request})
