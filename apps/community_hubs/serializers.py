@@ -83,7 +83,7 @@ class LikeSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
-    like_count = serializers.IntegerField(source="likes.count", read_only=True)
+    like_count = serializers.IntegerField(read_only=True)
     create_time = serializers.SerializerMethodField()
     is_liked_by_user = serializers.SerializerMethodField()  # ✅ new field
 
