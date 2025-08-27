@@ -15,6 +15,11 @@ import urllib.request
 import urllib.parse
 from .config import GNEWS_API_KEY, PERPLEXITY_API_KEY
 
+import requests
+import certifi
+import html
+from urllib.parse import urljoin
+
 # import nltk
 # nltk.download('punkt')
 
@@ -434,10 +439,8 @@ def get_trending_topics(
 
 
 ##############################################
-def get_image(keyword):
-    """
+"""def get_image(keyword):
     Fetches the first image URL from Bing News RSS feed in English (en-US) for the given keyword.
-    """
     # Use English market (en-US) for Bing RSS
     rss_url = f"https://www.bing.com/news/search?q={keyword}&format=rss&mkt=en-US&setLang=en"
     feed = feedparser.parse(rss_url)
@@ -454,8 +457,112 @@ def get_image(keyword):
         if match:
             return match.group(1)
 
-    return None
+    return None"""
 
+
+IMG_TAG_RE = re.compile(r'<img[^>]+src=["\']([^"\']+)["\']', re.IGNORECASE)
+
+
+def _clean_url(u: str) -> str | None:
+    if not u:
+        return None
+    u = html.unescape(u).strip()
+    if u.startswith("data:"):
+        return None
+    # Protocol-relative URLs -> https
+    if u.startswith("//"):
+        u = "https:" + u
+    return u
+
+
+def get_images(
+    keyword: str, *, market: str = "en-US", lang: str = "en", limit: int | None = None
+) -> list[str]:
+    """
+    Fetch image URLs from Bing News RSS for the given keyword.
+    Returns a de-duplicated, ordered list of image URLs.
+
+    Args:
+        keyword: search query (e.g., "football")
+        market: Bing market, e.g. "en-US"
+        lang: interface language, e.g. "en"
+        limit: max number of image URLs to return (None = no limit)
+    """
+    params = {"q": keyword, "format": "rss", "mkt": market, "setLang": lang}
+    headers = {"User-Agent": "rss-image-fetcher/1.0 (+https://example.org)"}
+
+    # Use requests+certifi to avoid SSL: CERTIFICATE_VERIFY_FAILED
+    resp = requests.get(
+        "https://www.bing.com/news/search",
+        params=params,
+        headers=headers,
+        timeout=20,
+        verify=certifi.where(),
+    )
+    resp.raise_for_status()
+
+    feed = feedparser.parse(resp.content)
+
+    seen = set()
+    images: list[str] = []
+
+    for entry in feed.entries:
+        candidates: list[str] = []
+
+        # 1) media:content (feedparser -> entry['media_content'] = [{'url': ...}])
+        for m in entry.get("media_content", []) or []:
+            candidates.append(m.get("url"))
+
+        # 2) media:thumbnail (feedparser -> entry['media_thumbnail'])
+        for t in entry.get("media_thumbnail", []) or []:
+            candidates.append(t.get("url"))
+
+        # 3) <enclosure> or similar (feedparser -> entry['links'] with rel/type)
+        for link in entry.get("links", []) or []:
+            rel = (link.get("rel") or "").lower()
+            typ = (link.get("type") or "").lower()
+            if rel in {"enclosure", "preview", "image"} or typ.startswith("image/"):
+                candidates.append(link.get("href") or link.get("url"))
+
+        # 4) Bing custom keys occasionally exposed
+        for k in ("news_image", "image"):
+            candidates.append(entry.get(k))
+
+        # 5) HTML fallback in summary/description/content:encoded
+        html_blobs = []
+        if "summary" in entry and entry["summary"]:
+            html_blobs.append(entry["summary"])
+        if "description" in entry and entry["description"]:
+            html_blobs.append(entry["description"])
+        for c in entry.get("content", []) or []:  # list of dicts with 'value'
+            v = c.get("value")
+            if v:
+                html_blobs.append(v)
+        for blob in html_blobs:
+            for m in IMG_TAG_RE.finditer(blob):
+                candidates.append(m.group(1))
+
+        # Normalize, dedupe, and collect
+        for u in candidates:
+            u = _clean_url(u)
+            if not u:
+                continue
+            # Some feeds use relative paths (rare) — make absolute if possible
+            if u.startswith("/"):
+                # entry.link is usually the article URL; fall back to Bing
+                base = entry.get("link") or "https://www.bing.com/"
+                u = urljoin(base, u)
+
+    return images
+
+
+def get_image(keyword: str) -> str | None:
+    """Backwards-compatible helper: return just the first image URL or None."""
+    imgs = get_images(keyword, limit=1)
+    return imgs[0] if imgs else None
+
+
+# get_image("football")
 
 # Old Code to get the articles text
 '''
@@ -569,7 +676,6 @@ def get_news_from_gnews(keywords, max_articles=10, lang="en", country="us", apik
         f"&max={max_articles}"
         f"&apikey={apikey}"
         f"&expand='content'"
-        
     )
 
     try:
