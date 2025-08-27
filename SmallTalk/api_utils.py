@@ -552,11 +552,6 @@ def get_images(
                 # entry.link is usually the article URL; fall back to Bing
                 base = entry.get("link") or "https://www.bing.com/"
                 u = urljoin(base, u)
-            if is_valid_image_url(u) and u not in seen:
-                seen.add(u)
-                images.append(u)
-                if limit is not None and len(images) >= limit:
-                    return images
 
     return images
 
@@ -690,20 +685,3 @@ def get_news_from_gnews(keywords, max_articles=10, lang="en", country="us", apik
     except Exception as e:
         print(f"❌ Error fetching from GNews: {e}")
         return []
-
-
-def is_valid_image_url(url):
-    if not url:
-        return False
-    if not url.startswith("http"):
-        return False
-    if not url.lower().endswith((".jpg", ".jpeg", ".png", ".gif", ".webp")):
-        return False
-    return True
-
-# ... inside your for u in candidates loop:
-if is_valid_image_url(u) and u not in seen:
-    seen.add(u)
-    images.append(u)
-    if limit is not None and len(images) >= limit:
-        return images
