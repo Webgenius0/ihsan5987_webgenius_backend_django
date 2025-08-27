@@ -68,6 +68,9 @@ class Search(models.Model):
     question = models.JSONField(blank=True, null=True)
     further_key_words = models.JSONField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    search_term = models.CharField(
+        max_length=200, blank=True, null=True
+    )  # for getting same result for 2nd time search. after some time it will remove by scheduler
 
     def __str__(self):
         return f"Search - {self.topic.name}"
@@ -130,7 +133,7 @@ auditlog.register(SearchHistory)
 # Recommendations
 class Recommendation(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
-    subcategory = models.ForeignKey(Subcategory, on_delete=models.CASCADE, null=True, blank=True)
+    # subcategory = models.ForeignKey(Subcategory, on_delete=models.CASCADE, null=True, blank=True)
     topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
     headline = models.TextField(blank=True, null=True)
     introduction = models.TextField(blank=True, null=True)
@@ -150,7 +153,7 @@ class Recommendation(models.Model):
         verbose_name_plural = "Recommendations"
         ordering = ['-created_at']
         indexes = [
-            models.Index(fields=['category', 'subcategory', 'topic']),
+            models.Index(fields=['category', 'topic']),
         ]
 
 

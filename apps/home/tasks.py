@@ -1,5 +1,7 @@
 import os
 import pandas as pd
+from django.utils import timezone
+from datetime import timedelta
 from celery import shared_task
 from .models import (
     Recommendation,
@@ -8,6 +10,7 @@ from .models import (
     Topic,
     UpdateMe,
     Trending,
+    Search
 )
 from SmallTalk.recommendation import generate_recommendation
 from SmallTalk.update_me import generate_update_me_element
@@ -162,3 +165,17 @@ def trending_task():
         except Exception as e:
             print(f"Error saving trending news data: {e}")
             continue
+
+
+# delete previous search result after each 3 days
+@shared_task
+def delete_old_search_results():
+    cutoff_date = timezone.now() - timedelta(days=3)
+    try:
+        from .models import Search
+        Search.objects.filter(created_at__lt=cutoff_date).delete()
+    except Exception as e:
+        print(f"Error deleting old search results: {e}")
+        return
+
+    print("Old search results deleted successfully.")

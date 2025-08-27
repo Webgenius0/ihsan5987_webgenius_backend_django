@@ -1,6 +1,6 @@
 # recommendation.py
 import os
-from turtle import pd
+import pandas as pd
 from .api_utils import generate_perplexity_output
 from .llm_utils import build_prompt, verify_and_fix_json
 

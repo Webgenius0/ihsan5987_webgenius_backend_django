@@ -2,6 +2,7 @@ import traceback
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.validators import ValidationError
+from rest_framework.throttling import UserRateThrottle
 from rest_framework import status
 from django.db import transaction
 from apps.home.models import SearchTag, SearchOption
@@ -9,6 +10,8 @@ from SmallTalk.search_bar import search_bar
 from django.shortcuts import get_object_or_404
 from django.forms.models import model_to_dict
 from django.contrib.contenttypes.models import ContentType
+
+from .utils import SearchGenThrottle
 
 
 from .models import (
@@ -549,6 +552,7 @@ class BookmarkAPIView(APIView):
 
 class SearchAPIView(APIView):
     permission_classes = [IsAuthenticated]
+    throttle_classes = [SearchGenThrottle]
 
     def post(self, request):
         data = request.data
@@ -642,6 +646,23 @@ class SearchAPIView(APIView):
 
         # ====> CASE 2: Generate and return news
         elif search_tag and get_news:
+            print("search tag is ", search_term)
+            # get previously searched news with same search term
+            previous_search = Search.objects.filter(search_term__iexact=search_term).first()
+            if previous_search:
+                print('get previous search')
+                return Response(
+                    {
+                        "code": status.HTTP_200_OK,
+                        "success": True,
+                        "message": "News fetched successfully",
+                        "data": model_to_dict(previous_search),
+                    },
+                    status=status.HTTP_200_OK,
+                )
+            else:
+                print('no previous search found')
+
             try:
                 _, get_news_data = search_bar(search_term, allow_options=False)
                 print("Raw get_news_data:", get_news_data)

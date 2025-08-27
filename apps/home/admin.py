@@ -1,5 +1,6 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin
+from django.utils.html import format_html
 from import_export.admin import ImportExportModelAdmin
 from unfold.contrib.import_export.forms import ExportForm, ImportForm
 
@@ -175,14 +176,17 @@ class SearchHistoryAdmin(ModelAdmin):
 # Recommendation
 @admin.register(Recommendation)
 class RecommendationAdmin(ModelAdmin, ImportExportModelAdmin):
-    list_display = ("topic", "category", "subcategory", "headline", "created_at", "last_refresh")
+    list_display = ("topic", "category", "headline", "created_at", "last_refresh")
     list_filter = ('category', 'created_at')
     search_fields = ('headline', 'description', 'content')
     ordering = ('-created_at',)
     list_per_page = 20
 
-    import_form_class = ImportForm
+    # import_form_class = ImportForm
     export_form_class = ExportForm
+
+    def has_import_permission(self, request):
+        return False
 
 
 @admin.register(UpdateMe)
@@ -217,15 +221,28 @@ class UpdateMeAdmin(ModelAdmin, ImportExportModelAdmin):
 # Trending
 @admin.register(Trending)
 class TrendingAdmin(ModelAdmin, ImportExportModelAdmin):
-    list_display = ("description", "why_trending", "picture_url", "created_at")
-    list_filter = ("created_at",)
-    search_fields = ("description", "why_trending", "key_points", "outlook")
+    list_display = ("category", "subcategory", "picture_url", "created_at")
+    list_filter = ("created_at", "category", "subcategory")
+    search_fields = ("description", "key_points")
+    list_display_links = ("category", "subcategory")
     ordering = ("-created_at",)
     list_per_page = 20
 
-    import_form_class = ImportForm
+    # import_form_class = ImportForm
     export_form_class = ExportForm
 
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        qs = qs.select_related("category", "subcategory")
+        return qs
+
+    def has_import_permission(self, request):
+        return False
+
+    def picture_url(self, obj):
+        if obj.picture_url:
+            return format_html('<a href="{0}" target="_blank">{0}</a>', obj.picture_url)
+        return "-"
 
 # TrendingUser
 # @admin.register(TrendingUser)

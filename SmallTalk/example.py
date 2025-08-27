@@ -2,12 +2,12 @@
 # Generate searchabr ourput
 from .search_bar import search_bar
 
-search_bar = search_bar('Formula 1', allow_options=True)  # the options output can be shown  
+# search_bar = search_bar('Formula 1', allow_options=True)  # the options output can be shown  
 # search_bar_obj = search_bar('Formula 1, Racing', allow_options = False) 
 
 # exit()
 # Generate recommendation output 
-# from .recommendation import *
+from .recommendation import *
 
 # only one output json
 # recommendation = generate_recommendation('home office', prompt_version='v02')
