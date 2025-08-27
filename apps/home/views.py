@@ -647,18 +647,32 @@ class SearchAPIView(APIView):
                 print("Raw get_news_data:", get_news_data)
 
                 # Validate keys
-                required_keys = ["category", "subcategory", "topic", "general_facts", "news", "interesting_trivia", "opinions", "questions", "further_key_words"]
+                required_keys = [
+                    "category",
+                    "subcatetgory",  # type from script - subcatetgory
+                    "topic",
+                    "general_facts",
+                    "news",
+                    "interesting_trivia",
+                    "opinions",
+                    "questions",
+                    "further_key_words",
+                ]
                 for key in required_keys:
-                    if key not in get_news_data:
+                    if key not in get_news_data.keys():
                         raise ValueError(f"Missing key in get_news_data: '{key}'")
 
                 category_data = get_news_data["category"]
-                subcategory_data = get_news_data["subcategory"]
+                subcategory_data = get_news_data["subcatetgory"]
                 topic_data = get_news_data["topic"]
 
-                category_name = category_data.get("category_name")
-                subcategory_name = subcategory_data.get("subcategory_name")
+                category_name = category_data.get("categorie_name")
+                subcategory_name = subcategory_data.get(
+                    "subcatetgory_name"
+                )  # typo from script - subcatetgory_name
                 topic_name = topic_data.get("name")
+
+                print(f'category_name: {category_name}, subcategory_name: {subcategory_name}, topic_name: {topic_name}')
 
                 if not category_name or not subcategory_name or not topic_name:
                     raise ValueError("Missing category/subcategory/topic names")
