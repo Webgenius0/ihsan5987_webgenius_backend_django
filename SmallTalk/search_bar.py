@@ -1,5 +1,5 @@
 import re
-from turtle import pd
+import pandas as pd
 from .api_utils import generate_search_bar_news_perplexity, get_image
 from .llm_utils import get_llm_response, build_prompt, verify_and_fix_json
 import os
