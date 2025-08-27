@@ -40,7 +40,6 @@ class ProfileSerializer(serializers.ModelSerializer):
 class MyPostSerializer(serializers.ModelSerializer):
     comment_count = serializers.IntegerField(read_only=True)  # Use annotated field
     commented_users = serializers.SerializerMethodField()
-    image_url = serializers.SerializerMethodField()
     category_name = serializers.CharField(source="category.category_name", read_only=True, allow_null=True)
     comments = CommentSerializer(many=True, read_only=True)
 
@@ -49,6 +48,7 @@ class MyPostSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'image_url',
+            'image',
             'title',
             'category_name',
             'content',
@@ -57,9 +57,13 @@ class MyPostSerializer(serializers.ModelSerializer):
             'commented_users',
             'comments'
         ]
+        extra_kwargs = {
+            'image': {'write_only': True},
+            'image_url': {'read_only': True},
+        }
 
-    def get_image_url(self, obj):
-        return obj.image.url if obj.image else None
+    # def get_image_url(self, obj):
+    #     return obj.image.url if obj.image else None
 
     def get_commented_users(self, obj):
         # Use prefetched comments if available, else fallback to DB query
