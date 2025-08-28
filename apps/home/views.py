@@ -6,7 +6,7 @@ from rest_framework.throttling import UserRateThrottle
 from rest_framework import status
 from django.db import transaction
 from apps.home.models import SearchTag, SearchOption
-from SmallTalk.search_bar import search_bar
+from scripts.search_bar import search_bar
 from django.shortcuts import get_object_or_404
 from django.forms.models import model_to_dict
 from django.contrib.contenttypes.models import ContentType
@@ -57,7 +57,7 @@ class CategoryListAPIView(APIView):
             "status": status.HTTP_200_OK,
             "success": True,
             "message": "Categories fetched successfully",
-            "data": serializer.data
+            "data": serializer.data,
         }
         return Response(response, status=status.HTTP_200_OK)
 
@@ -347,9 +347,9 @@ class BookmarkAPIView(APIView):
             # remove from bookmark
             bookmark.delete()
             response_data = {
-                'code': status.HTTP_200_OK,
-                'success': True,
-                'message': 'Bookmark Removed Successfully'
+                "code": status.HTTP_200_OK,
+                "success": True,
+                "message": "Bookmark Removed Successfully",
             }
             return Response(response_data, status=status.HTTP_400_BAD_REQUEST)
 
@@ -377,7 +377,10 @@ class BookmarkAPIView(APIView):
                         "subcategory": obj.subcategory.subcategory_name,
                         "picture_url": obj.picture_url,
                         "created_at": obj.created_at,
-                        "details_url": base_url + "api/home/trending-now/" + str(obj.id) + "/",
+                        "details_url": base_url
+                        + "api/home/trending-now/"
+                        + str(obj.id)
+                        + "/",
                     }
                 )
             elif isinstance(obj, Post):
@@ -563,11 +566,14 @@ class SearchAPIView(APIView):
         print(f"Search term received: {search_term}")
 
         if not search_term:
-            return Response({
-                "code": status.HTTP_400_BAD_REQUEST,
-                "success": False,
-                "message": "Search term is required."
-            }, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {
+                    "code": status.HTTP_400_BAD_REQUEST,
+                    "success": False,
+                    "message": "Search term is required.",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         # Save search history if not already saved
         if not SearchHistory.objects.filter(search_term=search_term).exists():
@@ -600,12 +606,15 @@ class SearchAPIView(APIView):
                     }
                     for option in search_tag.options.all()
                 ]
-                return Response({
-                    "code": status.HTTP_200_OK,
-                    "success": True,
-                    "message": "Search options fetched successfully",
-                    "data": options_data,
-                }, status=status.HTTP_200_OK)
+                return Response(
+                    {
+                        "code": status.HTTP_200_OK,
+                        "success": True,
+                        "message": "Search options fetched successfully",
+                        "data": options_data,
+                    },
+                    status=status.HTTP_200_OK,
+                )
             else:
                 try:
                     _, generate_options = search_bar(search_term, allow_options=True)
@@ -629,28 +638,36 @@ class SearchAPIView(APIView):
                         for option in search_tag.options.all()
                     ]
 
-                    return Response({
-                        "code": status.HTTP_201_CREATED,
-                        "success": True,
-                        "message": "Search options created successfully",
-                        "data": generated_data,
-                    }, status=status.HTTP_200_OK)
+                    return Response(
+                        {
+                            "code": status.HTTP_201_CREATED,
+                            "success": True,
+                            "message": "Search options created successfully",
+                            "data": generated_data,
+                        },
+                        status=status.HTTP_200_OK,
+                    )
 
                 except Exception as e:
                     print("Error generating options:", traceback.format_exc())
-                    return Response({
-                        "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
-                        "success": False,
-                        "message": f"Error generating options: {str(e)}"
-                    }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                    return Response(
+                        {
+                            "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            "success": False,
+                            "message": f"Error generating options: {str(e)}",
+                        },
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    )
 
         # ====> CASE 2: Generate and return news
         elif search_tag and get_news:
             print("search tag is ", search_term)
             # get previously searched news with same search term
-            previous_search = Search.objects.filter(search_term__iexact=search_term).first()
+            previous_search = Search.objects.filter(
+                search_term__iexact=search_term
+            ).first()
             if previous_search:
-                print('get previous search')
+                print("get previous search")
                 return Response(
                     {
                         "code": status.HTTP_200_OK,
@@ -661,7 +678,7 @@ class SearchAPIView(APIView):
                     status=status.HTTP_200_OK,
                 )
             else:
-                print('no previous search found')
+                print("no previous search found")
 
             try:
                 _, get_news_data = search_bar(search_term, allow_options=False)
@@ -693,13 +710,19 @@ class SearchAPIView(APIView):
                 )  # typo from script - subcatetgory_name
                 topic_name = topic_data.get("name")
 
-                print(f'category_name: {category_name}, subcategory_name: {subcategory_name}, topic_name: {topic_name}')
+                print(
+                    f"category_name: {category_name}, subcategory_name: {subcategory_name}, topic_name: {topic_name}"
+                )
 
                 if not category_name or not subcategory_name or not topic_name:
                     raise ValueError("Missing category/subcategory/topic names")
 
-                category, _ = Category.objects.get_or_create(category_name=category_name)
-                subcategory, _ = Subcategory.objects.get_or_create(subcategory_name=subcategory_name)
+                category, _ = Category.objects.get_or_create(
+                    category_name=category_name
+                )
+                subcategory, _ = Subcategory.objects.get_or_create(
+                    subcategory_name=subcategory_name
+                )
                 topic, _ = Topic.objects.get_or_create(name=topic_name)
 
                 # Create Search (News) object
@@ -715,27 +738,36 @@ class SearchAPIView(APIView):
                     further_key_words=get_news_data["further_key_words"],
                 )
 
-                return Response({
-                    "code": status.HTTP_200_OK,
-                    "success": True,
-                    "message": "News fetched successfully",
-                    "data": model_to_dict(search_news),
-                }, status=status.HTTP_200_OK)
+                return Response(
+                    {
+                        "code": status.HTTP_200_OK,
+                        "success": True,
+                        "message": "News fetched successfully",
+                        "data": model_to_dict(search_news),
+                    },
+                    status=status.HTTP_200_OK,
+                )
 
             except Exception as e:
                 print("Error generating news:\n", traceback.format_exc())
-                return Response({
-                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    "success": False,
-                    "message": f"Error generating news: {str(e)}"
-                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                return Response(
+                    {
+                        "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                        "success": False,
+                        "message": f"Error generating news: {str(e)}",
+                    },
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                )
 
         # Default fallback
-        return Response({
-            "code": status.HTTP_404_NOT_FOUND,
-            "success": False,
-            "message": "Search data not found."
-        }, status=status.HTTP_404_NOT_FOUND)
+        return Response(
+            {
+                "code": status.HTTP_404_NOT_FOUND,
+                "success": False,
+                "message": "Search data not found.",
+            },
+            status=status.HTTP_404_NOT_FOUND,
+        )
 
 
 class SearchHistoryAPIView(APIView):
@@ -744,10 +776,16 @@ class SearchHistoryAPIView(APIView):
     def get(self, request):
         user = request.user
         search_history = SearchHistory.objects.filter(user=user)
-        data = [{"id": history.id, "search_term": history.search_term} for history in search_history]
-        return Response({
-            "code": status.HTTP_200_OK,
-            "success": True,
-            "message": "Search history fetched successfully",
-            "data": data,
-        }, status=status.HTTP_200_OK)
+        data = [
+            {"id": history.id, "search_term": history.search_term}
+            for history in search_history
+        ]
+        return Response(
+            {
+                "code": status.HTTP_200_OK,
+                "success": True,
+                "message": "Search history fetched successfully",
+                "data": data,
+            },
+            status=status.HTTP_200_OK,
+        )

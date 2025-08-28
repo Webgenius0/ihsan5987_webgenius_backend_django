@@ -12,14 +12,14 @@ jobs:
       uses: fifsky/ssh-action@master
       with:
         command: |
-          git config --global --add safe.directory /home/softvencealpha-smalltalk/htdocs/smalltalk.softvencealpha.com
-          cd /home/softvencealpha-smalltalk/htdocs/smalltalk.softvencealpha.com
+          git config --global --add safe.directory /home/softvencealpha-scripts/htdocs/scripts.softvencealpha.com
+          cd /home/softvencealpha-scripts/htdocs/scripts.softvencealpha.com
           git pull origin main
           source venv/bin/activate
           pip install -r requirements.txt
           python manage.py migrate
           python manage.py collectstatic --noinput
-          sudo systemctl restart gunicorn-smalltalk.service
+          sudo systemctl restart gunicorn-scripts.service
         host: ${{ secrets.SERVER_IP }}
         user: root
         key: ${{ secrets.SSH_PRIVATE_KEY }}

@@ -7,8 +7,8 @@ from cloudinary.models import CloudinaryField
 
 # Create your models here.
 class Profile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    image = CloudinaryField('image', null=True, blank=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
+    image = CloudinaryField("image", null=True, blank=True)
     premium_user = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -37,7 +37,9 @@ class FAQCategory(models.Model):
 class FAQ(models.Model):
     question = models.CharField(max_length=255)
     answer = models.TextField()
-    category = models.ForeignKey(FAQCategory, on_delete=models.CASCADE, related_name='faqs')
+    category = models.ForeignKey(
+        FAQCategory, on_delete=models.CASCADE, related_name="faqs"
+    )
 
     def __str__(self):
         return self.question
@@ -46,15 +48,15 @@ class FAQ(models.Model):
 # Contact Us
 class ContactUs(models.Model):
     PLATFORM_CHOICES = [
-        ('email', 'Contact Us'),
-        ('whatsapp', 'WhatsApp'),
-        ('instagram', 'Instagram'),
-        ('facebook', 'Facebook'),
-        ('twitter', 'Twitter'),
-        ('website', 'Website'),
+        ("email", "Contact Us"),
+        ("whatsapp", "WhatsApp"),
+        ("instagram", "Instagram"),
+        ("facebook", "Facebook"),
+        ("twitter", "Twitter"),
+        ("website", "Website"),
     ]
     platform = models.CharField(max_length=50, choices=PLATFORM_CHOICES, unique=True)
-    icon = CloudinaryField('icon', null=True, blank=True)
+    icon = CloudinaryField("icon", null=True, blank=True)
     link = models.URLField(unique=True, null=True, blank=True)
 
     @property
@@ -65,7 +67,9 @@ class ContactUs(models.Model):
 
 
 class NotificationSetting(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='notification_setting')
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, related_name="notification_setting"
+    )
     comments_on_posts = models.BooleanField(default=True)
     like_on_comments = models.BooleanField(default=True)
     trending_topics = models.BooleanField(default=True)
@@ -93,7 +97,7 @@ class Feedback(models.Model):
 auditlog.register(Feedback)
 
 
-# About SmallTalk
+# About scripts
 # models.py
 class AppInfo(models.Model):
     job_vacancy_url = models.URLField(blank=True, null=True)

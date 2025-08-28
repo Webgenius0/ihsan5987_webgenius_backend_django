@@ -10,11 +10,11 @@ from .models import (
     Topic,
     UpdateMe,
     Trending,
-    Search
+    Search,
 )
-from SmallTalk.recommendation import generate_recommendation
-from SmallTalk.update_me import generate_update_me_element
-from SmallTalk.trending import generate_trending_set
+from scripts.recommendation import generate_recommendation
+from scripts.update_me import generate_update_me_element
+from scripts.trending import generate_trending_set
 
 
 # Always use absolute path for categories file
@@ -34,7 +34,7 @@ except Exception as e:
 def recommandation_task():
     print("get recommandation task started")
     recommendations = []
-    for subcat in subcategories:
+    for subcat in subcategories[:5]:
         try:
             recommendations.append(
                 generate_recommendation(
@@ -51,7 +51,9 @@ def recommandation_task():
         try:
 
             category_name = item.get("category", "Others")
-            category = Category.objects.filter(category_name__iexact=category_name).first()
+            category = Category.objects.filter(
+                category_name__iexact=category_name
+            ).first()
             if not category:
                 category = Category.objects.create(category_name=category_name)
 
@@ -80,7 +82,7 @@ def recommandation_task():
 def updateme_task():
     print("update me task started in time")
     update_me = []
-    for subtopic in subcategories[:10]:
+    for subtopic in subcategories[:5]:
         print("subcategory: ", subtopic)
         try:
             update_me.append(
@@ -100,14 +102,20 @@ def updateme_task():
     for item in update_me:
         try:
             category_name = item.get("category", "Others")
-            category = Category.objects.filter(category_name__iexact=category_name).first()
+            category = Category.objects.filter(
+                category_name__iexact=category_name
+            ).first()
             if not category:
                 category = Category.objects.create(category_name=category_name)
 
             subcategory_name = item.get("subcategory", "")
-            subcategory = Subcategory.objects.filter(subcategory_name__iexact=subcategory_name).first()
+            subcategory = Subcategory.objects.filter(
+                subcategory_name__iexact=subcategory_name
+            ).first()
             if not subcategory:
-                subcategory = Subcategory.objects.create(subcategory_name=subcategory_name)
+                subcategory = Subcategory.objects.create(
+                    subcategory_name=subcategory_name
+                )
 
             topic_name = item.get("topic", "Unknown")
             topic = Topic.objects.filter(name__iexact=topic_name).first()
@@ -143,14 +151,20 @@ def trending_task():
     for trend in trending_topics:
         try:
             category_name = trend.get("category", "Others")
-            category = Category.objects.filter(category_name__iexact=category_name).first()
+            category = Category.objects.filter(
+                category_name__iexact=category_name
+            ).first()
             if not category:
                 category = Category.objects.create(category_name=category_name)
 
             subcategory_name = trend.get("subcategory", "")
-            subcategory = Subcategory.objects.filter(subcategory_name__iexact=subcategory_name).first()
+            subcategory = Subcategory.objects.filter(
+                subcategory_name__iexact=subcategory_name
+            ).first()
             if not subcategory:
-                subcategory = Subcategory.objects.create(subcategory_name=subcategory_name)
+                subcategory = Subcategory.objects.create(
+                    subcategory_name=subcategory_name
+                )
 
             Trending.objects.create(
                 category=category,
@@ -173,6 +187,7 @@ def delete_old_search_results():
     cutoff_date = timezone.now() - timedelta(days=3)
     try:
         from .models import Search
+
         Search.objects.filter(created_at__lt=cutoff_date).delete()
     except Exception as e:
         print(f"Error deleting old search results: {e}")

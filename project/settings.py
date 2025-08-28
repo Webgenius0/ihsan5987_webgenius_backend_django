@@ -179,7 +179,7 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
     ],
-    "DEFAULT_THROTTLE_RATES": {"anon": "0/day", "user": "50/day", "search_gen": "2/day"},
+    "DEFAULT_THROTTLE_RATES": {"anon": "5/day", "user": "50/day", "search_gen": "2/day"},
 }
 
 # Email sending setup
