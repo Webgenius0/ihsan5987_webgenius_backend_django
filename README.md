@@ -1,6 +1,6 @@
-# SmallTalk - AI-Powered Conversation Assistant
+# scripts - AI-Powered Conversation Assistant
 
-SmallTalk is a Django-based API that provides AI-powered conversation assistance with features like news updates, trending topics, recommendations, and search capabilities. The system integrates with multiple external APIs to provide rich, contextual information for small talk conversations.
+scripts is a Django-based API that provides AI-powered conversation assistance with features like news updates, trending topics, recommendations, and search capabilities. The system integrates with multiple external APIs to provide rich, contextual information for small talk conversations.
 
 ## Table of Contents
 
@@ -44,7 +44,7 @@ SmallTalk is a Django-based API that provides AI-powered conversation assistance
 │   ├── subscription/       # Subscription management
 │   └── users/              # User authentication and management
 ├── project/                # Main Django project settings
-├── SmallTalk/              # AI/LLM utilities and configurations
+├── scripts/              # AI/LLM utilities and configurations
 ├── static/                 # Static files
 ├── media/                  # Media files
 └── utility/                # Utility scripts
@@ -221,16 +221,16 @@ The application integrates with several external APIs:
    - Used for news aggregation
    - Key configured in `project/settings.py`
 
-3. **Perplexity API** (in SmallTalk module)
+3. **Perplexity API** (in scripts module)
    - Used for advanced search and information retrieval
-   - Key stored in `SmallTalk/config.py`
+   - Key stored in `scripts/config.py`
 
-4. **News API** (in SmallTalk module)
+4. **News API** (in scripts module)
    - Alternative news source
-   - Key stored in `SmallTalk/config.py`
+   - Key stored in `scripts/config.py`
 
 **Note on API Keys:**
-During our check, we found that the following API keys in `SmallTalk/config.py` are expired/invalid:
+During our check, we found that the following API keys in `scripts/config.py` are expired/invalid:
 - News API Key
 - Perplexity API Key
 

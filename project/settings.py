@@ -13,10 +13,6 @@ load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = "django-insecure-@unv(phjz=6caf$!bew*e01cj9xz*eg-#11x7n=(^sc3aca7k!"
 
@@ -178,6 +174,12 @@ REST_FRAMEWORK = {
         # "rest_framework.authentication.TokenAuthentication",
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
+    "EXCEPTION_HANDLER": "utils.exception_handler.custom_exception_handler",
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {"anon": "5/day", "user": "50/day", "search_gen": "2/day"},
 }
 
 # Email sending setup
@@ -208,7 +210,7 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 # GNEWS_API_KEY
-GNEWS_API_KEY = "c8953ffc8769d9e01b10e01713d86e34"
+# GNEWS_API_KEY = "c8953ffc8769d9e01b10e01713d86e34"
 # Cloudinary setup
 cloudinary.config(
     cloud_name="dt99uhnhh",
