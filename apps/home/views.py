@@ -10,6 +10,7 @@ from scripts.search_bar import search_bar
 from django.shortcuts import get_object_or_404
 from django.forms.models import model_to_dict
 from django.contrib.contenttypes.models import ContentType
+from collections import defaultdict
 
 from .utils import SearchGenThrottle
 
@@ -355,21 +356,49 @@ class BookmarkAPIView(APIView):
 
     def get(self, request):
         user = request.user
-        bookmarks = user.bookmark_set.all()
 
-        trending_data = []
-        community_post = []
-        recommendation_data = []
-        updateme_data = []
+        # Collect bookmarks in one query (with content type)
+        bookmarks = user.bookmark_set.select_related("content_type").all()
+
+        # Group object IDs by model type
+        ids_by_model = defaultdict(list)
+        for bm in bookmarks:
+            ids_by_model[bm.content_type.model].append(bm.object_id)
+
+        # Bulk fetch all objects grouped by type
+        trendings = {
+            obj.id: obj
+            for obj in Trending.objects.filter(id__in=ids_by_model.get("trending", []))
+            .select_related("category", "subcategory")
+        }
+        posts = {
+            obj.id: obj
+            for obj in Post.objects.filter(id__in=ids_by_model.get("post", []))
+            .select_related("category")
+        }
+        recommendations = {
+            obj.id: obj
+            for obj in Recommendation.objects.filter(id__in=ids_by_model.get("recommendation", []))
+            .select_related("category", "topic")
+        }
+        updateme_objs = {
+            obj.id: obj
+            for obj in UpdateMe.objects.filter(id__in=ids_by_model.get("updateme", []))
+            .select_related("category", "subcategory", "topic")
+        }
+
+        # Initialize response lists
+        trending_data, community_post, recommendation_data, updateme_data = [], [], [], []
 
         base_url = request.build_absolute_uri("/")
-        print(base_url)
 
+        # Preserve the same loop structure to maintain your response format
         for bookmark in bookmarks:
-            # content_type = bookmark.content_type.model
-            obj = bookmark.obj
+            model = bookmark.content_type.model
+            obj_id = bookmark.object_id
 
-            if isinstance(obj, Trending):
+            if model == "trending" and obj_id in trendings:
+                obj = trendings[obj_id]
                 trending_data.append(
                     {
                         "id": obj.id,
@@ -377,41 +406,37 @@ class BookmarkAPIView(APIView):
                         "subcategory": obj.subcategory.subcategory_name,
                         "picture_url": obj.picture_url,
                         "created_at": obj.created_at,
-                        "details_url": base_url
-                        + "api/home/trending-now/"
-                        + str(obj.id)
-                        + "/",
+                        "details_url": f"{base_url}api/home/trending-now/{obj.id}/",
                     }
                 )
-            elif isinstance(obj, Post):
+
+            elif model == "post" and obj_id in posts:
+                obj = posts[obj_id]
                 community_post.append(
                     {
                         "id": obj.id,
-                        "category": (
-                            obj.category.category_name if obj.category else None
-                        ),
+                        "category": obj.category.category_name if obj.category else None,
                         "title": obj.title,
                         "image_url": obj.image.url if obj.image else None,
                         "created_at": obj.created_at,
                     }
                 )
-            elif isinstance(obj, Recommendation):
+
+            elif model == "recommendation" and obj_id in recommendations:
+                obj = recommendations[obj_id]
                 recommendation_data.append(
                     {
                         "id": obj.id,
                         "category": obj.category.category_name,
-                        "subcategory": (
-                            obj.subcategory.subcategory_name
-                            if obj.subcategory
-                            else None
-                        ),
                         "topic": obj.topic.name,
                         "headline": obj.headline,
                         "picture_url": obj.picture_url,
                         "created_at": obj.created_at,
                     }
                 )
-            elif isinstance(obj, UpdateMe):
+
+            elif model == "updateme" and obj_id in updateme_objs:
+                obj = updateme_objs[obj_id]
                 updateme_data.append(
                     {
                         "id": obj.id,
@@ -422,8 +447,6 @@ class BookmarkAPIView(APIView):
                         "created_at": obj.created_at,
                     }
                 )
-            else:
-                pass
 
         response_data = {
             "code": status.HTTP_200_OK,
@@ -437,6 +460,90 @@ class BookmarkAPIView(APIView):
             },
         }
         return Response(response_data, status=status.HTTP_200_OK)
+    # def get(self, request):
+    #     user = request.user
+    #     bookmarks = user.bookmark_set.all()
+
+    #     trending_data = []
+    #     community_post = []
+    #     recommendation_data = []
+    #     updateme_data = []
+
+    #     base_url = request.build_absolute_uri("/")
+    #     print(base_url)
+
+    #     for bookmark in bookmarks:
+    #         # content_type = bookmark.content_type.model
+    #         obj = bookmark.obj
+
+    #         if isinstance(obj, Trending):
+    #             trending_data.append(
+    #                 {
+    #                     "id": obj.id,
+    #                     "category": obj.category.category_name,
+    #                     "subcategory": obj.subcategory.subcategory_name,
+    #                     "picture_url": obj.picture_url,
+    #                     "created_at": obj.created_at,
+    #                     "details_url": base_url
+    #                     + "api/home/trending-now/"
+    #                     + str(obj.id)
+    #                     + "/",
+    #                 }
+    #             )
+    #         elif isinstance(obj, Post):
+    #             community_post.append(
+    #                 {
+    #                     "id": obj.id,
+    #                     "category": (
+    #                         obj.category.category_name if obj.category else None
+    #                     ),
+    #                     "title": obj.title,
+    #                     "image_url": obj.image.url if obj.image else None,
+    #                     "created_at": obj.created_at,
+    #                 }
+    #             )
+    #         elif isinstance(obj, Recommendation):
+    #             recommendation_data.append(
+    #                 {
+    #                     "id": obj.id,
+    #                     "category": obj.category.category_name,
+    #                     # "subcategory": (
+    #                     #     obj.subcategory.subcategory_name
+    #                     #     if obj.subcategory
+    #                     #     else None
+    #                     # ),
+    #                     "topic": obj.topic.name,
+    #                     "headline": obj.headline,
+    #                     "picture_url": obj.picture_url,
+    #                     "created_at": obj.created_at,
+    #                 }
+    #             )
+    #         elif isinstance(obj, UpdateMe):
+    #             updateme_data.append(
+    #                 {
+    #                     "id": obj.id,
+    #                     "category": obj.category.category_name,
+    #                     "subcategory": obj.subcategory.subcategory_name,
+    #                     "topic": obj.topic.name,
+    #                     "picture_url": obj.picture_url,
+    #                     "created_at": obj.created_at,
+    #                 }
+    #             )
+    #         else:
+    #             pass
+
+    #     response_data = {
+    #         "code": status.HTTP_200_OK,
+    #         "success": True,
+    #         "message": "Bookmarks fetched successfully",
+    #         "data": {
+    #             "trending": trending_data,
+    #             "community_post": community_post,
+    #             "recommendation": recommendation_data,
+    #             "updateme": updateme_data,
+    #         },
+    #     }
+    #     return Response(response_data, status=status.HTTP_200_OK)
 
 
 # class SearchAPIView(APIView):
