@@ -896,3 +896,61 @@ class SearchHistoryAPIView(APIView):
             },
             status=status.HTTP_200_OK,
         )
+
+    def delete(self, request, pk=None):
+        user = request.user
+        params = request.query_params.get("all")
+
+        if params and params.lower() == "true":
+            # Handle deletion of all search history
+            if pk is not None:
+                return Response(
+                    {
+                        "code": status.HTTP_400_BAD_REQUEST,
+                        "success": False,
+                        "message": "Cannot specify 'pk' when deleting all search history",
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            deleted_count, _ = SearchHistory.objects.filter(user=user).delete()
+            return Response(
+                {
+                    "code": status.HTTP_200_OK,
+                    "success": True,
+                    "message": f"Cleared {deleted_count} search history record(s)",
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        # Handle deletion of a specific search history record
+        if pk is None:
+            return Response(
+                {
+                    "code": status.HTTP_400_BAD_REQUEST,
+                    "success": False,
+                    "message": "Missing 'pk' or 'all=true' parameter",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            search_history = SearchHistory.objects.get(user=user, pk=pk)
+            search_history.delete()
+            return Response(
+                {
+                    "code": status.HTTP_200_OK,
+                    "success": True,
+                    "message": "Search history record deleted successfully",
+                },
+                status=status.HTTP_200_OK,
+            )
+        except SearchHistory.DoesNotExist:
+            return Response(
+                {
+                    "code": status.HTTP_404_NOT_FOUND,
+                    "success": False,
+                    "message": "Search history record not found",
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
