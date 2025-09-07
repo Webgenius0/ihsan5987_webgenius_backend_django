@@ -683,7 +683,7 @@ class SearchAPIView(APIView):
             )
 
         # Save search history if not already saved
-        if not SearchHistory.objects.filter(search_term=search_term).exists():
+        if not SearchHistory.objects.filter(search_term__iexact=search_term).exists():
             try:
                 SearchHistory.objects.create(search_term=search_term, user=request.user)
                 print("Search history created")
@@ -794,7 +794,7 @@ class SearchAPIView(APIView):
                 # Validate keys
                 required_keys = [
                     "category",
-                    "subcatetgory",  # type from script - subcatetgory
+                    "subcatetgory",  # typo from script - subcatetgory
                     "topic",
                     "general_facts",
                     "news",
@@ -816,10 +816,6 @@ class SearchAPIView(APIView):
                     "subcatetgory_name"
                 )  # typo from script - subcatetgory_name
                 topic_name = topic_data.get("name")
-
-                print(
-                    f"category_name: {category_name}, subcategory_name: {subcategory_name}, topic_name: {topic_name}"
-                )
 
                 if not category_name or not subcategory_name or not topic_name:
                     raise ValueError("Missing category/subcategory/topic names")

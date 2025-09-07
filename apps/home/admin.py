@@ -124,7 +124,7 @@ class TopicAdmin(ModelAdmin, ImportExportModelAdmin):
 @admin.register(SearchOption)
 class SearchOptionAdmin(ModelAdmin, ImportExportModelAdmin):
     list_display = ("keyword", "search_tag", "category", "subcategory", "created_at")
-    search_fields = ("search_tag", "keyword", "category", "subcategory")
+    search_fields = ("search_tag__tag_name", "keyword", "category", "subcategory")
     list_filter = ("category", "subcategory")
     ordering = ("-created_at",)
     list_per_page = 20

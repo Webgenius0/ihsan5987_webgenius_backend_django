@@ -1,7 +1,16 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin
 from import_export.admin import ImportExportModelAdmin
-from .models import Profile, FAQ, FAQCategory, ContactUs, NotificationSetting, Feedback, AppInfo
+from .models import (
+    Profile,
+    FAQ,
+    FAQCategory,
+    ContactUs,
+    NotificationSetting,
+    Feedback,
+    AppInfo,
+    APIKey,
+)
 from unfold.contrib.import_export.forms import ExportForm, ImportForm, SelectableFieldsExportForm
 
 
@@ -98,3 +107,26 @@ class AppInfoAdmin(ModelAdmin, ImportExportModelAdmin):
     import_form_class = ImportForm
     export_form_class = ExportForm
     selectable_fields_export_form_class = SelectableFieldsExportForm
+
+
+@admin.register(APIKey)
+class APIKeyAdmin(ModelAdmin):
+    list_display = ("ai_name", "description", "is_active", "created_at", "expired_date")
+    search_fields = ["ai_name",]
+    ordering = ["-created_at"]
+    readonly_fields = ['ai_name']
+
+    # update and delte permission for only superuser
+    def has_add_permission(self, request):
+        return request.user.is_superuser
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    # only supseruser can see the list
+    def has_module_permission(self, request):
+        return request.user.is_superuser
+    

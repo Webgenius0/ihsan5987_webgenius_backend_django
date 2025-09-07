@@ -179,19 +179,25 @@ UNFOLD = {
                     {
                         "title": _("Periodic Task"),
                         "icon": "hourglass_pause",
-                        "link": reverse_lazy("admin:django_celery_beat_periodictask_changelist"),
+                        "link": reverse_lazy(
+                            "admin:django_celery_beat_periodictask_changelist"
+                        ),
                     },
                     {
                         "title": _("Interval Task"),
                         "icon": "hourglass_pause",
-                        "link": reverse_lazy("admin:django_celery_beat_intervalschedule_changelist"),
+                        "link": reverse_lazy(
+                            "admin:django_celery_beat_intervalschedule_changelist"
+                        ),
                     },
                     {
                         "title": _("Crontab Task"),
                         "icon": "hourglass_pause",
-                        "link": reverse_lazy("admin:django_celery_beat_crontabschedule_changelist"),
-                    }
-                ]
+                        "link": reverse_lazy(
+                            "admin:django_celery_beat_crontabschedule_changelist"
+                        ),
+                    },
+                ],
             },
             {
                 "title": _("Subscriptions"),
@@ -291,6 +297,12 @@ UNFOLD = {
                         "title": _("App Info"),
                         "icon": "info",  # Supported icon set: https://fonts.google.com/icons
                         "link": reverse_lazy("admin:profiles_appinfo_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                    {
+                        "title": _("API Key"),
+                        "icon": "key_vertical",  # Supported icon set: https://fonts.google.com/icons
+                        "link": reverse_lazy("admin:profiles_apikey_changelist"),
                         "permission": lambda request: request.user.is_superuser,
                     },
                 ],
