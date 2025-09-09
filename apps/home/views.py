@@ -159,7 +159,7 @@ class TrendingNowAPI(APIView):
             else:
                 trending_now = Trending.objects.select_related(
                     "category", "subcategory"
-                ).order_by("-created_at")[:4]
+                ).order_by("-created_at")[:8]
         data = []
         for trendig in trending_now:
             obj = {

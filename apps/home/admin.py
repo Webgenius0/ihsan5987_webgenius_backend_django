@@ -227,6 +227,7 @@ class TrendingAdmin(ModelAdmin, ImportExportModelAdmin):
     list_display_links = ("category", "subcategory")
     ordering = ("-created_at",)
     list_per_page = 20
+    actions = ["duplicate_rows"]
 
     # import_form_class = ImportForm
     export_form_class = ExportForm
@@ -243,6 +244,13 @@ class TrendingAdmin(ModelAdmin, ImportExportModelAdmin):
         if obj.picture_url:
             return format_html('<a href="{0}" target="_blank">{0}</a>', obj.picture_url)
         return "-"
+
+    @admin.action(description="Duplicate selected rows")
+    def duplicate_rows(self, request, queryset):
+        for obj in queryset:
+            obj.pk = None  # remove primary key to create a new record
+            obj.save()
+
 
 # TrendingUser
 # @admin.register(TrendingUser)
