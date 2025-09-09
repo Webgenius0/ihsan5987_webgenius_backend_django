@@ -13,29 +13,23 @@ class GeneralNotificationListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        try:
-            notifications = (Notification.objects.filter(
-                Q(recipient=request.user) | Q(notification_type='post'))
-                .select_related("sender__profile", "related_post")
-                .order_by("-created_at")
+        notifications = (
+            Notification.objects.filter(
+                Q(recipient=request.user) | Q(notification_type="post")
             )
-            serializer = GeneralNotificationSerializer(notifications, many=True)
-            response = {
-                "status": status.HTTP_200_OK,
-                "success": True,
-                "message": "General Notification fetched successfully",
-                "data": serializer.data
-            }
-            return Response(response, status=status.HTTP_200_OK)
-        except Exception as e:
-            import traceback
-            print(f"Error in GeneralNotificationListView: {str(e)}")
-            print(f"Traceback: {traceback.format_exc()}")
-            return Response({
-                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
-                "success": False,
-                "error": str(e)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            .select_related("recipient", "related_post")   # avoid N+1 queries
+            .prefetch_related("recipient__profile")        # fetch profile in one query
+            .order_by("-created_at")
+        )
+
+        serializer = GeneralNotificationSerializer(notifications, many=True)
+
+        return Response({
+            "status": status.HTTP_200_OK,
+            "success": True,
+            "message": "General notifications fetched successfully",
+            "data": serializer.data
+        }, status=status.HTTP_200_OK)
 
 
 class UnreadNotificationCountView(APIView):

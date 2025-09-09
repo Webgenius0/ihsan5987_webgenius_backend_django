@@ -17,22 +17,14 @@ class GeneralNotificationSerializer(serializers.ModelSerializer):
         fields = ['id', 'recipient', 'profile_image', 'message', 'timestamp', 'post_image', 'category', 'is_read']
         read_only_fields = ['id', 'timestamp', 'category', 'is_read']
 
-    def get_name(self, obj):
-        print(f"Serializer get_name - sender: {obj.sender}, type: {type(obj.sender)}")
-        if obj.sender:
-            print(f"Sender name: {obj.sender.name}")
-        else:
-            print("Sender is None")
-        return obj.sender.name if obj.sender else None
-
     def get_profile_image(self, obj):
-        if obj.sender:
-            print(f"Serializer get_profile_image - sender has profile? {hasattr(obj.sender, 'profile')}")
-            if hasattr(obj.sender, 'profile'):
-                print(f"Profile image_url: {obj.sender.profile.image_url}")
-        else:
-            print("Sender is None in get_profile_image")
-        return obj.sender.profile.image_url if (obj.sender and hasattr(obj.sender, 'profile')) else None
+        try:
+            # Assuming recipient has a profile with an image field
+            if obj.recipient and hasattr(obj.recipient, 'profile') and obj.recipient.profile.image:
+                return obj.recipient.profile.image.url
+        except Exception:
+            pass
+        return None
 
     def get_post_image(self, obj):
         try:
