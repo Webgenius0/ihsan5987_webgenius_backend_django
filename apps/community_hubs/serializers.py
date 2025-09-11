@@ -100,12 +100,17 @@ class CommentSerializer(serializers.ModelSerializer):
     def get_user(self, obj):
         profile_image = ''
         if hasattr(obj.user, 'profile') and obj.user.profile.image:
-            profile_image = str(obj.user.profile.image)
+            # Use .url if available (for FileField/CloudinaryField)
+            if hasattr(obj.user.profile.image, 'url'):
+                profile_image = str(obj.user.profile.image.url)
+            else:
+                profile_image = str(obj.user.profile.image)
         return {
             'id': obj.user.id,
             'name': obj.user.name,
             'image': profile_image
         }
+
 
     def get_create_time(self, obj):
         diff = now() - obj.created_at
@@ -171,10 +176,11 @@ class PostDetailSerializer(serializers.ModelSerializer):
             if user.id not in unique_users:
                 profile_image = ''
                 if hasattr(user, 'profile') and user.profile.image:
-                    profile_image = str(user.profile.image)
+                    profile_image = str(user.profile.image.url) if hasattr(user.profile.image, 'url') else str(user.profile.image)
                 unique_users[user.id] = {
                     'id': user.id,
                     'name': user.name,
                     'image': profile_image
                 }
         return {'avatars': list(unique_users.values())}
+
