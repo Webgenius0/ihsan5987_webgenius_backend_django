@@ -9,7 +9,8 @@ from apps.community_hubs.models import Comment
 from rest_framework.permissions import IsAuthenticated
 from .models import Profile, FAQ, FAQCategory, ContactUs, NotificationSetting, AppInfo
 from .serializers import ProfileSerializer, MyPostSerializer, FAQSerializer, FAQCategorySerializer, ContactUsSerializer, NotificationSettingSerializer, AppInfoSerializer
-
+from apps.home.models import Preference
+from apps.home.serializers import PreferenceSerializer
 
 # Profile View
 class ProfileView(APIView):
@@ -283,3 +284,18 @@ class AppInformationView(APIView):
                 "success": False,
                 "message": str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class UserPreferencesView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        user = request.user
+        preferences = Preference.objects.filter(user=user)
+        serializers = PreferenceSerializer(preferences, many=True)
+        response = {
+            "status": status.HTTP_200_OK,
+            "success": True,
+            "message": "User preferences retrieved successfully",
+            "data": serializers.data
+        }
+        return Response(response, status=status.HTTP_200_OK)
