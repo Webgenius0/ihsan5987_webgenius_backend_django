@@ -101,7 +101,7 @@ class FeedbackAdmin(ModelAdmin, ImportExportModelAdmin):
 
 @admin.register(AppInfo)
 class AppInfoAdmin(ModelAdmin, ImportExportModelAdmin):
-    list_display = ("id", "job_vacancy_url", "rate_us_url", "privacy_policy_url", "partner_url", "accessibility_url", "community_guidelines_url", "developer_url", "feedback_url", "website_url")
+    list_display = ("id",  "rate_us_url", "privacy_policy_url", "partner_url", "accessibility_url", "community_guidelines_url", "developer_url", "feedback_url", "website_url")
     list_per_page = 20
 
     import_form_class = ImportForm

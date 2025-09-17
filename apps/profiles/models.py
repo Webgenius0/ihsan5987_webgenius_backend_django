@@ -48,7 +48,7 @@ class FAQ(models.Model):
 # Contact Us
 class ContactUs(models.Model):
     PLATFORM_CHOICES = [
-        ("email", "Contact Us"),
+        ("email", "Email"),
         ("whatsapp", "WhatsApp"),
         ("instagram", "Instagram"),
         ("facebook", "Facebook"),
@@ -100,7 +100,7 @@ auditlog.register(Feedback)
 # About scripts
 # models.py
 class AppInfo(models.Model):
-    job_vacancy_url = models.URLField(blank=True, null=True)
+    # job_vacancy_url = models.URLField(blank=True, null=True)
     developer_url = models.URLField(blank=True, null=True)
     partner_url = models.URLField(blank=True, null=True)
     accessibility_url = models.URLField(blank=True, null=True)
