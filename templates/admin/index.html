@@ -1,0 +1,910 @@
+{% extends "admin/base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('SMAILTALK Admin') }}{% endblock %}
+
+{% block branding %}
+<h1 id="site-name"><a href="{% url 'admin:index' %}">{{ site_header|default:_('SMAILTALK Administration') }}</a></h1>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
+
+{% block content %}
+<div class="app-dashboard">
+    <div class="dashboard-header">
+        <h1>{% trans "SMAILTALK Admin Dashboard" %}</h1>
+        <p class="dashboard-subtitle">{% trans "Monitor platform performance and user engagement" %}</p>
+    </div>
+
+    <!-- Platform Overview -->
+    <div class="dashboard-row">
+        <h2 class="dashboard-row-title">{% trans "Platform Overview" %}</h2>
+        <div class="dashboard-widgets">
+            <div class="dashboard-widget">
+                <h3 class="widget-title">{% trans "User Statistics" %}</h3>
+                <div class="stats-widget">
+                    <div class="stat-item stat-primary">
+                        <div class="stat-value">{{ total_users }}</div>
+                        <div class="stat-title">{% trans "Total Users" %}</div>
+                        <div class="stat-icon">
+                            <span class="material-icons">group</span>
+                        </div>
+                    </div>
+                    <div class="stat-item stat-success">
+                        <div class="stat-value">{{ active_users }}</div>
+                        <div class="stat-title">{% trans "Active Users" %}</div>
+                        <div class="stat-icon">
+                            <span class="material-icons">check_circle</span>
+                        </div>
+                    </div>
+                    <div class="stat-item stat-info">
+                        <div class="stat-value">{{ new_users_7d }}</div>
+                        <div class="stat-title">{% trans "New Users (7d)" %}</div>
+                        <div class="stat-icon">
+                            <span class="material-icons">person_add</span>
+                        </div>
+                    </div>
+                    <div class="stat-item stat-warning">
+                        <div class="stat-value">{{ premium_users }}</div>
+                        <div class="stat-title">{% trans "Premium Users" %}</div>
+                        <div class="stat-icon">
+                            <span class="material-icons">star</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="dashboard-widget">
+                <h3 class="widget-title">{% trans "User Growth Trend" %}</h3>
+                <div class="chart-widget">
+                    <canvas id="user-growth-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Analytics -->
+    <div class="dashboard-row">
+        <h2 class="dashboard-row-title">{% trans "Content Analytics" %}</h2>
+        <div class="dashboard-widgets">
+            <div class="dashboard-widget">
+                <h3 class="widget-title">{% trans "Content Statistics" %}</h3>
+                <div class="stats-widget">
+                    <div class="stat-item stat-primary">
+                        <div class="stat-value">{{ total_categories }}</div>
+                        <div class="stat-title">{% trans "Categories" %}</div>
+                        <div class="stat-icon">
+                            <span class="material-icons">category</span>
+                        </div>
+                    </div>
+                    <div class="stat-item stat-secondary">
+                        <div class="stat-value">{{ total_topics }}</div>
+                        <div class="stat-title">{% trans "Topics" %}</div>
+                        <div class="stat-icon">
+                            <span class="material-icons">topic</span>
+                        </div>
+                    </div>
+                    <div class="stat-item stat-info">
+                        <div class="stat-value">{{ total_searches }}</div>
+                        <div class="stat-title">{% trans "Searches" %}</div>
+                        <div class="stat-icon">
+                            <span class="material-icons">search</span>
+                        </div>
+                    </div>
+                    <div class="stat-item stat-success">
+                        <div class="stat-value">{{ total_recommendations }}</div>
+                        <div class="stat-title">{% trans "Recommendations" %}</div>
+                        <div class="stat-icon">
+                            <span class="material-icons">recommend</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="dashboard-widget">
+                <h3 class="widget-title">{% trans "Content Distribution" %}</h3>
+                <div class="chart-widget">
+                    <canvas id="content-distribution-chart"></canvas>
+                </div>
+            </div>
+            <div class="dashboard-widget">
+                <h3 class="widget-title">{% trans "Top Categories by Searches" %}</h3>
+                <div class="chart-widget">
+                    <canvas id="top-categories-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Community Activity -->
+    <div class="dashboard-row">
+        <h2 class="dashboard-row-title">{% trans "Community Activity" %}</h2>
+        <div class="dashboard-widgets">
+            <div class="dashboard-widget">
+                <h3 class="widget-title">{% trans "Community Statistics" %}</h3>
+                <div class="stats-widget">
+                    <div class="stat-item stat-primary">
+                        <div class="stat-value">{{ total_posts }}</div>
+                        <div class="stat-title">{% trans "Total Posts" %}</div>
+                        <div class="stat-icon">
+                            <span class="material-icons">article</span>
+                        </div>
+                    </div>
+                    <div class="stat-item stat-secondary">
+                        <div class="stat-value">{{ total_comments }}</div>
+                        <div class="stat-title">{% trans "Total Comments" %}</div>
+                        <div class="stat-icon">
+                            <span class="material-icons">comment</span>
+                        </div>
+                    </div>
+                    <div class="stat-item stat-success">
+                        <div class="stat-value">{{ active_posts }}</div>
+                        <div class="stat-title">{% trans "Active Posts (30d)" %}</div>
+                        <div class="stat-icon">
+                            <span class="material-icons">add_circle</span>
+                        </div>
+                    </div>
+                    <div class="stat-item stat-info">
+                        <div class="stat-value">{{ active_comments }}</div>
+                        <div class="stat-title">{% trans "Active Comments (30d)" %}</div>
+                        <div class="stat-icon">
+                            <span class="material-icons">forum</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="dashboard-widget">
+                <h3 class="widget-title">{% trans "Recent Activities" %}</h3>
+                <div class="activity-container">
+                    <ul class="activity-list">
+                        {% for activity in recent_activities %}
+                        <li class="activity-item">
+                            <div class="activity-icon-wrapper">
+                                <span class="material-icons activity-icon">{{ activity.icon }}</span>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-description">{{ activity.description|safe }}</div>
+                                <div class="activity-timestamp">{{ activity.timestamp|date:"M j, H:i" }}</div>
+                            </div>
+                        </li>
+                        {% empty %}
+                        <li class="activity-item activity-empty">
+                            <div class="activity-icon-wrapper">
+                                <span class="material-icons activity-icon">info</span>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-description">{% trans "No recent activities" %}</div>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Business Metrics -->
+    <div class="dashboard-row">
+        <h2 class="dashboard-row-title">{% trans "Business Metrics" %}</h2>
+        <div class="dashboard-widgets">
+            <div class="dashboard-widget">
+                <h3 class="widget-title">{% trans "Business Statistics" %}</h3>
+                <div class="stats-widget">
+                    <div class="stat-item stat-success">
+                        <div class="stat-value">{{ total_subscriptions }}</div>
+                        <div class="stat-title">{% trans "Active Subscriptions" %}</div>
+                        <div class="stat-icon">
+                            <span class="material-icons">card_membership</span>
+                        </div>
+                    </div>
+                    <div class="stat-item stat-warning">
+                        <div class="stat-value">{{ total_notifications }}</div>
+                        <div class="stat-title">{% trans "Total Notifications" %}</div>
+                        <div class="stat-icon">
+                            <span class="material-icons">notifications</span>
+                        </div>
+                    </div>
+                    <div class="stat-item stat-danger">
+                        <div class="stat-value">{{ unread_notifications }}</div>
+                        <div class="stat-title">{% trans "Unread Notifications" %}</div>
+                        <div class="stat-icon">
+                            <span class="material-icons">notifications_active</span>
+                        </div>
+                    </div>
+                    <div class="stat-item stat-info">
+                        <div class="stat-value">{{ total_bookmarks }}</div>
+                        <div class="stat-title">{% trans "Total Bookmarks" %}</div>
+                        <div class="stat-icon">
+                            <span class="material-icons">bookmark</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity Tables -->
+    <div class="dashboard-row">
+        <h2 class="dashboard-row-title">{% trans "Recent Activity" %}</h2>
+        <div class="dashboard-widgets">
+            <div class="dashboard-widget">
+                <h3 class="widget-title">{% trans "Recent Posts" %}</h3>
+                <div class="table-widget">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>{% trans "User" %}</th>
+                                <th>{% trans "Title" %}</th>
+                                <th>{% trans "Created" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for post in recent_posts %}
+                            <tr>
+                                <td>{{ post.user.name|default:"N/A" }}</td>
+                                <td>{{ post.title|truncatechars:50|default:"No Title" }}</td>
+                                <td>{{ post.created_at|date:"Y-m-d H:i" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="3">{% trans "No recent posts" %}</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <div class="widget-footer">
+                        <a href="{% url 'admin:community_hubs_post_changelist' %}" class="btn btn-primary">{% trans "View All Posts" %}</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-widget">
+                <h3 class="widget-title">{% trans "Recent Comments" %}</h3>
+                <div class="table-widget">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>{% trans "User" %}</th>
+                                <th>{% trans "Post" %}</th>
+                                <th>{% trans "Comment" %}</th>
+                                <th>{% trans "Created" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for comment in recent_comments %}
+                            <tr>
+                                <td>{{ comment.user.name|default:"N/A" }}</td>
+                                <td>{{ comment.post.title|truncatechars:30|default:"N/A" }}</td>
+                                <td>{{ comment.text|truncatechars:50|default:"N/A" }}</td>
+                                <td>{{ comment.created_at|date:"Y-m-d H:i" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4">{% trans "No recent comments" %}</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <div class="widget-footer">
+                        <a href="{% url 'admin:community_hubs_comment_changelist' %}" class="btn btn-primary">{% trans "View All Comments" %}</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Searches -->
+    <div class="dashboard-row">
+        <h2 class="dashboard-row-title">{% trans "Recent Searches" %}</h2>
+        <div class="dashboard-widgets">
+            <div class="dashboard-widget">
+                <h3 class="widget-title">{% trans "Recent Searches" %}</h3>
+                <div class="table-widget">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>{% trans "Topic" %}</th>
+                                <th>{% trans "Category" %}</th>
+                                <th>{% trans "Search Term" %}</th>
+                                <th>{% trans "Created" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for search in recent_searches %}
+                            <tr>
+                                <td>{{ search.topic.name|default:"N/A" }}</td>
+                                <td>{{ search.category.category_name|default:"N/A" }}</td>
+                                <td>{{ search.search_term|default:"N/A" }}</td>
+                                <td>{{ search.created_at|date:"Y-m-d H:i" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4">{% trans "No recent searches" %}</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <div class="widget-footer">
+                        <a href="{% url 'admin:home_search_changelist' %}" class="btn btn-primary">{% trans "View All Searches" %}</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extrastyle %}
+<style>
+:root {
+    --bg-color: #ffffff;
+    --text-color: #1a1a1a;
+    --header-color: #1a1a1a;
+    --subtitle-color: #4a4a4a;
+    --widget-bg: #f8fafc;
+    --widget-shadow: rgba(0,0,0,0.1);
+    --widget-hover-shadow: rgba(0,0,0,0.2);
+    --title-color: #1a1a1a;
+    --stat-bg: #f1f5f9;
+    --stat-border-primary: #3b82f6;
+    --stat-border-success: #22c55e;
+    --stat-border-info: #06b6d4;
+    --stat-border-warning: #f59e0b;
+    --stat-border-danger: #ef4444;
+    --stat-border-secondary: #6b7280;
+    --stat-value-color: #1a1a1a;
+    --stat-title-color: #4a4a4a;
+    --icon-color: #3b82f6;
+    --table-bg-hover: #f1f5f9;
+    --table-border: #e2e8f0;
+    --table-th-bg: #e2e8f0;
+    --table-th-color: #374151;
+    --btn-bg: #3b82f6;
+    --btn-hover-bg: #2563eb;
+    --btn-text: #ffffff;
+    --chart-bg: #f8fafc;
+    --activity-bg: #f1f5f9;
+    --transition: all 0.3s ease;
+    /* Unfold-specific variables */
+    --unfold-bg: #ffffff;
+    --unfold-text: #1a1a1a;
+    --unfold-sidebar-bg: #f8fafc;
+    --unfold-sidebar-text: #1a1a1a;
+    --unfold-topbar-bg: #ffffff;
+    --unfold-topbar-text: #1a1a1a;
+}
+
+.dark-mode {
+    --bg-color: #1f2937;
+    --text-color: #f9fafb;
+    --header-color: #ffffff;
+    --subtitle-color: #d1d5db;
+    --widget-bg: #374151;
+    --widget-shadow: rgba(0,0,0,0.4);
+    --widget-hover-shadow: rgba(0,0,0,0.6);
+    --title-color: #ffffff;
+    --stat-bg: #4b5563;
+    --stat-border-primary: #60a5fa;
+    --stat-border-success: #4ade80;
+    --stat-border-info: #22d3ee;
+    --stat-border-warning: #fbbf24;
+    --stat-border-danger: #f87171;
+    --stat-border-secondary: #9ca3af;
+    --stat-value-color: #f9fafb;
+    --stat-title-color: #e5e7eb;
+    --icon-color: #93c5fd;
+    --table-bg-hover: #4b5563;
+    --table-border: #6b7280;
+    --table-th-bg: #4b5563;
+    --table-th-color: #f9fafb;
+    --btn-bg: #60a5fa;
+    --btn-hover-bg: #3b82f6;
+    --btn-text: #1f2937;
+    --chart-bg: #374151;
+    --activity-bg: #4b5563;
+    /* Unfold-specific variables */
+    --unfold-bg: #1f2937;
+    --unfold-text: #f9fafb;
+    --unfold-sidebar-bg: #374151;
+    --unfold-sidebar-text: #f9fafb;
+    --unfold-topbar-bg: #374151;
+    --unfold-topbar-text: #f9fafb;
+}
+
+/* Apply to entire page */
+html, body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: var(--transition);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+/* Force override Unfold styles with higher specificity */
+.unfold-sidebar, .unfold-sidebar * {
+    background-color: var(--unfold-sidebar-bg) !important;
+    color: var(--unfold-sidebar-text) !important;
+}
+
+.unfold-sidebar a,
+.unfold-sidebar .nav-link {
+    color: var(--unfold-sidebar-text) !important;
+}
+
+.unfold-sidebar .nav-link:hover {
+    background-color: var(--table-bg-hover) !important;
+}
+
+.unfold-topbar, .unfold-topbar * {
+    background-color: var(--unfold-topbar-bg) !important;
+    color: var(--unfold-topbar-text) !important;
+}
+
+.unfold-topbar a,
+.unfold-topbar .nav-link {
+    color: var(--unfold-topbar-text) !important;
+}
+
+.unfold-content, .unfold-content * {
+    background-color: var(--bg-color) !important;
+    color: var(--text-color) !important;
+}
+
+.app-dashboard {
+    padding: 24px;
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+.dashboard-header {
+    margin-bottom: 32px;
+    text-align: center;
+    position: relative;
+}
+
+.dashboard-header h1 {
+    color: var(--header-color);
+    font-size: 2.25rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.dashboard-subtitle {
+    color: var(--subtitle-color);
+    font-size: 1.125rem;
+    font-weight: 400;
+}
+
+
+.dashboard-row {
+    margin-bottom: 40px;
+}
+
+.dashboard-row-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--header-color);
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--stat-border-primary);
+    letter-spacing: -0.025em;
+}
+
+.dashboard-widgets {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 24px;
+}
+
+.dashboard-widget {
+    background: var(--widget-bg);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px var(--widget-shadow);
+    padding: 24px;
+    transition: var(--transition), transform 0.2s ease;
+}
+
+.dashboard-widget:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px var(--widget-hover-shadow);
+}
+
+.widget-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--title-color);
+    margin-bottom: 16px;
+    letter-spacing: -0.025em;
+}
+
+/* Stats Widget Styles */
+.stats-widget {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 16px;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 16px;
+    border-radius: 8px;
+    background: var(--stat-bg);
+    transition: var(--transition);
+}
+
+.stat-item.stat-primary { border-left: 4px solid var(--stat-border-primary); }
+.stat-item.stat-success { border-left: 4px solid var(--stat-border-success); }
+.stat-item.stat-info { border-left: 4px solid var(--stat-border-info); }
+.stat-item.stat-warning { border-left: 4px solid var(--stat-border-warning); }
+.stat-item.stat-danger { border-left: 4px solid var(--stat-border-danger); }
+.stat-item.stat-secondary { border-left: 4px solid var(--stat-border-secondary); }
+
+.stat-value {
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: var(--stat-value-color);
+    margin-bottom: 8px;
+}
+
+.stat-title {
+    font-size: 0.875rem;
+    color: var(--stat-title-color);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+}
+
+.stat-icon .material-icons {
+    font-size: 2rem;
+    color: var(--icon-color);
+    margin-top: 8px;
+}
+
+/* Table Widget Styles */
+.table-widget table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.table-widget th,
+.table-widget td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--table-border);
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+.table-widget th {
+    background: var(--table-th-bg);
+    font-weight: 700;
+    color: var(--table-th-color);
+    font-size: 0.875rem;
+}
+
+.table-widget tr:hover {
+    background: var(--table-bg-hover);
+}
+
+.table-widget tr:last-child td {
+    border-bottom: none;
+}
+
+.widget-footer {
+    margin-top: 16px;
+    text-align: right;
+}
+
+.widget-footer .btn {
+    padding: 8px 16px;
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    transition: var(--transition);
+}
+
+.widget-footer .btn:hover {
+    background: var(--btn-hover-bg);
+}
+
+/* Chart Widget Styles */
+.chart-widget {
+    position: relative;
+    height: 280px;
+    background: var(--chart-bg);
+    border-radius: 8px;
+    padding: 16px;
+}
+
+/* Activity List Styles */
+.activity-container {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.activity-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.activity-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 12px;
+    background: var(--activity-bg);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    transition: var(--transition);
+    border-left: 3px solid transparent;
+}
+
+.activity-item:hover {
+    background: var(--table-bg-hover);
+    border-left-color: var(--stat-border-primary);
+}
+
+.activity-icon-wrapper {
+    flex-shrink: 0;
+    margin-right: 12px;
+    margin-top: 2px;
+}
+
+.activity-icon {
+    font-size: 1.25rem;
+    color: var(--icon-color);
+}
+
+.activity-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.activity-description {
+    color: var(--text-color);
+    font-size: 0.875rem;
+    line-height: 1.4;
+    margin-bottom: 4px;
+    word-wrap: break-word;
+    font-weight: 500;
+}
+
+.activity-timestamp {
+    font-size: 0.75rem;
+    color: var(--stat-title-color);
+    font-weight: 600;
+    opacity: 0.8;
+}
+
+.activity-item.activity-empty {
+    justify-content: center;
+    opacity: 0.7;
+}
+
+.activity-item.activity-empty .activity-description {
+    text-align: center;
+    font-style: italic;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .dashboard-widgets {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-widgets {
+        grid-template-columns: 1fr;
+    }
+
+    .stats-widget {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .dashboard-header h1 {
+        font-size: 1.75rem;
+    }
+
+    .dashboard-subtitle {
+        font-size: 1rem;
+    }
+
+}
+
+@media (max-width: 480px) {
+    .stats-widget {
+        grid-template-columns: 1fr;
+    }
+
+    .app-dashboard {
+        padding: 16px;
+    }
+
+    .dashboard-row-title {
+        font-size: 1.5rem;
+    }
+
+    .widget-title {
+        font-size: 1.125rem;
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not(.dark-mode) {
+        --bg-color: #1f2937;
+        --text-color: #e5e7eb;
+        --header-color: #f3f4f6;
+        --subtitle-color: #9ca3af;
+        --widget-bg: #374151;
+        --widget-shadow: rgba(0,0,0,0.4);
+        --widget-hover-shadow: rgba(0,0,0,0.6);
+        --title-color: #f3f4f6;
+        --stat-bg: #4b5563;
+        --stat-value-color: #e5e7eb;
+        --stat-title-color: #9ca3af;
+        --table-bg-hover: #4b5563;
+        --table-border: #6b7280;
+        --table-th-bg: #4b5563;
+        --table-th-color: #d1d5db;
+        --chart-bg: #374151;
+        --activity-bg: #4b5563;
+        --unfold-bg: #1f2937;
+        --unfold-text: #e5e7eb;
+        --unfold-sidebar-bg: #374151;
+        --unfold-sidebar-text: #e5e7eb;
+        --unfold-topbar-bg: #374151;
+        --unfold-topbar-text: #e5e7eb;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extrahead %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<!-- Material Icons -->
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+{% endblock %}
+
+{% block footer %}
+<script type="application/json" id="user-growth-data">
+{{ user_growth_data_json|safe }}
+</script>
+<script type="application/json" id="content-distribution-data">
+{{ content_distribution_json|safe }}
+</script>
+<script type="application/json" id="top-categories-data">
+[
+    {% for category in top_categories %}
+    {"label": "{{ category.category_name|escapejs }}", "value": {{ category.search_count }}}{% if not forloop.last %},{% endif %}
+    {% endfor %}
+]
+</script>
+<script>
+// Chart Instances
+let userGrowthChart, contentDistributionChart, topCategoriesChart;
+
+// Chart Colors (using Unfold theme colors)
+function getChartColors() {
+    return {
+        lineBorder: '#3b82f6',
+        lineBackground: 'rgba(59, 130, 246, 0.2)',
+        pieColors: ['#ff6b6b', '#4ade80', '#facc15', '#2dd4bf', '#a78bfa'],
+        barColor: '#3b82f6'
+    };
+}
+
+function createCharts() {
+    const colors = getChartColors();
+
+    // User Growth Chart (Line)
+    const userGrowthCanvas = document.getElementById('user-growth-chart');
+    if (userGrowthCanvas) {
+        try {
+            const userGrowthData = JSON.parse(document.getElementById('user-growth-data').textContent);
+            const labels = userGrowthData.map(item => item.date);
+            const data = userGrowthData.map(item => item.count);
+
+            if (userGrowthChart) userGrowthChart.destroy();
+            userGrowthChart = new Chart(userGrowthCanvas, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'New Users',
+                        data: data,
+                        borderColor: colors.lineBorder,
+                        backgroundColor: colors.lineBackground,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: true }
+                    },
+                    scales: {
+                        y: { beginAtZero: true },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        } catch (e) {
+            console.error('Error creating user growth chart:', e);
+        }
+    }
+
+    // Content Distribution Chart (Pie)
+    const contentDistributionCanvas = document.getElementById('content-distribution-chart');
+    if (contentDistributionCanvas) {
+        try {
+            const contentDistributionData = JSON.parse(document.getElementById('content-distribution-data').textContent);
+            const labels = contentDistributionData.map(item => item.label);
+            const data = contentDistributionData.map(item => item.value);
+
+            if (contentDistributionChart) contentDistributionChart.destroy();
+            contentDistributionChart = new Chart(contentDistributionCanvas, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: colors.pieColors,
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right' }
+                    }
+                }
+            });
+        } catch (e) {
+            console.error('Error creating content distribution chart:', e);
+        }
+    }
+
+    // Top Categories Chart (Bar)
+    const topCategoriesCanvas = document.getElementById('top-categories-chart');
+    if (topCategoriesCanvas) {
+        try {
+            const topCategoriesData = JSON.parse(document.getElementById('top-categories-data').textContent);
+            const labels = topCategoriesData.map(item => item.label);
+            const data = topCategoriesData.map(item => item.value);
+
+            if (topCategoriesChart) topCategoriesChart.destroy();
+            topCategoriesChart = new Chart(topCategoriesCanvas, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Search Count',
+                        data: data,
+                        backgroundColor: colors.barColor,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        } catch (e) {
+            console.error('Error creating top categories chart:', e);
+        }
+    }
+}
+
+// Initialize charts on page load
+document.addEventListener('DOMContentLoaded', createCharts);
+</script>
+{% endblock %}
