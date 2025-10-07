@@ -12,10 +12,6 @@
 
 {% block content %}
 <div class="app-dashboard">
-    <div class="dashboard-header">
-        <h1>{% trans "SMAILTALK Admin Dashboard" %}</h1>
-        <p class="dashboard-subtitle">{% trans "Monitor platform performance and user engagement" %}</p>
-    </div>
 
     <!-- Platform Overview -->
     <div class="dashboard-row">
@@ -540,7 +536,7 @@ html, body {
 
 .stat-title {
     font-size: 0.875rem;
-    color: var(--stat-title-color);
+    color: #ffffff;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     font-weight: 600;
@@ -809,8 +805,8 @@ function createCharts() {
                     datasets: [{
                         label: 'New Users',
                         data: data,
-                        borderColor: colors.lineBorder,
-                        backgroundColor: colors.lineBackground,
+                        borderColor: '#00FF7F',
+                        backgroundColor: 'rgba(0, 255, 127, 0.2)',
                         tension: 0.4,
                         fill: true,
                         pointRadius: 4,
@@ -821,11 +817,33 @@ function createCharts() {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { display: true }
+                        legend: { 
+                            display: true,
+                            labels: {
+                                color: '#ffffff' // White legend text
+                            }
+                        }
+                        
                     },
                     scales: {
-                        y: { beginAtZero: true },
-                        x: { grid: { display: false } }
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: '#ffffff' // White Y-axis labels
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.2)' // Light grid lines
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: '#ffffff' // White X-axis labels
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.2)', // Light grid lines
+                                display: true
+                            }
+                        }
                     }
                 }
             });
@@ -857,7 +875,20 @@ function createCharts() {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { position: 'right' }
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                color: '#ffffff', // ✅ White legend text
+                                font: {
+                                    size: 14
+                                }
+                            }
+                        },
+                        tooltip: {
+                            titleColor: '#ffffff', // ✅ White tooltip title
+                            bodyColor: '#ffffff',  // ✅ White tooltip text
+                            backgroundColor: 'rgba(0, 0, 0, 0.7)' // dark tooltip bg
+                        }
                     }
                 }
             });
@@ -893,8 +924,23 @@ function createCharts() {
                         legend: { display: false }
                     },
                     scales: {
-                        y: { beginAtZero: true },
-                        x: { grid: { display: false } }
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: '#ffffff' // ✅ White Y-axis text
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.2)' // subtle white grid lines
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: '#ffffff' // ✅ White X-axis text
+                            },
+                            grid: {
+                                display: false
+                            }
+                        }
                     }
                 }
             });
