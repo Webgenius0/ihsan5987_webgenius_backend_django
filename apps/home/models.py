@@ -171,7 +171,7 @@ class UpdateMe(models.Model):
     background_story = models.JSONField(blank=True, null=True)
     picture_url = models.TextField(blank=True, null=True)
     created_at = models.DateField(auto_now_add=True)
-    interest = models.BooleanField(default=False)
+    # interest = models.BooleanField(default=False)
 
     def __str__(self):
         return self.topic.name

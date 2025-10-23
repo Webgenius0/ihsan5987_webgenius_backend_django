@@ -191,8 +191,8 @@ class RecommendationAdmin(ModelAdmin, ImportExportModelAdmin):
 
 @admin.register(UpdateMe)
 class UpdateMeAdmin(ModelAdmin, ImportExportModelAdmin):
-    list_display = ("topic", "category", "subcategory", "created_at", "interest")
-    list_filter = ("created_at", "interest", "category", "subcategory", "topic")
+    list_display = ("topic", "category", "subcategory", "created_at")
+    list_filter = ("created_at", "category", "subcategory", "topic")
     search_fields = ("short_info", "background_story", "reference_url")
     ordering = ("-created_at",)
     list_per_page = 20
