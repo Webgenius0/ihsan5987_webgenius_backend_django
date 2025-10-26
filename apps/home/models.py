@@ -169,8 +169,10 @@ class UpdateMe(models.Model):
     short_info = models.JSONField(blank=True, null=True)
     reference_url = models.JSONField(blank=True, null=True)
     background_story = models.JSONField(blank=True, null=True)
-    picture_url = models.TextField(blank=True, null=True)
+    picture_url = models.URLField(blank=True, null=True)
     created_at = models.DateField(auto_now_add=True)
+    is_archive = models.BooleanField(default=False)
+    is_top3 = models.BooleanField(default=False)
     # interest = models.BooleanField(default=False)
 
     def __str__(self):

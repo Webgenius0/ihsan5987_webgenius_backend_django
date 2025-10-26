@@ -20,7 +20,7 @@ else:
 if APIKey.objects.filter(ai_name="OpenAI API Key").exists():
     OPENAI_API_KEY = APIKey.objects.get(ai_name="OpenAI API Key").key
 else:
-    OPENAI_API_KEY = "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"  # Your OpenAI API key
+    OPENAI_API_KEY = "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"  # Your OpenAI API key
 
 # Perplexity API Key 
 if APIKey.objects.filter(ai_name="Perplexity API Key").exists():

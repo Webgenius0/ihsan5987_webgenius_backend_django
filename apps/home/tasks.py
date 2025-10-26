@@ -13,7 +13,7 @@ from .models import (
     Search,
 )
 from scripts.recommendation import generate_recommendation
-from scripts.update_me import generate_update_me_element
+from scripts.update_me import generate_update_me_element, generate_update_me_news_set
 from scripts.trending import generate_trending_set
 
 
@@ -81,6 +81,44 @@ def recommandation_task():
 @shared_task
 def updateme_task():
     print("update me task started in time")
+    # generate 3 news 
+    top_three = generate_update_me_news_set()
+    # save top 3 news to database
+    for news in top_three:
+        try:
+            category = Category.objects.filter(
+                category_name__iexact=news["category"]
+            ).first()
+            if not category:
+                category = Category.objects.create(category_name=news["category"])
+
+            subcategory = Subcategory.objects.filter(
+                subcategory_name__iexact=news["subcategory"]
+            ).first()
+            if not subcategory:
+                subcategory = Subcategory.objects.create(
+                    subcategory_name=news["subcategory"]
+                )
+            topic = Topic.objects.filter(name__iexact=news["topic"]).first()
+            if not topic:
+                topic = Topic.objects.create(name=news["topic"])
+
+            UpdateMe.objects.create(
+                category=category,
+                subcategory=subcategory,
+                topic=topic,
+                short_info=news["short_info"],
+                reference_url=news["reference_url"],
+                background_story=news["background_story"],
+                picture_url=news["picture_url"],
+                is_top3=True,
+            )
+            print("Top 3 UpdateMe news saved successfully")
+        except Exception as e:
+            print(f"Error saving Top 3 UpdateMe news: {e}")
+            continue
+
+    # generate update me for each topic
     update_me = []
     for subtopic in subcategories[:5]:
         print("subcategory: ", subtopic)
@@ -130,6 +168,7 @@ def updateme_task():
                 reference_url=item.get("reference_url", ""),
                 background_story=item.get("background_story", ""),
                 picture_url=item.get("picture_url", ""),
+                is_archive=item.get("is_archive", False),
             )
             print("UpdateMe saved successfully")
         except Exception as e:

@@ -191,7 +191,7 @@ class RecommendationAdmin(ModelAdmin, ImportExportModelAdmin):
 
 @admin.register(UpdateMe)
 class UpdateMeAdmin(ModelAdmin, ImportExportModelAdmin):
-    list_display = ("topic", "category", "subcategory", "created_at")
+    list_display = ("topic", "category", "subcategory", "is_top3", "created_at")
     list_filter = ("created_at", "category", "subcategory", "topic")
     search_fields = ("short_info", "background_story", "reference_url")
     ordering = ("-created_at",)
@@ -205,17 +205,6 @@ class UpdateMeAdmin(ModelAdmin, ImportExportModelAdmin):
         qs = super().get_queryset(request)
         qs = qs.select_related("category", "subcategory", "topic")
         return qs
-
-
-# @admin.register(KeyWord)
-# class KeyWordAdmin(ModelAdmin, ImportExportModelAdmin):
-#     list_display = ("id", "key_words")
-#     search_fields = ("key_words",)
-#     ordering = ("id",)
-#     list_per_page = 20
-
-#     import_form_class = ImportForm
-#     export_form_class = ExportForm
 
 
 # Trending
