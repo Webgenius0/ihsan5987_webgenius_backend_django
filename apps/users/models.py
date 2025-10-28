@@ -102,7 +102,3 @@ class EmailOTP(models.Model):
 
     def __str__(self):
         return f"{self.user.email}"
-
-
-# Register EmailOTP model for audit logging
-auditlog.register(EmailOTP)

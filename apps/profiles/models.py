@@ -16,15 +16,11 @@ class Profile(models.Model):
     @property
     def image_url(self):
         if self.image:
-            return self.image.url  # Cloudinary provides full URL
+            return self.image.url
         return None
 
     def __str__(self):
         return f"{self.user.name} - {self.user.email}"
-
-
-# Register model for audit logging
-auditlog.register(Profile)
 
 
 class FAQCategory(models.Model):
@@ -81,11 +77,6 @@ class NotificationSetting(models.Model):
     def __str__(self):
         return f"{self.user.name}'s notification setting"
 
-
-# Register model for audit logging
-auditlog.register(NotificationSetting)
-
-
 # Feedback for about smailtalk page
 class Feedback(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -93,11 +84,6 @@ class Feedback(models.Model):
     created_at = models.DateField(auto_now_add=True)
 
 
-# Register model for audit logging
-auditlog.register(Feedback)
-
-
-# About scripts
 # models.py
 class AppInfo(models.Model):
     # job_vacancy_url = models.URLField(blank=True, null=True)

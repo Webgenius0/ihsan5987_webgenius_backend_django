@@ -8,23 +8,35 @@ from unfold.contrib.import_export.forms import ExportForm, ImportForm
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin, ModelAdmin, ImportExportModelAdmin):
-    list_display = ("name", "email", "is_staff", "is_active",)
+    list_display = ("name", "email", "is_staff", "is_active","is_subscribed", "created_at")
+    search_fields = ["email", "name"]
     list_filter = ("is_staff", "is_active",)
     list_per_page = 20
     ordering = ("-created_at",)
     fieldsets = (
-        (None, {"fields": ("name", "email", "password")}),
-        ("Permissions", {"fields": ("is_staff", "is_active", "groups", "user_permissions")}),
+        (None, {"fields": ("email", "password")}),
+        ("Personal Info", {"fields": ("name",)}),
+        (
+            "Permissions",
+            {
+                "fields": (
+                    "is_staff",
+                    "is_active",
+                    "is_superuser",
+                    "is_subscribed",
+                    "groups",
+                    "user_permissions",
+                )
+            },
+        ),
+        ("Important dates", {"fields": ("last_login",)}),
     )
-
     add_fieldsets = (
         (None, {
-            "classes": ("wide",),
-            "fields": ("name", "email", "password", "is_staff", "is_active"),
+            'classes': ('wide',),
+            'fields': ('email', 'name', 'password1', 'password2', 'is_staff', 'is_active', 'is_subscribed'),
         }),
     )
-    search_fields = ["email", "name"]
-
     export_form_class = ExportForm
 
     # disable import

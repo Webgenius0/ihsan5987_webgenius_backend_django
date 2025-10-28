@@ -127,12 +127,6 @@ UNFOLD = {
                         "permission": lambda request: request.user.is_superuser,
                     },
                     {
-                        "title": _("Bookmarks & Preferences"),
-                        "icon": "bookmark",
-                        "link": reverse_lazy("admin:home_bookmark_changelist"),
-                        "permission": lambda request: request.user.is_superuser,
-                    },
-                    {
                         "title": _("Community Posts"),
                         "icon": "forum",  # Supported icon set: https://fonts.google.com/icons
                         "link": reverse_lazy("admin:community_hubs_post_changelist"),

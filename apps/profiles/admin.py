@@ -16,11 +16,12 @@ from unfold.contrib.import_export.forms import ExportForm, ImportForm, Selectabl
 
 @admin.register(Profile)
 class ProfileAdmin(ModelAdmin, ImportExportModelAdmin):
-    list_display = ("user", "image", "premium_user", "created_at")
-    search_fields = ["user__email"]
+    list_display = ("user", "user__email", "premium_user", "user__is_active", "created_at")
+    search_fields = ["user__email", "user__name"]
     ordering = ["-created_at"]
-    list_filter = ["user__is_active"]
+    list_filter = ["user__is_active", "premium_user"]
     list_per_page = 20
+    list_filter_sheet = False
 
     export_form_class = ExportForm
     selectable_fields_export_form_class = SelectableFieldsExportForm

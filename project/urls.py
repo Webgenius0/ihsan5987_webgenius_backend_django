@@ -7,9 +7,9 @@ from drf_yasg import openapi
 
 schema_view = get_schema_view(
     openapi.Info(
-        title="scripts DRF API",
+        title="SmallTalk",
         default_version="v1",
-        description="API documentation for scripts DRF project",
+        description="API documentation",
     ),
     public=True,
     permission_classes=[permissions.AllowAny],
@@ -23,16 +23,7 @@ urlpatterns = [
     path("api/community/", include("apps.community_hubs.urls")),
     path("api/notifications/", include("apps.notifications.urls")),
     path("api/subscriptions/", include("apps.subscription.urls")),
-    path("schema/", include("schema_viewer.urls")),
-    # Swagger & ReDoc
-    re_path(
-        r"^swagger(?P<format>\.json|\.yaml)$",
-        schema_view.without_ui(cache_timeout=0),
-        name="schema-json",
-    ),
-    path(
-        "swagger/",
-        schema_view.with_ui("swagger", cache_timeout=0),
-        name="schema-swagger-ui",
-    ),
+    
+    path("schema/", include("schema_viewer.urls")),  # database schema
+    path("swagger/",schema_view.with_ui("swagger", cache_timeout=0), name="schema-swagger-ui",),  # Swagger API documentation
 ]

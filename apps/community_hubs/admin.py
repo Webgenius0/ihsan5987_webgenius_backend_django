@@ -8,29 +8,25 @@ from unfold.contrib.import_export.forms import (ExportForm, ImportForm, Selectab
 
 @admin.register(Post)
 class PostAdmin(ModelAdmin, ImportExportModelAdmin):
-    # Display settings for list view
     list_display = (
         "title",
-        "content_preview",
         "user",
+        "category",
+        "is_active",
         "created_at",
     )
-    list_filter = ("created_at",)  # Add filters for quick navigation
-    search_fields = ["title", "user__email"]  # Searchable fields
-    list_per_page = 20  # Pagination settings
-    ordering = ["-created_at"]  # Default sorting by newest first
-    date_hierarchy = "created_at"  # Date-based navigation
+    list_filter = ("created_at",)
+    search_fields = ["title", "user__email", "user__name", "category__category_name"]
+    list_per_page = 20
+    ordering = ["-created_at"]
+    date_hierarchy = "created_at"
+    readonly_fields = ['created_at']
 
     # Import/Export configuration
-    import_form_class = ImportForm
+    # import_form_class = ImportForm
     export_form_class = ExportForm
-
-    # Custom methods for enhanced display
-    def content_preview(self, obj):
-        """Display a truncated version of the post content."""
-        return f"{obj.content[:50]}..." if len(obj.content) > 50 else obj.content
-
-    content_preview.short_description = "Content Preview"
+    def has_import_permission(self, request):
+        return None
 
 
 @admin.register(Comment)
@@ -39,24 +35,28 @@ class CommentAdmin(ModelAdmin, ImportExportModelAdmin):
     search_fields = ["post__title", "user__email"]
     list_per_page = 20
     ordering = ["-created_at"]
+    list_filter_sheet = True
+    list_filter = ("post", "created_at",)
 
-    import_form_class = ImportForm
     export_form_class = ExportForm
+    def has_import_permission(self, request):
+        return None
+    
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.select_related('post', 'user')
 
 
 @admin.register(Like)
-class LikeAdmin(ModelAdmin, ImportExportModelAdmin):
+class LikeAdmin(ModelAdmin):
     list_display = ("comment", "user", "created_at")
     search_fields = ["comment__post__title", "user__email"]
     list_per_page = 20
     ordering = ["-created_at"]
 
-    import_form_class = ImportForm
-    export_form_class = ExportForm
-
 
 @admin.register(CommentReport)
-class CommentReportAdmin(ModelAdmin, ImportExportModelAdmin):
+class CommentReportAdmin(ModelAdmin):
     list_display = [
         'comment',
         'reporter',
@@ -68,11 +68,7 @@ class CommentReportAdmin(ModelAdmin, ImportExportModelAdmin):
     list_filter = ['status', 'reason']
     search_fields = ['comment__text', 'reporter__username', 'reporter__name']
     readonly_fields = ['created_at']
-
-    # Optional: Make status editable directly from the list view
     list_editable = ['status']
-
-    # Optional: Add ordering by status and created_at
     list_per_page = 20
     ordering = ["-created_at"]
 
@@ -81,22 +77,3 @@ class CommentReportAdmin(ModelAdmin, ImportExportModelAdmin):
             obj.comment.is_active = False
             obj.comment.save()
         super().save_model(request, obj, form, change)
-
-    import_form_class = ImportForm
-    export_form_class = ExportForm
-    selectable_fields_export_form_class = SelectableFieldsExportForm
-
-
-# @admin.register(LogEntry)
-class LogEntryAdmin(ModelAdmin, ImportExportModelAdmin):
-    list_display = ('timestamp', 'actor', 'content_type', 'object_repr', 'changes')
-    list_filter = ('content_type', 'actor')
-    search_fields = ('object_repr', 'changes')
-
-    readonly_fields = ('timestamp', 'actor', 'content_type', 'object_repr', 'changes')
-    list_per_page = 20
-    ordering = ['-timestamp']
-
-    import_form_class = ImportForm
-    export_form_class = ExportForm
-    selectable_fields_export_form_class = SelectableFieldsExportForm

@@ -17,34 +17,12 @@ class Category(models.Model):
         return self.category_name
 
 
-# Register model for audit logging
-auditlog.register(Category)
-
-
 class Subcategory(models.Model):
     subcategory_name = models.CharField(max_length=200)
     created_at = models.DateField(auto_now_add=True)
 
     def __str__(self):
         return self.subcategory_name
-
-
-# Register model for audit logging
-auditlog.register(Subcategory)
-
-
-# # Topic Tags
-# class TopicTag(models.Model):
-#     tag_names = models.TextField()
-#     created_at = models.DateField(auto_now_add=True)
-
-#     def __str__(self):
-#         return self.tag_names
-
-
-# # Register model for audit logging
-# auditlog.register(TopicTag)
-
 
 # Topic
 class Topic(models.Model):
@@ -74,10 +52,11 @@ class Search(models.Model):
 
     def __str__(self):
         return f"Search - {self.topic.name}"
-
-
-# Register model for audit logging
-auditlog.register(Search)
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['category', 'subcategory', 'topic']),
+        ]
 
 
 # Search Tags
@@ -95,10 +74,6 @@ class SearchTag(models.Model):
         super(SearchTag, self).save(*args, **kwargs)
 
 
-# Register model for audit logging
-auditlog.register(SearchTag)
-
-
 class SearchOption(models.Model):
     """GENERATED OPTIONS FOR SEARCHING"""
     search_tag = models.ForeignKey(SearchTag, on_delete=models.CASCADE, related_name='options')
@@ -110,9 +85,6 @@ class SearchOption(models.Model):
     def __str__(self):
         return f'Option for {self.search_tag.tag_name} - {self.keyword}'
 
-
-# Register model for audit logging
-auditlog.register(SearchOption)
 
 
 class SearchHistory(models.Model):
@@ -126,10 +98,6 @@ class SearchHistory(models.Model):
         return f'Search History for {self.user} - {self.search_term}'
 
 
-# Register model for audit logging
-auditlog.register(SearchHistory)
-
-
 # Recommendations
 class Recommendation(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
@@ -140,8 +108,6 @@ class Recommendation(models.Model):
     key_tips_and_takeaways = models.JSONField(blank=True, null=True)
     fun_facts = models.JSONField(blank=True, null=True)
     conclusion = models.TextField(blank=True, null=True)
-    # description = models.TextField()
-    # content = models.TextField()
     picture_url = models.URLField(blank=True, null=True)
     created_at = models.DateField(auto_now_add=True)
     last_refresh = models.DateField(auto_now=True)
@@ -155,10 +121,6 @@ class Recommendation(models.Model):
         indexes = [
             models.Index(fields=['category', 'topic']),
         ]
-
-
-# Register model for audit logging
-auditlog.register(Recommendation)
 
 
 # Update Me
@@ -186,31 +148,8 @@ class UpdateMe(models.Model):
         ]
 
 
-# Register model for audit logging
-auditlog.register(UpdateMe)
-
-
-# class UpdateMeUser(models.Model):
-#     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-#     update_me = models.ForeignKey(UpdateMe, on_delete=models.CASCADE)
-#     clicked_at = models.DateField(auto_now_add=True)
-
-#     def __str__(self):
-#         return self.user.name
-
-
-# Register model for audit logging
-# auditlog.register(UpdateMeUser)
-
-
-# Keywords
-# class KeyWord(models.Model):
-#     key_words = models.TextField()
-
-
 # Trending
 class Trending(models.Model):
-    # key_words = models.ForeignKey(KeyWord, on_delete=models.CASCADE, null=True, blank=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True)
     subcategory = models.ForeignKey(Subcategory, on_delete=models.CASCADE, null=True, blank=True)
     description = models.TextField(blank=True, null=True)
@@ -223,42 +162,12 @@ class Trending(models.Model):
 
     def __str__(self):
         return f"Trending - {self.description[:20]}"
-
-
-# Register model for audit logging
-auditlog.register(Trending)
-
-
-# User-Interaction Tables
-# class TrendingUser(models.Model):
-#     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-#     trending = models.ForeignKey(Trending, on_delete=models.CASCADE)
-#     clicked_at = models.DateField()
-
-
-# # Register model for audit logging
-# auditlog.register(TrendingUser)
-
-
-# class RecommendationUser(models.Model):
-#     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-#     recommendation = models.ForeignKey(Recommendation, on_delete=models.CASCADE)
-#     clicked_at = models.DateField()
-
-
-# # Register model for audit logging
-# auditlog.register(RecommendationUser)
-
-
-# class Bookmark(models.Model):
-#     from apps.community_hubs.models import Post
-
-#     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-#     trending = models.ForeignKey(Trending, on_delete=models.SET_NULL, null=True, blank=True)
-#     recommendation = models.ForeignKey(Recommendation, on_delete=models.SET_NULL, null=True, blank=True)
-#     update_me = models.ForeignKey(UpdateMe, on_delete=models.CASCADE, null=True)
-#     search = models.ForeignKey(Search, on_delete=models.SET_NULL, null=True, blank=True)
-#     community_post = models.ForeignKey(Post, on_delete=models.SET_NULL, null=True, blank=True)
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['category', 'subcategory']),
+        ]
+        
 
 
 class Bookmark(models.Model):
@@ -271,9 +180,6 @@ class Bookmark(models.Model):
     def __str__(self):
         return f"Bookmark - {self.user.name}"
 
-
-# Register model for audit logging
-auditlog.register(Bookmark)
 
 
 # Preferences
