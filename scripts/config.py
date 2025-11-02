@@ -28,6 +28,7 @@ if APIKey.objects.filter(ai_name="Perplexity API Key").exists():
 else:
     PERPLEXITY_API_KEY = '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'
 
+SERPER_API_KEY = '2ae653e5867f473361d4b0f71c16b99d61a76e58'
 
 # Other configuration settings
 DEFAULT_REGION = 'us'

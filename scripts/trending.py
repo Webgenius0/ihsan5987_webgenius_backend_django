@@ -26,10 +26,10 @@ def generate_trending_element(keywords, prompt_version="v02", categories_file = 
               Return the full, detailed JSON object with the following structure:
 
               {{
-      "topic": "<Short title or topic>",
+      "topic": "Short title for the topic containing 2-3 words (e.g., 'Remote Work', 'Electric Vehicles').",
       "category": "<Placeholder>",
       "subcategory": "<Subcategory, e.g., NFL, Politics, Tech>",
-      "description": "<A brief description of the trending topic>",
+      "description": "<Description of the trending topic, 2-3 sentances>",
       "why_is_it_trending": {{"Subheader 1":  "<Explanation of why it's trending>",
                               "Subheader 2":  "<Explanation of why it's trending>",
                               "Subheader 3":  "<Explanation of why it's trending>" 
@@ -69,7 +69,7 @@ def generate_trending_element(keywords, prompt_version="v02", categories_file = 
     raw_response = generate_perplexity_output(system_prompt, user_input)
     #return raw_response
     valid, parsed_json = verify_and_fix_json(raw_response['choices'][0]['message']['content'])
-    parsed_json['picture_url'] = get_image(parsed_json['topic'].replace(" ", "-"))
+    parsed_json['picture_url'] = get_image_url(parsed_json['topic'])
     #valid = True
     #parsed_json = raw_response
     #parsed_json['picture_url'] = news[0]['image'] 

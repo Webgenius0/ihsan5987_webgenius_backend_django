@@ -56,7 +56,14 @@ def recommandation_task():
             ).first()
             if not category:
                 category = Category.objects.create(category_name=category_name)
-
+            subcategory_name = item.get("subcategory", "")
+            subcategory = Subcategory.objects.filter(
+                subcategory_name__iexact=subcategory_name
+            ).first()
+            if not subcategory:
+                subcategory = Subcategory.objects.create(
+                    subcategory_name=subcategory_name
+                )
             topic_name = item.get("topic", "Unknown")
             topic = Topic.objects.filter(name__iexact=topic_name).first()
             if not topic:
@@ -64,6 +71,7 @@ def recommandation_task():
 
             Recommendation.objects.create(
                 category=category,
+                subcategory=subcategory,
                 topic=topic,
                 headline=item.get("headline", ""),
                 introduction=item.get("introduction", ""),

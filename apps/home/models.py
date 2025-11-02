@@ -101,7 +101,7 @@ class SearchHistory(models.Model):
 # Recommendations
 class Recommendation(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
-    # subcategory = models.ForeignKey(Subcategory, on_delete=models.CASCADE, null=True, blank=True)
+    subcategory = models.ForeignKey(Subcategory, on_delete=models.CASCADE, null=True, blank=True)
     topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
     headline = models.TextField(blank=True, null=True)
     introduction = models.TextField(blank=True, null=True)

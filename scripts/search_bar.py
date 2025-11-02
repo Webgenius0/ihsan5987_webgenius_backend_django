@@ -82,10 +82,12 @@ def search_bar(keywords,  allow_options = True,  prompt_version="v01", categorie
         validated = validate_search_bar_output(json_output)[0]
         iterations += 1
     if validated:
-        if not need_choise:
-            json_output['general_facts']['picture_url'] = get_image(json_output['topic']['name'].replace(" ", "-"))
-            json_output['news']['picture_url'] = get_image(json_output['news']['news_text'][:50].replace(" ", "-"))
-            json_output['interesting_trivia']['picture_url'] = get_image(json_output['interesting_trivia']['trivia_text'][:20].replace(" ", "-"))
+        if len(json_output.keys()) > 5:
+            json_output['general_facts']['picture_url'] = get_image_url(json_output['topic']['name'][:40])
+            json_output['news']['picture_url'] = get_image_url(json_output['news']['news_text'][:40])
+            json_output['interesting_trivia']['picture_url'] = get_image_url(json_output['interesting_trivia']['trivia_text'][:40])
+            json_output['opinions']['picture_url'] = get_image_url(json_output['opinions']['opinions_text'][:40])
+   
         return need_choise, json_output
     else:
         return "The Error is not fixed"
