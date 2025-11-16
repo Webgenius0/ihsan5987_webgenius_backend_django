@@ -5,7 +5,7 @@ from rest_framework.validators import ValidationError
 from rest_framework.throttling import UserRateThrottle
 from rest_framework import status
 from django.db import transaction
-from apps.home.models import SearchTag, SearchOption
+# from apps.home.models import SearchTag
 from scripts.search_bar import search_bar
 from django.shortcuts import get_object_or_404
 from django.forms.models import model_to_dict
@@ -63,11 +63,11 @@ class CategoryListAPIView(APIView):
         return Response(response, status=status.HTTP_200_OK)
 
 
-class CategoryDetailAPIView(APIView):
-    def get(self, request, pk):
-        category = get_object_or_404(Category, pk=pk)
-        serializer = CategorySerializer(category)
-        return Response(serializer.data)
+# class CategoryDetailAPIView(APIView):
+#     def get(self, request, pk):
+#         category = get_object_or_404(Category, pk=pk)
+#         serializer = CategorySerializer(category)
+#         return Response(serializer.data)
 
 
 class SubcategoryListAPIView(APIView):
@@ -77,11 +77,11 @@ class SubcategoryListAPIView(APIView):
         return Response(serializer.data)
 
 
-class SubcategoryDetailAPIView(APIView):
-    def get(self, request, pk):
-        subcategory = get_object_or_404(Subcategory, pk=pk)
-        serializer = SubcategorySerializer(subcategory)
-        return Response(serializer.data)
+# class SubcategoryDetailAPIView(APIView):
+#     def get(self, request, pk):
+#         subcategory = get_object_or_404(Subcategory, pk=pk)
+#         serializer = SubcategorySerializer(subcategory)
+#         return Response(serializer.data)
 
 
 class TopicListAPIView(APIView):
@@ -91,11 +91,11 @@ class TopicListAPIView(APIView):
         return Response(serializer.data)
 
 
-class TopicDetailAPIView(APIView):
-    def get(self, request, pk):
-        topic = get_object_or_404(Topic, pk=pk)
-        serializer = TopicSerializer(topic)
-        return Response(serializer.data)
+# class TopicDetailAPIView(APIView):
+#     def get(self, request, pk):
+#         topic = get_object_or_404(Topic, pk=pk)
+#         serializer = TopicSerializer(topic)
+#         return Response(serializer.data)
 
 
 class UserDetailAPIView(APIView):
@@ -129,7 +129,8 @@ class TrendingNowAPI(APIView):
 
     def get(self, request, pk=None):
         if pk:
-            trending_now = Trending.objects.filter(id=pk).first()
+            trending_now = Trending.objects.filter(id=pk, is_active=True).select_related("category", "subcategory").first()
+
             if trending_now:
                 obj = {
                     "id": trending_now.id,
@@ -155,9 +156,9 @@ class TrendingNowAPI(APIView):
             # check query params for all
             # check if queryparams all is to true
             if request.query_params.get("all") == "true":
-                trending_now = Trending.objects.all().order_by("-created_at")
+                trending_now = Trending.objects.filter(is_active=True).select_related("category", "subcategory").order_by("-created_at")
             else:
-                trending_now = Trending.objects.select_related(
+                trending_now = Trending.objects.filter(is_active=True).select_related(
                     "category", "subcategory"
                 ).order_by("-created_at")[:8]
         data = []
@@ -184,26 +185,26 @@ class UpdatemeAPI(APIView):
 
     def get(self, request, id=None):
 
-        # if id:
-        #     update_me = get_object_or_404(UpdateMe, pk=id)
-        #     data = {
-        #         "id": update_me.id,
-        #         "category": update_me.category.category_name,
-        #         "subcategory": update_me.subcategory.subcategory_name,
-        #         "topic": update_me.topic.name,
-        #         "short_info": update_me.short_info,
-        #         "reference_url": update_me.reference_url,
-        #         "background_story": update_me.background_story,
-        #         "picture_url": update_me.picture_url,
-        #         "created_at": update_me.created_at,
-        #     }
-        #     response = {
-        #         "code": status.HTTP_200_OK,
-        #         "success": True,
-        #         "message": "UpdateMe fetched successfully",
-        #         "data": data,
-        #     }
-        #     return Response(response, status=status.HTTP_200_OK)
+        if id:
+            update_me = get_object_or_404(UpdateMe, pk=id)
+            data = {
+                "id": update_me.id,
+                "category": update_me.category.category_name,
+                "subcategory": update_me.subcategory.subcategory_name,
+                "topic": update_me.topic.name,
+                "short_info": update_me.short_info,
+                "reference_url": update_me.reference_url,
+                "background_story": update_me.background_story,
+                "picture_url": update_me.picture_url,
+                "created_at": update_me.created_at,
+            }
+            response = {
+                "code": status.HTTP_200_OK,
+                "success": True,
+                "message": "UpdateMe fetched successfully",
+                "data": data,
+            }
+            return Response(response, status=status.HTTP_200_OK)
 
         user = request.user
         if not user.is_active:
@@ -219,7 +220,7 @@ class UpdatemeAPI(APIView):
 
         # Get top 3 static news (most recent)
         update_me_static3 = list(
-            UpdateMe.objects.filter(is_archive=False, is_top3=True).order_by("-created_at")[:3]
+            UpdateMe.objects.filter(is_archive=False, is_top3=True, is_active=True).order_by("-created_at")[:3]
         )
 
         # Prepare list of top3 IDs to exclude in next query
@@ -227,7 +228,7 @@ class UpdatemeAPI(APIView):
 
         # Get 2 random changable items matching user preference, excluding the top 3
         update_for_me = list(
-            UpdateMe.objects.filter(category__in=sub_ctg, is_archive=False)
+            UpdateMe.objects.filter(category__in=sub_ctg, is_archive=False, is_active=True)
             .exclude(id__in=top3_ids)
             .select_related("category", "subcategory", "topic")
             .order_by("?")[:2]
@@ -270,7 +271,6 @@ class RecommendationAPI(APIView):
     def get(self, request, pk=None):
         user = request.user
         category = user.preferences.category.all().values_list("id", flat=True)
-        print("user preferences category:", category)
         if pk:
             recommendation = get_object_or_404(Recommendation, pk=pk)
             serializer = RecommendationSerializer(recommendation)
@@ -285,13 +285,13 @@ class RecommendationAPI(APIView):
         # check query params
         if request.query_params.get("all") == "true":
             recommendations = (
-                Recommendation.objects.filter(category__in=category)
+                Recommendation.objects.filter(category__in=category, is_active=True)
                 .select_related("category", "topic")
                 .order_by("-created_at")
             )
         else:
             recommendations = (
-                Recommendation.objects.filter(category__id__in=category)
+                Recommendation.objects.filter(category__id__in=category, is_active=True)
                 .select_related("category", "topic")
                 .order_by("-created_at")[:4]
             )
@@ -482,204 +482,6 @@ class BookmarkAPIView(APIView):
             },
         }
         return Response(response_data, status=status.HTTP_200_OK)
-    # def get(self, request):
-    #     user = request.user
-    #     bookmarks = user.bookmark_set.all()
-
-    #     trending_data = []
-    #     community_post = []
-    #     recommendation_data = []
-    #     updateme_data = []
-
-    #     base_url = request.build_absolute_uri("/")
-    #     print(base_url)
-
-    #     for bookmark in bookmarks:
-    #         # content_type = bookmark.content_type.model
-    #         obj = bookmark.obj
-
-    #         if isinstance(obj, Trending):
-    #             trending_data.append(
-    #                 {
-    #                     "id": obj.id,
-    #                     "category": obj.category.category_name,
-    #                     "subcategory": obj.subcategory.subcategory_name,
-    #                     "picture_url": obj.picture_url,
-    #                     "created_at": obj.created_at,
-    #                     "details_url": base_url
-    #                     + "api/home/trending-now/"
-    #                     + str(obj.id)
-    #                     + "/",
-    #                 }
-    #             )
-    #         elif isinstance(obj, Post):
-    #             community_post.append(
-    #                 {
-    #                     "id": obj.id,
-    #                     "category": (
-    #                         obj.category.category_name if obj.category else None
-    #                     ),
-    #                     "title": obj.title,
-    #                     "image_url": obj.image.url if obj.image else None,
-    #                     "created_at": obj.created_at,
-    #                 }
-    #             )
-    #         elif isinstance(obj, Recommendation):
-    #             recommendation_data.append(
-    #                 {
-    #                     "id": obj.id,
-    #                     "category": obj.category.category_name,
-    #                     # "subcategory": (
-    #                     #     obj.subcategory.subcategory_name
-    #                     #     if obj.subcategory
-    #                     #     else None
-    #                     # ),
-    #                     "topic": obj.topic.name,
-    #                     "headline": obj.headline,
-    #                     "picture_url": obj.picture_url,
-    #                     "created_at": obj.created_at,
-    #                 }
-    #             )
-    #         elif isinstance(obj, UpdateMe):
-    #             updateme_data.append(
-    #                 {
-    #                     "id": obj.id,
-    #                     "category": obj.category.category_name,
-    #                     "subcategory": obj.subcategory.subcategory_name,
-    #                     "topic": obj.topic.name,
-    #                     "picture_url": obj.picture_url,
-    #                     "created_at": obj.created_at,
-    #                 }
-    #             )
-    #         else:
-    #             pass
-
-    #     response_data = {
-    #         "code": status.HTTP_200_OK,
-    #         "success": True,
-    #         "message": "Bookmarks fetched successfully",
-    #         "data": {
-    #             "trending": trending_data,
-    #             "community_post": community_post,
-    #             "recommendation": recommendation_data,
-    #             "updateme": updateme_data,
-    #         },
-    #     }
-    #     return Response(response_data, status=status.HTTP_200_OK)
-
-
-# class SearchAPIView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def post(self, request):
-#         data = request.data
-#         get_news = data.get("get_news", False)
-#         print(f"get_news: {get_news}")
-#         search_term = data["search_term"].lower()
-#         print(f"Search term received: {search_term}")
-
-#         # save search term in search history if it is not already there
-#         search_history = SearchHistory.objects.filter(search_term=search_term).first()
-#         if not search_history:
-#             SearchHistory.objects.create(search_term=search_term,user=request.user)
-#             print("search history created")
-
-
-#         # get or create search_term
-#         try:
-#             search_tag = SearchTag.objects.get(tag_name__iexact=search_term)
-#         except SearchTag.DoesNotExist:
-#             search_tag = SearchTag.objects.create(tag_name=search_term)
-#         except SearchTag.MultipleObjectsReturned:
-#             search_tag = SearchTag.objects.filter(tag_name__iexact=search_term).first()
-#         print(f"Search tag created: {search_tag}")
-#         # filter search tag into search options
-#         if search_tag and get_news == False:
-#             # find search options with this tag
-
-#             if search_tag.options.exists():
-#                 # return search options
-#                 data = []
-#                 for option in search_tag.options.all():
-#                     data.append(
-#                         {
-#                             "search_tag": search_tag.tag_name,
-#                             "keyword": option.keyword,
-#                             "category": option.category,
-#                             "subcategory": option.subcategory,
-#                         }
-#                     )
-#                 response_data = {
-#                     "code": status.HTTP_200_OK,
-#                     "success": True,
-#                     "message": "Search options fetched successfully",
-#                     "data": data,
-#                 }
-#                 return Response(response_data, status=status.HTTP_200_OK)
-#             else:
-#                 # create search options
-#                 try:
-#                     generate_options = search_bar(search_term, allow_options=True)[1]
-#                     print(
-#                         f"Generated search options: {generate_options} its type {type(generate_options)}"
-#                     )
-#                     if generate_options:
-#                         for option in generate_options.values():
-#                             print(option["key_words"])
-#                             print(option["category"])
-#                             SearchOption.objects.create(
-#                                 search_tag=search_tag,
-#                                 keyword=option["key_words"],
-#                                 category=option["category"],
-#                                 subcategory=option["subcatetgory"],
-#                             )
-#                         generated_data = [{
-#                             "search_tag": search_tag.tag_name,
-#                             "keyword": option.keyword,
-#                             "category": option.category,
-#                             "subcategory": option.subcategory,
-#                         } for option in search_tag.options.all()]
-#                         print("all the generated data: ", generated_data)
-#                         response_data = {
-#                             "code": status.HTTP_201_CREATED,
-#                             "success": True,
-#                             "message": "Search options created successfully",
-#                             "data": generated_data,
-#                         }
-#                         return Response(response_data, status=status.HTTP_200_OK)
-#                 except Exception as e:
-#                     print(f"Error generating search options: {e}")
-
-#         elif search_tag and get_news == True:
-#             # generate news
-#             get_news = search_bar(search_term, allow_options=False)[1]
-#             print(f"get_news: {get_news}")
-#             # save the news to database
-#             category, created = Category.objects.get_or_create(category_name=get_news["category"]["categorie_name"])
-#             subcategory, created = Subcategory.objects.get_or_create(subcategory_name=get_news["subcatetgory"]["subcatetgory_name"])
-#             topic, created = Topic.objects.get_or_create(name=get_news["topic"]["name"])
-
-#             search_news = Search.objects.create(
-#                 category=category,
-#                 subcategory=subcategory,
-#                 general_fact=get_news["general_facts"],
-#                 topic=topic,
-#                 news=get_news["news"],
-#                 interesting_trivia=get_news["interesting_trivia"],
-#                 opinion=get_news["opinions"],
-#                 question=get_news["questions"],
-#                 further_key_words=get_news["further_key_words"],
-
-#             )
-
-#             response_data = {
-#                 "code": status.HTTP_200_OK,
-#                 "success": True,
-#                 "message": "News fetched successfully",
-#                 "data": model_to_dict(search_news),
-#             }
-#             return Response(response_data, status=status.HTTP_200_OK)
-#         return Response(status=status.HTTP_404_NOT_FOUND)
 
 
 class SearchAPIView(APIView):
@@ -690,9 +492,6 @@ class SearchAPIView(APIView):
         data = request.data
         get_news = data.get("get_news", False)
         search_term = data.get("search_term", "").lower()
-
-        print(f"get_news: {get_news}")
-        print(f"Search term received: {search_term}")
 
         if not search_term:
             return Response(
@@ -708,191 +507,190 @@ class SearchAPIView(APIView):
         if not SearchHistory.objects.filter(search_term__iexact=search_term).exists():
             try:
                 SearchHistory.objects.create(search_term=search_term, user=request.user)
-                print("Search history created")
             except Exception as e:
                 print(f"Error saving search history: {e}")
                 pass
 
         # Get or create search tag
-        try:
-            search_tag = SearchTag.objects.get(tag_name__iexact=search_term)
-        except SearchTag.DoesNotExist:
-            search_tag = SearchTag.objects.create(tag_name=search_term)
-        except SearchTag.MultipleObjectsReturned:
-            search_tag = SearchTag.objects.filter(tag_name__iexact=search_term).first()
+        # try:
+        #     search_tag = SearchTag.objects.get(tag_name__iexact=search_term)
+        # except SearchTag.DoesNotExist:
+        #     search_tag = SearchTag.objects.create(tag_name=search_term)
+        # except SearchTag.MultipleObjectsReturned:
+        #     search_tag = SearchTag.objects.filter(tag_name__iexact=search_term).first()
 
-        print(f"Search tag: {search_tag}")
+        # print(f"Search tag: {search_tag}")
 
         # ====> CASE 1: Return or create search options
-        if search_tag and not get_news:
-            if search_tag.options.exists():
-                options_data = [
-                    {
-                        "search_tag": search_tag.tag_name,
-                        "keyword": option.keyword,
-                        "category": option.category,
-                        "subcategory": option.subcategory,
-                    }
-                    for option in search_tag.options.all()
-                ]
-                return Response(
-                    {
-                        "code": status.HTTP_200_OK,
-                        "success": True,
-                        "message": "Search options fetched successfully",
-                        "data": options_data,
-                    },
-                    status=status.HTTP_200_OK,
-                )
-            else:
-                try:
-                    _, generate_options = search_bar(search_term, allow_options=True)
-                    print("Generated options:", generate_options)
+        # if search_tag and not get_news:
+        #     if search_tag.options.exists():
+        #         options_data = [
+        #             {
+        #                 "search_tag": search_tag.tag_name,
+        #                 "keyword": option.keyword,
+        #                 "category": option.category,
+        #                 "subcategory": option.subcategory,
+        #             }
+        #             for option in search_tag.options.all()
+        #         ]
+        #         return Response(
+        #             {
+        #                 "code": status.HTTP_200_OK,
+        #                 "success": True,
+        #                 "message": "Search options fetched successfully",
+        #                 "data": options_data,
+        #             },
+        #             status=status.HTTP_200_OK,
+        #         )
+        #     else:
+        # try:
+        #     _, generate_options = search_bar(search_term, allow_options=True)
+        #     print("Generated options:", generate_options)
 
-                    for option in generate_options.values():
-                        SearchOption.objects.create(
-                            search_tag=search_tag,
-                            keyword=option.get("key_words", ""),
-                            category=option.get("category", ""),
-                            subcategory=option.get("subcategory", ""),
-                        )
+        #     for option in generate_options.values():
+        #         SearchOption.objects.create(
+        #             search_tag=search_tag,
+        #             keyword=option.get("key_words", ""),
+        #             category=option.get("category", ""),
+        #             subcategory=option.get("subcategory", ""),
+        #         )
 
-                    generated_data = [
-                        {
-                            "search_tag": search_tag.tag_name,
-                            "keyword": option.keyword,
-                            "category": option.category,
-                            "subcategory": option.subcategory,
-                        }
-                        for option in search_tag.options.all()
-                    ]
+        #     generated_data = [
+        #         {
+        #             "search_tag": search_tag.tag_name,
+        #             "keyword": option.keyword,
+        #             "category": option.category,
+        #             "subcategory": option.subcategory,
+        #         }
+        #         for option in search_tag.options.all()
+        #     ]
 
-                    return Response(
-                        {
-                            "code": status.HTTP_201_CREATED,
-                            "success": True,
-                            "message": "Search options created successfully",
-                            "data": generated_data,
-                        },
-                        status=status.HTTP_200_OK,
-                    )
+        #     return Response(
+        #         {
+        #             "code": status.HTTP_201_CREATED,
+        #             "success": True,
+        #             "message": "Search options created successfully",
+        #             "data": generated_data,
+        #         },
+        #         status=status.HTTP_200_OK,
+        #     )
 
-                except Exception as e:
-                    print("Error generating options:", traceback.format_exc())
-                    return Response(
-                        {
-                            "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            "success": False,
-                            "message": f"Error generating options: {str(e)}",
-                        },
-                        status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    )
+        # except Exception as e:
+        #     print("Error generating options:", traceback.format_exc())
+        #     return Response(
+        #         {
+        #             "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+        #             "success": False,
+        #             "message": f"Error generating options: {str(e)}",
+        #         },
+        #         status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        #     )
 
-        # ====> CASE 2: Generate and return news
-        elif search_tag and get_news:
-            print("search tag is ", search_term)
-            # get previously searched news with same search term
-            previous_search = Search.objects.filter(
-                search_term__iexact=search_term
-            ).first()
-            if previous_search:
-                print("get previous search")
-                return Response(
-                    {
-                        "code": status.HTTP_200_OK,
-                        "success": True,
-                        "message": "News fetched successfully",
-                        "data": model_to_dict(previous_search),
-                    },
-                    status=status.HTTP_200_OK,
-                )
-            else:
-                print("no previous search found")
+        # # ====> CASE 2: Generate and return news
+        # elif search_tag and get_news:
+        # get previously searched news with same search term
+        previous_search = Search.objects.filter(
+            search_term__iexact=search_term
+        ).values("search_term", "id").first()
+        if previous_search:
+            search_item = Search.objects.get(id=previous_search["id"])
+            print("get from previous search")
+            return Response(
+                {
+                    "code": status.HTTP_200_OK,
+                    "success": True,
+                    "message": "News fetched successfully",
+                    "data": model_to_dict(search_item),
+                },
+                status=status.HTTP_200_OK,
+            )
+        else:
+            pass
 
-            try:
-                _, get_news_data = search_bar(search_term, allow_options=False)
-                print("Raw get_news_data:", get_news_data)
+        try:
+            _, get_news_data = search_bar(search_term, allow_options=False)
 
-                # Validate keys
-                required_keys = [
-                    "category",
-                    "subcatetgory",  # typo from script - subcatetgory
-                    "topic",
-                    "general_facts",
-                    "news",
-                    "interesting_trivia",
-                    "opinions",
-                    "questions",
-                    "further_key_words",
-                ]
-                for key in required_keys:
-                    if key not in get_news_data.keys():
-                        raise ValueError(f"Missing key in get_news_data: '{key}'")
+            # Validate keys
+            required_keys = [
+                "category",
+                "subcatetgory",  # typo from script - subcatetgory
+                "topic",
+                "general_facts",
+                "news",
+                "interesting_trivia",
+                "opinions",
+                "questions",
+                "further_key_words",
+            ]
+            for key in required_keys:
+                if key not in get_news_data.keys():
+                    raise ValueError(f"Missing key in get_news_data: '{key}'")
 
-                category_data = get_news_data["category"]
-                subcategory_data = get_news_data["subcatetgory"]
-                topic_data = get_news_data["topic"]
+            category_data = get_news_data["category"]
+            subcategory_data = get_news_data["subcatetgory"]
+            topic_data = get_news_data["topic"]
 
-                category_name = category_data.get("categorie_name")
-                subcategory_name = subcategory_data.get(
-                    "subcatetgory_name"
-                )  # typo from script - subcatetgory_name
-                topic_name = topic_data.get("name")
+            category_name = category_data.get("categorie_name")
+            subcategory_name = subcategory_data.get(
+                "subcatetgory_name"
+            )  # typo from script - subcatetgory_name
+            topic_name = topic_data.get("name")
 
-                if not category_name or not subcategory_name or not topic_name:
-                    raise ValueError("Missing category/subcategory/topic names")
+            if not category_name or not subcategory_name or not topic_name:
+                raise ValueError("Missing category/subcategory/topic names")
 
-                category, _ = Category.objects.get_or_create(
-                    category_name=category_name
-                )
-                subcategory, _ = Subcategory.objects.get_or_create(
-                    subcategory_name=subcategory_name
-                )
-                topic, _ = Topic.objects.get_or_create(name=topic_name)
+            category, _ = Category.objects.get_or_create(
+                category_name=category_name
+            )
+            subcategory, _ = Subcategory.objects.get_or_create(
+                subcategory_name=subcategory_name
+            )
+            topic, _ = Topic.objects.get_or_create(name=topic_name)
 
-                # Create Search (News) object
-                search_news = Search.objects.create(
-                    category=category,
-                    subcategory=subcategory,
-                    general_fact=get_news_data["general_facts"],
-                    topic=topic,
-                    news=get_news_data["news"],
-                    interesting_trivia=get_news_data["interesting_trivia"],
-                    opinion=get_news_data["opinions"],
-                    question=get_news_data["questions"],
-                    further_key_words=get_news_data["further_key_words"],
-                )
+            # Create Search (News) object
+            search_news = Search.objects.create(
+                category=category,
+                subcategory=subcategory,
+                general_fact=get_news_data["general_facts"],
+                topic=topic,
+                news=get_news_data["news"],
+                interesting_trivia=get_news_data["interesting_trivia"],
+                opinion=get_news_data["opinions"],
+                question=get_news_data["questions"],
+                further_key_words=get_news_data["further_key_words"],
+                search_term=search_term,
+            )
 
-                return Response(
-                    {
-                        "code": status.HTTP_200_OK,
-                        "success": True,
-                        "message": "News fetched successfully",
-                        "data": model_to_dict(search_news),
-                    },
-                    status=status.HTTP_200_OK,
-                )
+            return Response(
+                {
+                    "code": status.HTTP_200_OK,
+                    "success": True,
+                    "message": "News fetched successfully",
+                    "data": model_to_dict(search_news),
+                },
+                status=status.HTTP_200_OK,
+            )
 
-            except Exception as e:
-                print("Error generating news:\n", traceback.format_exc())
-                return Response(
-                    {
-                        "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
-                        "success": False,
-                        "message": f"Error generating news: {str(e)}",
-                    },
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                )
+        except Exception as e:
+            print("Error generating news:\n", traceback.format_exc())
+            return Response(
+                {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "success": False,
+                    "message": f"Error generating news: {str(e)}",
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
-        # Default fallback
-        return Response(
-            {
-                "code": status.HTTP_404_NOT_FOUND,
-                "success": False,
-                "message": "Search data not found.",
-            },
-            status=status.HTTP_404_NOT_FOUND,
-        )
+        # # Default fallback
+        # return Response(
+        #     {
+        #         "code": status.HTTP_404_NOT_FOUND,
+        #         "success": False,
+        #         "message": "Search data not found.",
+        #     },
+        #     status=status.HTTP_404_NOT_FOUND,
+        # )
 
 
 class SearchHistoryAPIView(APIView):

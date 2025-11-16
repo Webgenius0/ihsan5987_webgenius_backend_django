@@ -100,9 +100,15 @@ class AppInfo(models.Model):
     def __str__(self):
         return "App Information"
 
+AI_NAME = (
+    ("NEWS_API_KEY", "News API Key"),
+    ("GNEWS_API_KEY", "G News API Key"),
+    ("PERPLEXITY_API_KEY", "Perplexity API Key"),
+    ("OPENAI_API_KEY", "OpenAI API Key"),
+)
 
 class APIKey(models.Model):
-    ai_name = models.CharField(max_length=255)
+    ai_name = models.CharField(max_length=50, choices=AI_NAME, unique=True)
     key = models.CharField(max_length=255, unique=True)
     description = models.TextField(blank=True, null=True)
     is_active = models.BooleanField(default=True)

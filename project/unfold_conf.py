@@ -51,7 +51,7 @@ UNFOLD = {
     },
     "SIDEBAR": {
         "show_search": True,  # Search in applications and models names
-        "show_all_applications": False,  # Dropdown with all applications and models
+        "show_all_applications": True,  # Dropdown with all applications and models
         "navigation": [
             {
                 "title": _("Dashboard"),
@@ -82,24 +82,57 @@ UNFOLD = {
                         "icon": "badge",  # Supported icon set: https://fonts.google.com/icons
                         "link": reverse_lazy("admin:profiles_profile_changelist"),
                     },
+                    # {
+                    #     "title": _("User Devices"),
+                    #     "icon": "devices",  # Supported icon set: https://fonts.google.com/icons
+                    #     "link": reverse_lazy("admin:users_userdevice_changelist"),
+                    #     "permission": lambda request: request.user.is_superuser,
+                    # },
+                    # {
+                    #     "title": _("Email OTP"),
+                    #     "icon": "mail_lock",  # Supported icon set: https://fonts.google.com/icons
+                    #     "link": reverse_lazy("admin:users_emailotp_changelist"),
+                    #     "permission": lambda request: request.user.is_superuser,
+                    # },
+                    # {
+                    #     "title": _("Notification Settings"),
+                    #     "icon": "settings",  # Supported icon set: https://fonts.google.com/icons
+                    #     "link": reverse_lazy(
+                    #         "admin:profiles_notificationsetting_changelist"
+                    #     ),
+                    # },
+                ],
+            },
+            {
+                "title": _("News Content"),
+                "icon": "article",
+                "separator": True,  # Top border
+                "collapsible": False,  # Collapsible group of links
+                "items": [
                     {
-                        "title": _("User Devices"),
-                        "icon": "devices",  # Supported icon set: https://fonts.google.com/icons
-                        "link": reverse_lazy("admin:users_userdevice_changelist"),
+                        "title": _("Trending"),
+                        "icon": "trending_up",
+                        "link": reverse_lazy("admin:home_trending_changelist"),
                         "permission": lambda request: request.user.is_superuser,
                     },
                     {
-                        "title": _("Email OTP"),
-                        "icon": "mail_lock",  # Supported icon set: https://fonts.google.com/icons
-                        "link": reverse_lazy("admin:users_emailotp_changelist"),
+                        "title": _("Update Me"),
+                        "icon": "arrow_circle_up",  # Supported icon set: https://fonts.google.com/icons
+                        "link": reverse_lazy("admin:home_updateme_changelist"),
                         "permission": lambda request: request.user.is_superuser,
                     },
                     {
-                        "title": _("Notification Settings"),
-                        "icon": "settings",  # Supported icon set: https://fonts.google.com/icons
-                        "link": reverse_lazy("admin:profiles_notificationsetting_changelist"),
+                        "title": _("Recommendation"),
+                        "icon": "recommend",  # Supported icon set: https://fonts.google.com/icons
+                        "link": reverse_lazy("admin:home_recommendation_changelist"),
                         "permission": lambda request: request.user.is_superuser,
                     },
+                    {
+                        "title": _("News by Search"),
+                        "icon": "search",
+                        "link": reverse_lazy("admin:home_search_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
+                    }
                 ],
             },
             {
@@ -126,46 +159,22 @@ UNFOLD = {
                         "link": reverse_lazy("admin:home_topic_changelist"),
                         "permission": lambda request: request.user.is_superuser,
                     },
-                    {
-                        "title": _("Search Tags"),
-                        "icon": "tag",  # Supported icon set: https://fonts.google.com/icons
-                        "link": reverse_lazy("admin:home_searchtag_changelist"),
-                        "permission": lambda request: request.user.is_superuser,
-                    },
-                    {
-                        "title": _("Search Options"),
-                        "icon": "search",  # Supported icon set: https://fonts.google.com/icons
-                        "link": reverse_lazy("admin:home_searchoption_changelist"),
-                        "permission": lambda request: request.user.is_superuser,
-                    },
+                    # {
+                    #     "title": _("Search Tags"),
+                    #     "icon": "tag",  # Supported icon set: https://fonts.google.com/icons
+                    #     "link": reverse_lazy("admin:home_searchtag_changelist"),
+                    #     "permission": lambda request: request.user.is_superuser,
+                    # },
+                    # {
+                    #     "title": _("Search Options"),
+                    #     "icon": "search",  # Supported icon set: https://fonts.google.com/icons
+                    #     "link": reverse_lazy("admin:home_searchoption_changelist"),
+                    #     "permission": lambda request: request.user.is_superuser,
+                    # },
                     {
                         "title": _("Search History"),
                         "icon": "history",  # Supported icon set: https://fonts.google.com/icons
                         "link": reverse_lazy("admin:home_searchhistory_changelist"),
-                        "permission": lambda request: request.user.is_superuser,
-                    },
-                    {
-                        "title": _("Searches"),
-                        "icon": "search",
-                        "link": reverse_lazy("admin:home_search_changelist"),
-                        "permission": lambda request: request.user.is_superuser,
-                    },
-                    {
-                        "title": _("Trendings"),
-                        "icon": "trending_up",
-                        "link": reverse_lazy("admin:home_trending_changelist"),
-                        "permission": lambda request: request.user.is_superuser,
-                    },
-                    {
-                        "title": _("Update Me"),
-                        "icon": "update",  # Supported icon set: https://fonts.google.com/icons
-                        "link": reverse_lazy("admin:home_updateme_changelist"),
-                        "permission": lambda request: request.user.is_superuser,
-                    },
-                    {
-                        "title": _("Recommendations"),
-                        "icon": "recommend",  # Supported icon set: https://fonts.google.com/icons
-                        "link": reverse_lazy("admin:home_recommendation_changelist"),
                         "permission": lambda request: request.user.is_superuser,
                     },
                     {
@@ -195,7 +204,9 @@ UNFOLD = {
                     {
                         "title": _("Comment Reports"),
                         "icon": "report",  # Supported icon set: https://fonts.google.com/icons
-                        "link": reverse_lazy("admin:community_hubs_commentreport_changelist"),
+                        "link": reverse_lazy(
+                            "admin:community_hubs_commentreport_changelist"
+                        ),
                         "permission": lambda request: request.user.is_superuser,
                     },
                 ],
@@ -215,13 +226,17 @@ UNFOLD = {
                     {
                         "title": _("Notifications"),
                         "icon": "notifications_active",  # Supported icon set: https://fonts.google.com/icons
-                        "link": reverse_lazy("admin:notifications_notification_changelist"),
+                        "link": reverse_lazy(
+                            "admin:notifications_notification_changelist"
+                        ),
                         "permission": lambda request: request.user.is_superuser,
                     },
                     {
                         "title": _("Subscriptions"),
                         "icon": "subscriptions",  # Supported icon set: https://fonts.google.com/icons
-                        "link": reverse_lazy("admin:subscription_subscription_changelist"),
+                        "link": reverse_lazy(
+                            "admin:subscription_subscription_changelist"
+                        ),
                         "permission": lambda request: request.user.is_superuser,
                     },
                 ],
@@ -235,7 +250,9 @@ UNFOLD = {
                     {
                         "title": _("Periodic Tasks"),
                         "icon": "schedule",  # Supported icon set: https://fonts.google.com/icons
-                        "link": reverse_lazy("admin:django_celery_beat_periodictask_changelist"),
+                        "link": reverse_lazy(
+                            "admin:django_celery_beat_periodictask_changelist"
+                        ),
                     },
                     {
                         "title": _("FAQs"),

@@ -29,6 +29,7 @@ class Topic(models.Model):
     name = models.CharField(max_length=255)
     # topic_tags = models.ForeignKey(TopicTag, on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
@@ -45,10 +46,11 @@ class Search(models.Model):
     opinion = models.JSONField(blank=True, null=True)
     question = models.JSONField(blank=True, null=True)
     further_key_words = models.JSONField(blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
     search_term = models.CharField(
         max_length=200, blank=True, null=True
     )  # for getting same result for 2nd time search. after some time it will remove by scheduler
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return f"Search - {self.topic.name}"
@@ -72,18 +74,6 @@ class SearchTag(models.Model):
     def save(self, *args, **kwargs):
         self.tag_name = self.tag_name.lower()
         super(SearchTag, self).save(*args, **kwargs)
-
-
-class SearchOption(models.Model):
-    """GENERATED OPTIONS FOR SEARCHING"""
-    search_tag = models.ForeignKey(SearchTag, on_delete=models.CASCADE, related_name='options')
-    keyword = models.CharField(max_length=200)
-    category = models.CharField(max_length=200, blank=True, null=True)
-    subcategory = models.CharField(max_length=200, blank=True, null=True)
-    created_at = models.DateField(auto_now_add=True)
-
-    def __str__(self):
-        return f'Option for {self.search_tag.tag_name} - {self.keyword}'
 
 
 class SearchHistory(models.Model):
@@ -110,6 +100,7 @@ class Recommendation(models.Model):
     picture_url = models.URLField(blank=True, null=True)
     created_at = models.DateField(auto_now_add=True)
     last_refresh = models.DateField(auto_now=True)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.topic.name
@@ -134,6 +125,7 @@ class UpdateMe(models.Model):
     created_at = models.DateField(auto_now_add=True)
     is_archive = models.BooleanField(default=False)
     is_top3 = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
     # interest = models.BooleanField(default=False)
 
     def __str__(self):
@@ -159,6 +151,7 @@ class Trending(models.Model):
     links_and_sources = models.JSONField(blank=True, null=True)
     picture_last_refresh = models.DateField(auto_now=True)
     created_at = models.DateField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return f"Trending - {self.description[:20]}"

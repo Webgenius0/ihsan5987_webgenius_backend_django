@@ -567,6 +567,11 @@ class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        user = request.user
+        # create new refresh token for this user
+        refresh = RefreshToken.for_user(user)
+        access_token = str(refresh.access_token)
+
         return Response({
             "status": status.HTTP_200_OK,
             "success": True,

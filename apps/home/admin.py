@@ -9,7 +9,6 @@ from .models import (
     Subcategory,
     # TopicTag,
     Topic,
-    SearchOption,
     SearchHistory,
     Search,
     SearchTag,
@@ -111,22 +110,6 @@ class TopicAdmin(ModelAdmin, ImportExportModelAdmin):
         return False
 
 
-# Option
-@admin.register(SearchOption)
-class SearchOptionAdmin(ModelAdmin, ImportExportModelAdmin):
-    list_display = ("keyword", "search_tag", "category", "subcategory", "created_at")
-    search_fields = ("search_tag__tag_name", "keyword", "category", "subcategory")
-    list_filter = ("category", "subcategory")
-    ordering = ("-created_at",)
-    list_per_page = 20
-
-    # import_form_class = ImportForm
-    export_form_class = ExportForm
-
-    def has_import_permission(self, request):
-        return False
-
-
 # Search
 @admin.register(Search)
 class SearchAdmin(ModelAdmin, ImportExportModelAdmin):
@@ -144,15 +127,6 @@ class SearchAdmin(ModelAdmin, ImportExportModelAdmin):
         qs = super().get_queryset(request)
         qs = qs.select_related("category", "subcategory", "topic")
         return qs
-
-
-# SearchTag
-@admin.register(SearchTag)
-class SearchTagAdmin(ModelAdmin):
-    list_display = ("tag_name", "created_at")
-    search_fields = ("tag_name",)
-    ordering = ("-created_at",)
-    list_per_page = 20
 
 
 @admin.register(SearchHistory)

@@ -19,9 +19,7 @@ class ProfileView(APIView):
     def get(self, request):
         try:
             user = request.user
-            print(f"ProfileView - user: {user}")
             profile = Profile.objects.get(user=request.user)
-            print(f"ProfileView - profile: {profile}")
 
         except Profile.DoesNotExist:
             return Response({
@@ -87,18 +85,31 @@ class MyPostList(APIView):
 
     def get(self, request):
         user = request.user
-        posts = Post.objects.filter(user=user).select_related('user__profile', 'category').prefetch_related(
-            'comments__user__profile'
-        ).order_by('-created_at')
+
+        posts = (
+            Post.objects.filter(user=user)
+            .select_related(
+                "user",                 # required before selecting profile
+                "user__profile",
+                "category"
+            )
+            .prefetch_related(
+                "comments",
+                "comments__user",
+                "comments__user__profile"
+            )
+            .order_by("-created_at")
+        )
+
         serializer = MyPostSerializer(posts, many=True)
+
         response = {
             "status": status.HTTP_200_OK,
             "success": True,
             "message": "Posts retrieved successfully",
-            "data": serializer.data
+            "data": serializer.data,
         }
         return Response(response, status=status.HTTP_200_OK)
-
 
 # My Post Detail View
 class MyPostDetail(APIView):

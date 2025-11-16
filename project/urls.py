@@ -25,5 +25,5 @@ urlpatterns = [
     path("api/subscriptions/", include("apps.subscription.urls")),
     
     path("schema/", include("schema_viewer.urls")),  # database schema
-    path("swagger/",schema_view.with_ui("swagger", cache_timeout=0), name="schema-swagger-ui",),  # Swagger API documentation
+    path("swagger/",schema_view.with_ui("swagger", cache_timeout=0), name="schema-swagger-ui",),
 ]

@@ -96,7 +96,6 @@ WSGI_APPLICATION = "project.wsgi.application"
 
 
 # DATABASE
-
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
@@ -151,7 +150,7 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 # Supabase Project ID
-SUPABASE_PROJECT_ID = os.getenv("SUPABASE_PROJECT_ID")
+# SUPABASE_PROJECT_ID = os.getenv("SUPABASE_PROJECT_ID")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
@@ -162,6 +161,9 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         # "rest_framework.authentication.TokenAuthentication",
         "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "rest_framework.authentication.BasicAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+
     ),
     "EXCEPTION_HANDLER": "utils.exception_handler.custom_exception_handler",
     "DEFAULT_THROTTLE_CLASSES": [
@@ -171,7 +173,7 @@ REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': (
             'rest_framework.renderers.JSONRenderer',
     ),
-    "DEFAULT_THROTTLE_RATES": {"anon": "10/day", "user": "100/day", "search_gen": "100/day"},
+    "DEFAULT_THROTTLE_RATES": {"anon": "0/day", "user": "100/day", "search_gen": "50/day"},
 }
 
 # Email sending setup
@@ -179,11 +181,11 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+EMAIL_HOST_USER = config("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
 
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", EMAIL_HOST_USER)
+ADMIN_EMAIL = config("ADMIN_EMAIL", EMAIL_HOST_USER)
 
 # CORS setup
 CORS_ALLOWED_ORIGINS = [
@@ -208,10 +210,10 @@ cloudinary.config(
 
 # Simple JWT setup
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
     # Refresh Token Rotation
-    "ROTATE_REFRESH_TOKENS": True,  # generates a new refresh token when used
+    "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
 }
 
