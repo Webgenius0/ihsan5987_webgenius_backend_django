@@ -184,46 +184,68 @@ class UpdatemeAPI(APIView):
 
     def get(self, request, id=None):
 
-        if id:
-            update_me = get_object_or_404(UpdateMe, pk=id)
-            data = {
-                "id": update_me.id,
-                "category": update_me.category.category_name,
-                "subcategory": update_me.subcategory.subcategory_name,
-                "topic": update_me.topic.name,
-                "short_info": update_me.short_info,
-                "reference_url": update_me.reference_url,
-                "background_story": update_me.background_story,
-                "picture_url": update_me.picture_url,
-                "created_at": update_me.created_at,
-            }
-            response = {
-                "code": status.HTTP_200_OK,
-                "success": True,
-                "message": "UpdateMe fetched successfully",
-                "data": data,
-            }
-            return Response(response, status=status.HTTP_200_OK)
+        # if id:
+        #     update_me = get_object_or_404(UpdateMe, pk=id)
+        #     data = {
+        #         "id": update_me.id,
+        #         "category": update_me.category.category_name,
+        #         "subcategory": update_me.subcategory.subcategory_name,
+        #         "topic": update_me.topic.name,
+        #         "short_info": update_me.short_info,
+        #         "reference_url": update_me.reference_url,
+        #         "background_story": update_me.background_story,
+        #         "picture_url": update_me.picture_url,
+        #         "created_at": update_me.created_at,
+        #     }
+        #     response = {
+        #         "code": status.HTTP_200_OK,
+        #         "success": True,
+        #         "message": "UpdateMe fetched successfully",
+        #         "data": data,
+        #     }
+        #     return Response(response, status=status.HTTP_200_OK)
 
         user = request.user
-        sub_ctg = user.preferences.subcategory.all()
-        upate_me_last3 = UpdateMe.objects.order_by("-created_at")[:3]
-        update_for_me = (
-            UpdateMe.objects.filter(subcategory__in=sub_ctg)
-            .select_related("category", "subcategory", "topic")
-            .order_by("-created_at")[:2]
+        if not user.is_acitve:
+            return Response(
+                {
+                    "status": status.HTTP_401_UNAUTHORIZED,
+                    "success": False,
+                    "messages": "User not found or account is not activate",
+                    
+                }
+            )
+        sub_ctg = user.preferences.category.all()
+
+        # Get top 3 static news (most recent)
+        update_me_static3 = list(
+            UpdateMe.objects.filter(is_archive=False, is_top3=True).order_by("-created_at")[:3]
         )
 
-        # merge two querysets
-        update_me = list(update_for_me) + list(upate_me_last3)
+        # Prepare list of top3 IDs to exclude in next query
+        top3_ids = [x.id for x in update_me_static3]
 
+        # Get 2 random changable items matching user preference, excluding the top 3
+        update_for_me = list(
+            UpdateMe.objects.filter(category__in=sub_ctg, is_archive=False)
+            .exclude(id__in=top3_ids)
+            .select_related("category", "subcategory", "topic")
+            .order_by("?")[:2]
+        )
+
+        # Merge the results
+        update_me = update_me_static3 + update_for_me
+
+        # Collect serialized data
         data = []
         for update in update_me:
             obj = {
                 "id": update.id,
-                "category": update.category.category_name,
-                "subcategory": update.subcategory.subcategory_name,
-                "topic": update.topic.name,
+                "category": update.category.category_name if update.category else None,
+                "subcategory": (
+                    update.subcategory.subcategory_name if update.subcategory else None
+                ),
+                "topic": update.topic.name if update.topic else None,
                 "short_info": update.short_info,
                 "reference_url": update.reference_url,
                 "background_story": update.background_story,

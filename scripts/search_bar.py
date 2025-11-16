@@ -74,7 +74,7 @@ def search_bar(keywords,  allow_options = True,  prompt_version="v01", categorie
                             allow_options = allow_options)
     validated = False
     iterations = 0
-    while not validated and iterations != 1:
+    while not validated and iterations != 2:
         # Get the response from the LLM.
         llm_response = get_llm_response(prompt)
         need_choise, json_output = verify_and_fix_json(llm_response)
