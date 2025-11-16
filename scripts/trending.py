@@ -85,7 +85,7 @@ def generate_trending_element(keywords, prompt_version="v02", categories_file = 
         return None
 
 def generate_trending_set(keywords = None , num_elements=5, prompt_version="v02", categories_file = file_path, **model_params):
-
+ 
     if not keywords:
         keywords = get_trending_topics()
     trending = []

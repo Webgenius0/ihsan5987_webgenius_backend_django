@@ -86,7 +86,6 @@ class SearchOption(models.Model):
         return f'Option for {self.search_tag.tag_name} - {self.keyword}'
 
 
-
 class SearchHistory(models.Model):
     """SEARCH HISTORY FOR EACH USERS"""
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='search_history')
@@ -157,17 +156,17 @@ class Trending(models.Model):
     key_points = models.JSONField(blank=True, null=True)
     outlook = models.JSONField(blank=True, null=True)
     picture_url = models.URLField(blank=True, null=True)
+    links_and_sources = models.JSONField(blank=True, null=True)
     picture_last_refresh = models.DateField(auto_now=True)
     created_at = models.DateField(auto_now_add=True)
 
     def __str__(self):
         return f"Trending - {self.description[:20]}"
-    
+
     class Meta:
         indexes = [
             models.Index(fields=['category', 'subcategory']),
         ]
-        
 
 
 class Bookmark(models.Model):
@@ -179,7 +178,6 @@ class Bookmark(models.Model):
 
     def __str__(self):
         return f"Bookmark - {self.user.name}"
-
 
 
 # Preferences

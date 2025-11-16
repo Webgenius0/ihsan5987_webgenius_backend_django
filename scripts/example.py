@@ -29,11 +29,11 @@
 
 
 # # # generate set of 5 trendning topics 
-# from trending import *
+from .trending import *
 
-# trending = generate_trending_set() #set of 5 trending topics
+trending = generate_trending_set() #set of 5 trending topics
 
-# print(trending)
+print(trending)
 
 
 

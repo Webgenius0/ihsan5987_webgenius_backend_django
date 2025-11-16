@@ -213,6 +213,8 @@ def trending_task():
                     subcategory_name=subcategory_name
                 )
 
+            print("get trend", trend.get("links_and_sources"))
+
             Trending.objects.create(
                 category=category,
                 subcategory=subcategory,
@@ -220,7 +222,8 @@ def trending_task():
                 why_trending=trend.get("why_is_it_trending", []),
                 key_points=trend.get("key_points", []),
                 outlook=trend.get("overlook_what_might_happen_next", []),
-                picture_url=trend.get("picture_url", ""),
+                picture_url=trend.get("picture_url") or trend.get("image_url"),
+                links_and_sources=trend.get("links_and_sources"),
             )
             print("New trending news saved to database, successfully!")
         except Exception as e:
