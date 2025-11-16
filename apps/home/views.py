@@ -206,7 +206,7 @@ class UpdatemeAPI(APIView):
         #     return Response(response, status=status.HTTP_200_OK)
 
         user = request.user
-        if not user.is_acitve:
+        if not user.is_active:
             return Response(
                 {
                     "status": status.HTTP_401_UNAUTHORIZED,
