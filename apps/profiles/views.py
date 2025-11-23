@@ -10,7 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 from .models import Profile, FAQ, FAQCategory, ContactUs, NotificationSetting, AppInfo
 from .serializers import ProfileSerializer, MyPostSerializer, FAQSerializer, FAQCategorySerializer, ContactUsSerializer, NotificationSettingSerializer, AppInfoSerializer
 from apps.home.models import Preference
-from apps.home.serializers import PreferenceSerializer
+from apps.home.serializers import UserPreferenceSerializer
 
 # Profile View
 class ProfileView(APIView):
@@ -302,7 +302,7 @@ class UserPreferencesView(APIView):
     def get(self, request):
         user = request.user
         preferences = Preference.objects.filter(user=user)
-        serializers = PreferenceSerializer(preferences, many=True)
+        serializers = UserPreferenceSerializer(preferences, many=True)
         response = {
             "status": status.HTTP_200_OK,
             "success": True,

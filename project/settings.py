@@ -96,17 +96,25 @@ WSGI_APPLICATION = "project.wsgi.application"
 
 
 # DATABASE
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.postgresql",
+#         "NAME": config('DB_NAME'),
+#         "USER": config('DB_USER'),
+#         "PASSWORD": config('DB_PASS'),
+#         "HOST": config('DB_HOST'),
+#         "PORT": "5432",
+#         "OPTIONS": {
+#             "sslmode": "require",
+#         },
+#     }
+# }
+
+# djdngo default sqlite database for development
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": config('DB_NAME'),
-        "USER": config('DB_USER'),
-        "PASSWORD": config('DB_PASS'),
-        "HOST": config('DB_HOST'),
-        "PORT": "5432",
-        "OPTIONS": {
-            "sslmode": "require",
-        },
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
     }
 }
 
@@ -173,7 +181,7 @@ REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': (
             'rest_framework.renderers.JSONRenderer',
     ),
-    "DEFAULT_THROTTLE_RATES": {"anon": "0/day", "user": "100/day", "search_gen": "50/day"},
+    "DEFAULT_THROTTLE_RATES": {"anon": "5/day", "user": "100/day", "search_gen": "50/day"},
 }
 
 # Email sending setup

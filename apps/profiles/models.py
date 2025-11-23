@@ -105,6 +105,7 @@ AI_NAME = (
     ("GNEWS_API_KEY", "G News API Key"),
     ("PERPLEXITY_API_KEY", "Perplexity API Key"),
     ("OPENAI_API_KEY", "OpenAI API Key"),
+    ("SERPER_API_KEY", "Serper API Key")
 )
 
 class APIKey(models.Model):

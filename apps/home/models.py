@@ -11,18 +11,20 @@ User = get_user_model()
 # Category & Subcategory
 class Category(models.Model):
     category_name = models.CharField(max_length=200)
-    created_at = models.DateField(auto_now_add=True)
-
+    is_active = models.BooleanField(default=True)
+    is_main = models.BooleanField(default=False)
+    
     def __str__(self):
         return self.category_name
 
 
 class Subcategory(models.Model):
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='subcategories')
     subcategory_name = models.CharField(max_length=200)
-    created_at = models.DateField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
-        return self.subcategory_name
+        return f'{self.subcategory_name}'
 
 # Topic
 class Topic(models.Model):
@@ -143,6 +145,7 @@ class UpdateMe(models.Model):
 class Trending(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True)
     subcategory = models.ForeignKey(Subcategory, on_delete=models.CASCADE, null=True, blank=True)
+    topic = models.CharField(max_length=255, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     why_trending = models.JSONField(blank=True, null=True)
     key_points = models.JSONField(blank=True, null=True)
@@ -178,6 +181,7 @@ class Preference(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='preferences')
     category = models.ManyToManyField(Category, blank=True)
     subcategory = models.ManyToManyField(Subcategory, blank=True)
+    
     created_at = models.DateField(auto_now_add=True)
     updated_at = models.DateField(auto_now=True)
 

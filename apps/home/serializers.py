@@ -11,17 +11,18 @@ from .models import (
 from apps.profiles.models import Feedback
 from apps.users.models import User
 
-
-class CategorySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Category
-        fields = ["id", "category_name"]
-
-
 class SubcategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Subcategory
-        fields = ["id", "subcategory_name"]
+        fields = ['id', 'subcategory_name']
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    # show subcategories through relationship
+    subcategories = SubcategorySerializer(many=True, read_only=True)
+    class Meta:
+        model = Category
+        fields = ['id', 'category_name', 'subcategories']
 
 
 class TopicSerializer(serializers.ModelSerializer):
@@ -77,22 +78,11 @@ class RecommendationSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class PreferenceSerializer(serializers.ModelSerializer):
+class UserPreferenceSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField()
+    category = CategorySerializer(many=True, read_only=True)
+    # subcategory = SubcategorySerializer(many=True, read_only=True)
     class Meta:
         model = Preference
-        fields = "__all__"
-        read_only_fields = ["created_at", "updated_at", "user"]
-
-    def create(self, validated_data):
-        user = self.context["request"].user
-        category = validated_data.pop("category")
-        subcategory = validated_data.pop("subcategory")
-
-        # get or create user preferences
-        preference, created = Preference.objects.get_or_create(user=user)
-        if category:
-            preference.category.set(category)
-        if subcategory:
-            preference.subcategory.set(subcategory)
-        preference.save()
-        return preference
+        # fields = ['id', 'user', 'category', 'subcategory']
+        exclude = ['subcategory', 'created_at', 'updated_at']

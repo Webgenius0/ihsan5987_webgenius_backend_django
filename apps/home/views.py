@@ -22,7 +22,7 @@ from .models import (
     Search,
     UpdateMe,
     Bookmark,
-    # Preference,
+    Preference,
     Trending,
     Recommendation,
     SearchHistory,
@@ -37,7 +37,6 @@ from .serializers import (
     UserSerializer,
     FeedbackSerializer,
     RecommendationSerializer,
-    PreferenceSerializer,
 )
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
@@ -307,37 +306,55 @@ class RecommendationAPI(APIView):
 
 
 class PreferenceAPI(APIView):
+    '''
+    GET: FETCH ALL PREFERENCES ITEM FROM CATEGORY AND SUBCATEGORY
+    POST: SET USER PREFERENCES
+    '''
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        categories = Category.objects.all()
-        subcateories = Subcategory.objects.all()
-
+        categories = Category.objects.prefetch_related("subcategories").all()
+        serializer = CategorySerializer(categories, many=True)
         response_data = {
             "code": status.HTTP_200_OK,
             "success": True,
             "message": "Preferences fetched successfully",
-            "data": {
-                "categories": CategorySerializer(categories, many=True).data,
-                "subcategories": SubcategorySerializer(subcateories, many=True).data,
-            },
+            "data": serializer.data
+            
         }
         return Response(response_data, status=status.HTTP_200_OK)
 
     def post(self, request):
-        serializer = PreferenceSerializer(
-            data=request.data, context={"request": request}
-        )
-        if serializer.is_valid():
-            serializer.save()
-            response_data = {
+        data = request.data
+        user = request.user
+        try:
+            user = User.objects.get(id=user.id)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=404)
+
+        # get or create preference object
+        preference, created = Preference.objects.get_or_create(user=user)
+
+        category_ids = []
+        subcategory_ids = []
+
+        # loop through the input array
+        for item in data:
+            category_ids.append(item["category"])
+            subcategory_ids.extend(item["subcategory"])
+
+        # update M2M in one query each
+        preference.category.set(category_ids)
+        preference.subcategory.set(subcategory_ids)
+
+        return Response(
+            {
                 "code": status.HTTP_200_OK,
-                "success": True,
-                "message": "Preferences updated successfully",
+                "message": "Preferences saved successfully",
+                "categories": category_ids,
+                "subcategories": subcategory_ids,
             }
-            return Response(response_data, status=status.HTTP_200_OK)
-        else:
-            raise ValidationError("Invalid data")
+        )
 
 
 class BookmarkAPIView(APIView):
