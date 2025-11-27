@@ -80,9 +80,17 @@ class RecommendationSerializer(serializers.ModelSerializer):
 
 class UserPreferenceSerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField()
-    category = CategorySerializer(many=True, read_only=True)
-    # subcategory = SubcategorySerializer(many=True, read_only=True)
+    category = serializers.SerializerMethodField()
+    subcategory = serializers.SerializerMethodField()
     class Meta:
         model = Preference
         # fields = ['id', 'user', 'category', 'subcategory']
-        exclude = ['subcategory', 'created_at', 'updated_at']
+        exclude = ['created_at', 'updated_at']
+        
+    def get_category(self, obj):
+        categories = obj.category.all()
+        return [{'id': category.id, 'name': category.category_name} for category in categories]
+
+    def get_subcategory(self, obj):
+        subcategories = obj.subcategory.all()
+        return [{'id': subcategory.id, 'name': subcategory.subcategory_name} for subcategory in subcategories]
