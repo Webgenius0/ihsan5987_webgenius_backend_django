@@ -133,6 +133,7 @@ class TrendingNowAPI(APIView):
             if trending_now:
                 obj = {
                     "id": trending_now.id,
+                    "topic": trending_now.topic,
                     "category": trending_now.category.category_name,
                     "subcategory": trending_now.subcategory.subcategory_name,
                     "description": trending_now.description,
@@ -164,6 +165,7 @@ class TrendingNowAPI(APIView):
         for trendig in trending_now:
             obj = {
                 "id": trendig.id,
+                "topic": trendig.topic,
                 "category": trendig.category.category_name,
                 "subcategory": trendig.subcategory.subcategory_name,
                 "description": trendig.description,

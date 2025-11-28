@@ -170,10 +170,10 @@ class UpdateMeAdmin(ModelAdmin, ImportExportModelAdmin):
 # Trending
 @admin.register(Trending)
 class TrendingAdmin(ModelAdmin, ImportExportModelAdmin):
-    list_display = ("category", "subcategory", "description", "preview_image", "created_at")
+    list_display = ("topic", "category", "subcategory", "description", "preview_image", "created_at")
     list_filter = ("created_at", "category", "subcategory")
     search_fields = ("description", "key_points")
-    list_display_links = ("category", "subcategory")
+    list_display_links = ("topic", "category", "subcategory")
     ordering = ("-created_at",)
     list_per_page = 20
     actions = ["duplicate_rows"]

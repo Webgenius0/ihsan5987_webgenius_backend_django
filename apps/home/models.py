@@ -119,7 +119,7 @@ class Recommendation(models.Model):
 class UpdateMe(models.Model):
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
     subcategory = models.ForeignKey(Subcategory, on_delete=models.SET_NULL, null=True, blank=True)
-    topic = models.ForeignKey(Topic, on_delete=models.SET_NULL, null=True)
+    topic = models.CharField(max_length=255, blank=True, null=True)
     short_info = models.JSONField(blank=True, null=True)
     reference_url = models.JSONField(blank=True, null=True)
     background_story = models.JSONField(blank=True, null=True)

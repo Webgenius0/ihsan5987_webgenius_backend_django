@@ -163,15 +163,15 @@ def updateme_task():
                     subcategory_name=subcategory_name
                 )
 
-            topic_name = item.get("topic", "Unknown")
-            topic = Topic.objects.filter(name__iexact=topic_name).first()
-            if not topic:
-                topic = Topic.objects.create(name=topic_name)
+            # topic_name = item.get("topic", "Unknown")
+            # topic = Topic.objects.filter(name__iexact=topic_name).first()
+            # if not topic:
+            #     topic = Topic.objects.create(name=topic_name)
 
             UpdateMe.objects.create(
                 category=category,
                 subcategory=subcategory,
-                topic=topic,
+                topic=item.get("topic", ""),
                 short_info=item.get("short_info", ""),
                 reference_url=item.get("reference_url", ""),
                 background_story=item.get("background_story", ""),
@@ -218,6 +218,7 @@ def trending_task():
             Trending.objects.create(
                 category=category,
                 subcategory=subcategory,
+                topic = trend.get("topic", ""),
                 description=trend.get("description", ""),
                 why_trending=trend.get("why_is_it_trending", []),
                 key_points=trend.get("key_points", []),
