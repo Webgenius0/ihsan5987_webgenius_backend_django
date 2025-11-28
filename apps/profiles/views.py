@@ -347,37 +347,20 @@ class UserPreferencesView(APIView):
     def get(self, request):
         user = request.user
         preferences = user.preferences
-        # lopp
-        # preferences = {
-        #     "user": "user name",
-        #     "preferences": [
-        #         {
-        #             "category_id": 1,
-        #             "category_name": "Sports",
-        #             "subcategories": [
-        #                 {
-        #                     "subcategory_id": 1,
-        #                     "subcategory_name": "Football"
-        #                 },
-        #                 {
-        #                     "subcategory_id": 2,
-        #                     "subcategory_name": "Cricket"
-        #                 }
-        #             ]
-        #         }
-        #     ]
-        # }
+
         result = []
         for category in preferences.category.all():
             data = {
                 "category_id": category.id,
                 "category_name": category.category_name,
+                "subcategories": [
+                    {
+                        "subcategory_id": subcategory.id,
+                        "subcategory_name": subcategory.subcategory_name,
+                    }
+                    for subcategory in preferences.subcategory.filter(category=category)
+                ],
             }
-            data["subcategories"] = [
-                {"subcategory_id": sub.id, "subcategory_name": sub.subcategory_name}
-                for sub in preferences.subcategory.all()
-            ]
-
             result.append(data)
 
         response = {

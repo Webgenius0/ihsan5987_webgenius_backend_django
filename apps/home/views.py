@@ -335,24 +335,26 @@ class PreferenceAPI(APIView):
         # get or create preference object
         preference, created = Preference.objects.get_or_create(user=user)
 
-        category_ids = []
-        subcategory_ids = []
+        subcategory_list = []
+        for sub in data["subcategories"]:
+            subcategory = Subcategory.objects.get(id=sub)
+            subcategory_list.append(subcategory)
+        
+        # set category of the subcategory 
+        category_list = []
+        for sub in subcategory_list:
+            category = Category.objects.get(id=sub.category_id)
+            category_list.append(category)
+        preference.subcategory.set(subcategory_list)
+        preference.category.set(category_list)
+        preference.save()
 
-        # loop through the input array
-        for item in data:
-            category_ids.append(item["category"])
-            subcategory_ids.extend(item["subcategory"])
-
-        # update M2M in one query each
-        preference.category.set(category_ids)
-        preference.subcategory.set(subcategory_ids)
 
         return Response(
             {
                 "code": status.HTTP_200_OK,
+                "success": True,
                 "message": "Preferences saved successfully",
-                "categories": category_ids,
-                "subcategories": subcategory_ids,
             }
         )
 
