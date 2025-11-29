@@ -16,7 +16,6 @@ from .utils import SearchGenThrottle
 
 
 from .models import (
-    Topic,
     Category,
     Subcategory,
     Search,
@@ -31,7 +30,6 @@ from apps.community_hubs.models import Post
 from apps.users.models import User
 from apps.profiles.models import Feedback
 from .serializers import (
-    TopicSerializer,
     CategorySerializer,
     SubcategorySerializer,
     UserSerializer,
@@ -62,40 +60,11 @@ class CategoryListAPIView(APIView):
         return Response(response, status=status.HTTP_200_OK)
 
 
-# class CategoryDetailAPIView(APIView):
-#     def get(self, request, pk):
-#         category = get_object_or_404(Category, pk=pk)
-#         serializer = CategorySerializer(category)
-#         return Response(serializer.data)
-
-
 class SubcategoryListAPIView(APIView):
     def get(self, request):
         subcategories = Subcategory.objects.all()
         serializer = SubcategorySerializer(subcategories, many=True)
         return Response(serializer.data)
-
-
-# class SubcategoryDetailAPIView(APIView):
-#     def get(self, request, pk):
-#         subcategory = get_object_or_404(Subcategory, pk=pk)
-#         serializer = SubcategorySerializer(subcategory)
-#         return Response(serializer.data)
-
-
-class TopicListAPIView(APIView):
-    def get(self, request):
-        topics = Topic.objects.all()
-        serializer = TopicSerializer(topics, many=True)
-        return Response(serializer.data)
-
-
-# class TopicDetailAPIView(APIView):
-#     def get(self, request, pk):
-#         topic = get_object_or_404(Topic, pk=pk)
-#         serializer = TopicSerializer(topic)
-#         return Response(serializer.data)
-
 
 class UserDetailAPIView(APIView):
     def get(self, request, pk):
@@ -192,7 +161,7 @@ class UpdatemeAPI(APIView):
                 "id": update_me.id,
                 "category": update_me.category.category_name,
                 "subcategory": update_me.subcategory.subcategory_name,
-                "topic": update_me.topic.name,
+                "topic": update_me.topic,
                 "short_info": update_me.short_info,
                 "reference_url": update_me.reference_url,
                 "background_story": update_me.background_story,
@@ -231,7 +200,7 @@ class UpdatemeAPI(APIView):
         update_for_me = list(
             UpdateMe.objects.filter(category__in=sub_ctg, is_archive=False, is_active=True)
             .exclude(id__in=top3_ids)
-            .select_related("category", "subcategory", "topic")
+            .select_related("category", "subcategory")
             .order_by("?")[:2]
         )
 
@@ -247,7 +216,7 @@ class UpdatemeAPI(APIView):
                 "subcategory": (
                     update.subcategory.subcategory_name if update.subcategory else None
                 ),
-                "topic": update.topic.name if update.topic else None,
+                "topic": update.topic,
                 "short_info": update.short_info,
                 "reference_url": update.reference_url,
                 "background_story": update.background_story,
@@ -287,13 +256,13 @@ class RecommendationAPI(APIView):
         if request.query_params.get("all") == "true":
             recommendations = (
                 Recommendation.objects.filter(category__in=category, is_active=True)
-                .select_related("category", "topic")
+                .select_related("category", "subcategory")
                 .order_by("-created_at")
             )
         else:
             recommendations = (
                 Recommendation.objects.filter(category__id__in=category, is_active=True)
-                .select_related("category", "topic")
+                .select_related("category", "subcategory")
                 .order_by("-created_at")[:4]
             )
             print("recommendations:", recommendations)
@@ -422,16 +391,21 @@ class BookmarkAPIView(APIView):
         recommendations = {
             obj.id: obj
             for obj in Recommendation.objects.filter(id__in=ids_by_model.get("recommendation", []))
-            .select_related("category", "topic")
+            .select_related("category")
         }
         updateme_objs = {
             obj.id: obj
             for obj in UpdateMe.objects.filter(id__in=ids_by_model.get("updateme", []))
-            .select_related("category", "subcategory", "topic")
+            .select_related("category", "subcategory")
+        }
+        search_objs = {
+            obj.id: obj
+            for obj in Search.objects.filter(id__in=ids_by_model.get("search", []))
+            .select_related("category", "subcategory")
         }
 
         # Initialize response lists
-        trending_data, community_post, recommendation_data, updateme_data = [], [], [], []
+        trending_data, community_post, recommendation_data, updateme_data, search_bar = [], [], [], [], []
 
         base_url = request.build_absolute_uri("/")
 
@@ -471,7 +445,7 @@ class BookmarkAPIView(APIView):
                     {
                         "id": obj.id,
                         "category": obj.category.category_name,
-                        "topic": obj.topic.name,
+                        "topic": obj.topic,
                         "headline": obj.headline,
                         "picture_url": obj.picture_url,
                         "created_at": obj.created_at,
@@ -485,8 +459,26 @@ class BookmarkAPIView(APIView):
                         "id": obj.id,
                         "category": obj.category.category_name,
                         "subcategory": obj.subcategory.subcategory_name,
-                        "topic": obj.topic.name,
+                        "topic": obj.topic,
                         "picture_url": obj.picture_url,
+                        "created_at": obj.created_at,
+                    }
+                )
+            elif model == "search" and obj_id in search_objs:
+                obj = search_objs[obj_id]
+                search_bar.append(
+                    {
+                        "id": obj.id,
+                        "category": obj.category.category_name,
+                        "subcategory": obj.subcategory.subcategory_name,
+                        "topic": obj.topic,
+                        "general_facts": obj.general_fact,
+                        "news": obj.news,
+                        "interesting_trivia": obj.interesting_trivia,
+                        "opinions": obj.opinion,
+                        "questions": obj.question,
+                        "further_key_words": obj.further_key_words,
+                        "search_term": obj.search_term,
                         "created_at": obj.created_at,
                     }
                 )
@@ -500,6 +492,7 @@ class BookmarkAPIView(APIView):
                 "community_post": community_post,
                 "recommendation": recommendation_data,
                 "updateme": updateme_data,
+                "search_bar": search_bar,
             },
         }
         return Response(response_data, status=status.HTTP_200_OK)
@@ -511,7 +504,6 @@ class SearchAPIView(APIView):
 
     def post(self, request):
         data = request.data
-        get_news = data.get("get_news", False)
         search_term = data.get("search_term", "").lower()
 
         if not search_term:
@@ -532,84 +524,6 @@ class SearchAPIView(APIView):
                 print(f"Error saving search history: {e}")
                 pass
 
-        # Get or create search tag
-        # try:
-        #     search_tag = SearchTag.objects.get(tag_name__iexact=search_term)
-        # except SearchTag.DoesNotExist:
-        #     search_tag = SearchTag.objects.create(tag_name=search_term)
-        # except SearchTag.MultipleObjectsReturned:
-        #     search_tag = SearchTag.objects.filter(tag_name__iexact=search_term).first()
-
-        # print(f"Search tag: {search_tag}")
-
-        # ====> CASE 1: Return or create search options
-        # if search_tag and not get_news:
-        #     if search_tag.options.exists():
-        #         options_data = [
-        #             {
-        #                 "search_tag": search_tag.tag_name,
-        #                 "keyword": option.keyword,
-        #                 "category": option.category,
-        #                 "subcategory": option.subcategory,
-        #             }
-        #             for option in search_tag.options.all()
-        #         ]
-        #         return Response(
-        #             {
-        #                 "code": status.HTTP_200_OK,
-        #                 "success": True,
-        #                 "message": "Search options fetched successfully",
-        #                 "data": options_data,
-        #             },
-        #             status=status.HTTP_200_OK,
-        #         )
-        #     else:
-        # try:
-        #     _, generate_options = search_bar(search_term, allow_options=True)
-        #     print("Generated options:", generate_options)
-
-        #     for option in generate_options.values():
-        #         SearchOption.objects.create(
-        #             search_tag=search_tag,
-        #             keyword=option.get("key_words", ""),
-        #             category=option.get("category", ""),
-        #             subcategory=option.get("subcategory", ""),
-        #         )
-
-        #     generated_data = [
-        #         {
-        #             "search_tag": search_tag.tag_name,
-        #             "keyword": option.keyword,
-        #             "category": option.category,
-        #             "subcategory": option.subcategory,
-        #         }
-        #         for option in search_tag.options.all()
-        #     ]
-
-        #     return Response(
-        #         {
-        #             "code": status.HTTP_201_CREATED,
-        #             "success": True,
-        #             "message": "Search options created successfully",
-        #             "data": generated_data,
-        #         },
-        #         status=status.HTTP_200_OK,
-        #     )
-
-        # except Exception as e:
-        #     print("Error generating options:", traceback.format_exc())
-        #     return Response(
-        #         {
-        #             "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
-        #             "success": False,
-        #             "message": f"Error generating options: {str(e)}",
-        #         },
-        #         status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        #     )
-
-        # # ====> CASE 2: Generate and return news
-        # elif search_tag and get_news:
-        # get previously searched news with same search term
         previous_search = Search.objects.filter(
             search_term__iexact=search_term
         ).values("search_term", "id").first()
@@ -666,14 +580,13 @@ class SearchAPIView(APIView):
             subcategory, _ = Subcategory.objects.get_or_create(
                 subcategory_name=subcategory_name
             )
-            topic, _ = Topic.objects.get_or_create(name=topic_name)
 
             # Create Search (News) object
             search_news = Search.objects.create(
+                topic=topic_name,
                 category=category,
                 subcategory=subcategory,
                 general_fact=get_news_data["general_facts"],
-                topic=topic,
                 news=get_news_data["news"],
                 interesting_trivia=get_news_data["interesting_trivia"],
                 opinion=get_news_data["opinions"],
@@ -703,15 +616,6 @@ class SearchAPIView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-        # # Default fallback
-        # return Response(
-        #     {
-        #         "code": status.HTTP_404_NOT_FOUND,
-        #         "success": False,
-        #         "message": "Search data not found.",
-        #     },
-        #     status=status.HTTP_404_NOT_FOUND,
-        # )
 
 
 class SearchHistoryAPIView(APIView):
@@ -772,7 +676,7 @@ class SearchHistoryAPIView(APIView):
             )
 
         try:
-            search_history = SearchHistory.objects.get(user=user, pk=pk)
+            search_history = SearchHistory.objects.get(user=user, pk=pk) 
             search_history.delete()
             return Response(
                 {

@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from .models import (
-    Topic,
     Category,
     Subcategory,
     UpdateMe,
@@ -23,13 +22,6 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ['id', 'category_name', 'subcategories']
-
-
-class TopicSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Topic
-        # fields = ['id', 'name', 'topic_tags', 'created_at']
-        fields = "__all__"
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -72,7 +64,6 @@ class TrendingNewsSerializer(serializers.ModelSerializer):
 class RecommendationSerializer(serializers.ModelSerializer):
     category = serializers.StringRelatedField()
     subcategory = serializers.StringRelatedField()
-    topic = serializers.StringRelatedField()
     class Meta:
         model = Recommendation
         fields = "__all__"

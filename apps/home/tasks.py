@@ -7,7 +7,6 @@ from .models import (
     Recommendation,
     Category,
     Subcategory,
-    Topic,
     UpdateMe,
     Trending,
     Search,
@@ -64,15 +63,11 @@ def recommandation_task():
                 subcategory = Subcategory.objects.create(
                     subcategory_name=subcategory_name
                 )
-            topic_name = item.get("topic", "Unknown")
-            topic = Topic.objects.filter(name__iexact=topic_name).first()
-            if not topic:
-                topic = Topic.objects.create(name=topic_name)
 
             Recommendation.objects.create(
                 category=category,
                 subcategory=subcategory,
-                topic=topic,
+                topic=item.get("topic", ""),
                 headline=item.get("headline", ""),
                 introduction=item.get("introduction", ""),
                 key_tips_and_takeaways=item.get("key_tips_and_takeaways", ""),
@@ -107,14 +102,11 @@ def updateme_task():
                 subcategory = Subcategory.objects.create(
                     subcategory_name=news["subcategory"]
                 )
-            topic = Topic.objects.filter(name__iexact=news["topic"]).first()
-            if not topic:
-                topic = Topic.objects.create(name=news["topic"])
 
             UpdateMe.objects.create(
                 category=category,
                 subcategory=subcategory,
-                topic=topic,
+                topic=news["topic"],
                 short_info=news["short_info"],
                 reference_url=news["reference_url"],
                 background_story=news["background_story"],
@@ -162,11 +154,6 @@ def updateme_task():
                 subcategory = Subcategory.objects.create(
                     subcategory_name=subcategory_name
                 )
-
-            # topic_name = item.get("topic", "Unknown")
-            # topic = Topic.objects.filter(name__iexact=topic_name).first()
-            # if not topic:
-            #     topic = Topic.objects.create(name=topic_name)
 
             UpdateMe.objects.create(
                 category=category,
@@ -245,3 +232,21 @@ def delete_old_search_results():
         return
 
     print("Old search results deleted successfully.")
+
+
+# make a task that loop over updateme , recommendation and trending to false is_active after 24 hours
+# the time is set by the django celery beat, so when i set the time it it will run automatically
+@shared_task
+def deactivate_old_news():
+    print("deactivate old news started")
+    try:
+        from .models import UpdateMe, Recommendation, Trending
+
+        UpdateMe.objects.filter(is_active=True).update(is_active=True)
+        Recommendation.objects.filter(is_active=True).update(is_active=True)
+        Trending.objects.filter(is_active=True).update(is_active=True)
+    except Exception as e:
+        print(f"Error deactivating old news: {e}")
+        return
+
+    print("deactivate old news completed")
