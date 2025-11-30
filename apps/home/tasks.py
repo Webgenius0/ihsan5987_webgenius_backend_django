@@ -242,9 +242,9 @@ def deactivate_old_news():
     try:
         from .models import UpdateMe, Recommendation, Trending
 
-        UpdateMe.objects.filter(is_active=True).update(is_active=True)
-        Recommendation.objects.filter(is_active=True).update(is_active=True)
-        Trending.objects.filter(is_active=True).update(is_active=True)
+        UpdateMe.objects.filter(is_active=True).update(is_active=False)
+        Recommendation.objects.filter(is_active=True).update(is_active=False)
+        Trending.objects.filter(is_active=True).update(is_active=False)
     except Exception as e:
         print(f"Error deactivating old news: {e}")
         return

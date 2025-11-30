@@ -11,7 +11,7 @@ def dashboard_callback(request, context):
     # Import models inside function to avoid AppRegistryNotReady
     from apps.users.models import User
     from apps.profiles.models import Profile
-    from apps.home.models import Category, Topic, Search, Recommendation, Trending, Bookmark
+    from apps.home.models import Category, Search, Recommendation, Trending, Bookmark
     from apps.community_hubs.models import Post, Comment
     from apps.notifications.models import Notification
     from apps.subscription.models import Subscription
@@ -26,7 +26,6 @@ def dashboard_callback(request, context):
 
     # Content Statistics
     total_categories = Category.objects.count()
-    total_topics = Topic.objects.count()
     total_searches = Search.objects.count()
     total_recommendations = Recommendation.objects.count()
     total_bookmarks = Bookmark.objects.count()
@@ -120,7 +119,6 @@ def dashboard_callback(request, context):
         "new_users_7d": new_users_7d,
         "premium_users": premium_users,
         "total_categories": total_categories,
-        "total_topics": total_topics,
         "total_searches": total_searches,
         "total_recommendations": total_recommendations,
         "total_bookmarks": total_bookmarks,
