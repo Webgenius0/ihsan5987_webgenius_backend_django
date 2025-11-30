@@ -5,20 +5,7 @@ from . import views
 urlpatterns = [
     # Categories
     path("categories/", views.CategoryListAPIView.as_view(), name="category-list"),
-    # path(
-    #     "categories/<int:pk>/", views.CategoryDetailAPIView.as_view(), name="category-detail"
-    # ),
-    # Subcategories
     path("subcategories/", views.SubcategoryListAPIView.as_view(), name="subcategory-list"),
-    # path(
-    #     "subcategories/<int:pk>/",
-    #     views.SubcategoryDetailAPIView.as_view(),
-    #     name="subcategory-detail",
-    # ),
-    # Topics
-    path("topics/", views.TopicListAPIView.as_view(), name="topic-list"),
-    # path("topics/<int:pk>/", views.TopicDetailAPIView.as_view(), name="topic-detail"),
-    # General Facts
 
     # Users
     path("users/<int:pk>/", views.UserDetailAPIView.as_view(), name="user-detail"),

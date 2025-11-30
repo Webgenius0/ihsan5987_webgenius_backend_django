@@ -11,35 +11,27 @@ User = get_user_model()
 # Category & Subcategory
 class Category(models.Model):
     category_name = models.CharField(max_length=200)
-    created_at = models.DateField(auto_now_add=True)
-
+    is_active = models.BooleanField(default=True)
+    is_main = models.BooleanField(default=False)
+    
     def __str__(self):
         return self.category_name
 
 
 class Subcategory(models.Model):
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='subcategories')
     subcategory_name = models.CharField(max_length=200)
-    created_at = models.DateField(auto_now_add=True)
-
-    def __str__(self):
-        return self.subcategory_name
-
-# Topic
-class Topic(models.Model):
-    name = models.CharField(max_length=255)
-    # topic_tags = models.ForeignKey(TopicTag, on_delete=models.SET_NULL, null=True, blank=True)
-    created_at = models.DateField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
-        return self.name
+        return f'{self.subcategory_name}'
 
 
 # Search
 class Search(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True, related_name='search')
     subcategory = models.ForeignKey(Subcategory, on_delete=models.CASCADE, null=True, blank=True, related_name='search')
-    topic = models.ForeignKey(Topic, on_delete=models.CASCADE, blank=True, null=True, related_name='search')
+    topic = models.CharField(max_length=200, blank=True, null=True)
     general_fact = models.JSONField(blank=True, null=True)
     news = models.JSONField(blank=True, null=True)
     interesting_trivia = models.JSONField(blank=True, null=True)
@@ -53,27 +45,12 @@ class Search(models.Model):
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
-        return f"Search - {self.topic.name}"
+        return f"Search - {self.topic}"
     
     class Meta:
         indexes = [
-            models.Index(fields=['category', 'subcategory', 'topic']),
+            models.Index(fields=['category', 'subcategory']),
         ]
-
-
-# Search Tags
-class SearchTag(models.Model):
-    """SEARCH TERM, USED FOR SEARCHING"""
-    # search = models.ForeignKey(Search, on_delete=models.CASCADE)
-    tag_name = models.CharField(max_length=200)
-    created_at = models.DateField(auto_now_add=True)
-
-    def __str__(self):
-        return self.tag_name
-
-    def save(self, *args, **kwargs):
-        self.tag_name = self.tag_name.lower()
-        super(SearchTag, self).save(*args, **kwargs)
 
 
 class SearchHistory(models.Model):
@@ -91,7 +68,7 @@ class SearchHistory(models.Model):
 class Recommendation(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     subcategory = models.ForeignKey(Subcategory, on_delete=models.CASCADE, null=True, blank=True)
-    topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
+    topic = models.CharField(max_length=255, blank=True, null=True)
     headline = models.TextField(blank=True, null=True)
     introduction = models.TextField(blank=True, null=True)
     key_tips_and_takeaways = models.JSONField(blank=True, null=True)
@@ -103,13 +80,13 @@ class Recommendation(models.Model):
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
-        return self.topic.name
+        return self.topic
 
     class Meta:
         verbose_name_plural = "Recommendations"
         ordering = ['-created_at']
         indexes = [
-            models.Index(fields=['category', 'topic']),
+            models.Index(fields=['category', 'subcategory']),
         ]
 
 
@@ -117,7 +94,7 @@ class Recommendation(models.Model):
 class UpdateMe(models.Model):
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
     subcategory = models.ForeignKey(Subcategory, on_delete=models.SET_NULL, null=True, blank=True)
-    topic = models.ForeignKey(Topic, on_delete=models.SET_NULL, null=True)
+    topic = models.CharField(max_length=255, blank=True, null=True)
     short_info = models.JSONField(blank=True, null=True)
     reference_url = models.JSONField(blank=True, null=True)
     background_story = models.JSONField(blank=True, null=True)
@@ -129,13 +106,13 @@ class UpdateMe(models.Model):
     # interest = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.topic.name
+        return self.topic
 
     class Meta:
         verbose_name_plural = "Update Me"
         ordering = ['-created_at']
         indexes = [
-            models.Index(fields=['category', 'subcategory', 'topic']),
+            models.Index(fields=['category', 'subcategory']),
         ]
 
 
@@ -143,6 +120,7 @@ class UpdateMe(models.Model):
 class Trending(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True)
     subcategory = models.ForeignKey(Subcategory, on_delete=models.CASCADE, null=True, blank=True)
+    topic = models.CharField(max_length=255, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     why_trending = models.JSONField(blank=True, null=True)
     key_points = models.JSONField(blank=True, null=True)
@@ -178,6 +156,7 @@ class Preference(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='preferences')
     category = models.ManyToManyField(Category, blank=True)
     subcategory = models.ManyToManyField(Subcategory, blank=True)
+    
     created_at = models.DateField(auto_now_add=True)
     updated_at = models.DateField(auto_now=True)
 

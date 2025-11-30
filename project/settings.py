@@ -8,7 +8,6 @@ from firebase_admin import credentials
 from decouple import config
 
 
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -110,6 +109,14 @@ DATABASES = {
     }
 }
 
+# djdngo default sqlite database for development
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
+#     }
+# }
+
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
@@ -163,17 +170,18 @@ REST_FRAMEWORK = {
         "rest_framework_simplejwt.authentication.JWTAuthentication",
         "rest_framework.authentication.BasicAuthentication",
         "rest_framework.authentication.SessionAuthentication",
-
     ),
     "EXCEPTION_HANDLER": "utils.exception_handler.custom_exception_handler",
     "DEFAULT_THROTTLE_CLASSES": [
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
     ],
-    'DEFAULT_RENDERER_CLASSES': (
-            'rest_framework.renderers.JSONRenderer',
-    ),
-    "DEFAULT_THROTTLE_RATES": {"anon": "0/day", "user": "100/day", "search_gen": "50/day"},
+    "DEFAULT_RENDERER_CLASSES": ("rest_framework.renderers.JSONRenderer",),
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "100/day",
+        "user": "1000/day",
+        "search_gen": "500/day",
+    },
 }
 
 # Email sending setup
@@ -197,14 +205,13 @@ CORS_ALLOWED_ORIGINS = [
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
-
 ]
 
 # Cloudinary setup
 cloudinary.config(
-    cloud_name=config('CLOUDE_API_NAME'),
-    api_key=config('CLOUDE_API_KEY'),
-    api_secret=config('CLOUDE_API_SECRET'),
+    cloud_name=config("CLOUDE_API_NAME"),
+    api_key=config("CLOUDE_API_KEY"),
+    api_secret=config("CLOUDE_API_SECRET"),
     secure=True,
 )
 

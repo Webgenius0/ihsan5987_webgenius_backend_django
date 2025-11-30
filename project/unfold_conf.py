@@ -82,25 +82,7 @@ UNFOLD = {
                         "icon": "badge",  # Supported icon set: https://fonts.google.com/icons
                         "link": reverse_lazy("admin:profiles_profile_changelist"),
                     },
-                    # {
-                    #     "title": _("User Devices"),
-                    #     "icon": "devices",  # Supported icon set: https://fonts.google.com/icons
-                    #     "link": reverse_lazy("admin:users_userdevice_changelist"),
-                    #     "permission": lambda request: request.user.is_superuser,
-                    # },
-                    # {
-                    #     "title": _("Email OTP"),
-                    #     "icon": "mail_lock",  # Supported icon set: https://fonts.google.com/icons
-                    #     "link": reverse_lazy("admin:users_emailotp_changelist"),
-                    #     "permission": lambda request: request.user.is_superuser,
-                    # },
-                    # {
-                    #     "title": _("Notification Settings"),
-                    #     "icon": "settings",  # Supported icon set: https://fonts.google.com/icons
-                    #     "link": reverse_lazy(
-                    #         "admin:profiles_notificationsetting_changelist"
-                    #     ),
-                    # },
+                   
                 ],
             },
             {
@@ -153,24 +135,6 @@ UNFOLD = {
                         "link": reverse_lazy("admin:home_subcategory_changelist"),
                         "permission": lambda request: request.user.is_superuser,
                     },
-                    {
-                        "title": _("Topics"),
-                        "icon": "topic",  # Supported icon set: https://fonts.google.com/icons
-                        "link": reverse_lazy("admin:home_topic_changelist"),
-                        "permission": lambda request: request.user.is_superuser,
-                    },
-                    # {
-                    #     "title": _("Search Tags"),
-                    #     "icon": "tag",  # Supported icon set: https://fonts.google.com/icons
-                    #     "link": reverse_lazy("admin:home_searchtag_changelist"),
-                    #     "permission": lambda request: request.user.is_superuser,
-                    # },
-                    # {
-                    #     "title": _("Search Options"),
-                    #     "icon": "search",  # Supported icon set: https://fonts.google.com/icons
-                    #     "link": reverse_lazy("admin:home_searchoption_changelist"),
-                    #     "permission": lambda request: request.user.is_superuser,
-                    # },
                     {
                         "title": _("Search History"),
                         "icon": "history",  # Supported icon set: https://fonts.google.com/icons
