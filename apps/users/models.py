@@ -30,7 +30,7 @@ class CustomUserManager(BaseUserManager):
 
 # CustomUser Model
 class User(AbstractBaseUser, PermissionsMixin):
-    name = models.CharField(max_length=255, default="Anonymous")
+    name = models.CharField(max_length=255, null=True, blank=True)
     # username = models.CharField(max_length=255, null=True, blank=True)
     email = models.EmailField(unique=True)
 
@@ -102,7 +102,3 @@ class EmailOTP(models.Model):
 
     def __str__(self):
         return f"{self.user.email}"
-
-
-# Register EmailOTP model for audit logging
-auditlog.register(EmailOTP)

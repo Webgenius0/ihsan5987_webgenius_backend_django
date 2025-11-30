@@ -10,9 +10,10 @@ class Post(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="posts")
     title = models.CharField(max_length=255, null=True, blank=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True)
-    content = models.TextField()
+    content = models.TextField(blank=True, null=True)
     image = CloudinaryField('image', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
 
     @property
     def image_url(self):
@@ -20,16 +21,19 @@ class Post(models.Model):
             return self.image.url
         return None
 
-    @cached_property
+    @property
     def comment_count(self):
         return self.comments.count()
+    
+    class Meta:
+        verbose_name = "Post"
+        verbose_name_plural = "Posts"
+        indexes = [
+            models.Index(fields=['title', 'category']),
+        ]
 
     def __str__(self):
         return f"{self.title} - {self.user.name}"
-
-
-# Register model for audit logging
-auditlog.register(Post)
 
 
 class Comment(models.Model):
@@ -43,16 +47,18 @@ class Comment(models.Model):
         on_delete=models.CASCADE,
         related_name='comments'
     )
-    text = models.TextField()
+    text = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
 
+    class Meta:
+        verbose_name = "Comment"
+        verbose_name_plural = "Comments"
+        indexes = [
+            models.Index(fields=['post', 'user']),
+        ]
     def __str__(self):
-        return f"{self.user.name} - {self.post.title}"
-
-
-# Register model for audit logging
-auditlog.register(Comment)
+        return f"Comment: {self.user.name} - {self.post.title[:20]}"
 
 
 class CommentReport(models.Model):
@@ -111,7 +117,14 @@ class Like(models.Model):
 
     class Meta:
         unique_together = ('comment', 'user')
+    
+    class Meta:
+        verbose_name = "Like"
+        verbose_name_plural = "Likes"
+        indexes = [
+            models.Index(fields=['comment', 'user']),
+        ]
 
 
 # Register model for audit logging
-auditlog.register(Like)
+# auditlog.register(Like)

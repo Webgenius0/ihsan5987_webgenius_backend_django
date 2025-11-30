@@ -3,12 +3,10 @@ import os
 from pathlib import Path
 import cloudinary
 from datetime import timedelta
-from dotenv import load_dotenv
 import firebase_admin
 from firebase_admin import credentials
+from decouple import config
 
-
-load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,11 +25,11 @@ ALLOWED_HOSTS = ["*"]
 
 INSTALLED_APPS = [
     "unfold",
-    "unfold.contrib.filters",  # optional, if special filters are needed
-    "unfold.contrib.forms",  # optional, if special form elements are needed
-    "unfold.contrib.inlines",  # optional, if special inlines are needed
-    "unfold.contrib.import_export",  # optional, if django-import-export package is used
-    "unfold.contrib.guardian",  # optional, if django-guardian package is used
+    "unfold.contrib.filters",
+    "unfold.contrib.forms",
+    "unfold.contrib.inlines",
+    "unfold.contrib.import_export",
+    "unfold.contrib.guardian",
     "unfold.contrib.simple_history",
     "django.contrib.admin",
     "django.contrib.auth",
@@ -80,7 +78,7 @@ ROOT_URLCONF = "project.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -96,29 +94,28 @@ TEMPLATES = [
 WSGI_APPLICATION = "project.wsgi.application"
 
 
-# Database
-# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / "db.sqlite3",
-#     }
-# }
-
+# DATABASE
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "postgres",
-        "USER": "postgres.odpilpqlyscsreefmtit",
-        "PASSWORD": "shcQivH9xxH31J1X1Hxohjbh",
-        "HOST": "aws-0-eu-central-1.pooler.supabase.com",
+        "NAME": config('DB_NAME'),
+        "USER": config('DB_USER'),
+        "PASSWORD": config('DB_PASS'),
+        "HOST": config('DB_HOST'),
         "PORT": "5432",
         "OPTIONS": {
             "sslmode": "require",
         },
     }
 }
+
+# djdngo default sqlite database for development
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
+#     }
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -140,7 +137,6 @@ AUTH_PASSWORD_VALIDATORS = [
 
 
 # Internationalization
-# https://docs.djangoproject.com/en/5.1/topics/i18n/
 
 LANGUAGE_CODE = "en-us"
 
@@ -152,7 +148,6 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")  # collectstatic target
@@ -162,7 +157,7 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 # Supabase Project ID
-SUPABASE_PROJECT_ID = os.getenv("SUPABASE_PROJECT_ID")
+# SUPABASE_PROJECT_ID = os.getenv("SUPABASE_PROJECT_ID")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
@@ -173,13 +168,20 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         # "rest_framework.authentication.TokenAuthentication",
         "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "rest_framework.authentication.BasicAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
     ),
     "EXCEPTION_HANDLER": "utils.exception_handler.custom_exception_handler",
     "DEFAULT_THROTTLE_CLASSES": [
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
     ],
-    "DEFAULT_THROTTLE_RATES": {"anon": "100/day", "user": "500/day", "search_gen": "100/day"},
+    "DEFAULT_RENDERER_CLASSES": ("rest_framework.renderers.JSONRenderer",),
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "100/day",
+        "user": "1000/day",
+        "search_gen": "500/day",
+    },
 }
 
 # Email sending setup
@@ -187,51 +189,45 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+EMAIL_HOST_USER = config("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
 
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", EMAIL_HOST_USER)
+ADMIN_EMAIL = config("ADMIN_EMAIL", EMAIL_HOST_USER)
 
 # CORS setup
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
-    "https://ihsan5987-django.onrender.com",
-    "https://8c11fb61d9a2.ngrok-free.app",
 ]
 
 # csrf setup
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
-    "https://ihsan5987-django.onrender.com",
-    "https://8c11fb61d9a2.ngrok-free.app",
 ]
 
-# GNEWS_API_KEY
-# GNEWS_API_KEY = "c8953ffc8769d9e01b10e01713d86e34"
 # Cloudinary setup
 cloudinary.config(
-    cloud_name="dt99uhnhh",
-    api_key="441948348178278",
-    api_secret="OAgOpdxpTDNw9LvMzvDekZdweSI",
+    cloud_name=config("CLOUDE_API_NAME"),
+    api_key=config("CLOUDE_API_KEY"),
+    api_secret=config("CLOUDE_API_SECRET"),
     secure=True,
 )
 
 # Simple JWT setup
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
     # Refresh Token Rotation
-    "ROTATE_REFRESH_TOKENS": True,  # generates a new refresh token when used
+    "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
 }
 
 # Stripe settings
-STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
-STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
-STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
+STRIPE_PUBLISHABLE_KEY = config("STRIPE_PUBLISHABLE_KEY")
+STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY")
+STRIPE_WEBHOOK_SECRET = config("STRIPE_WEBHOOK_SECRET")
 
 STRIPE_SUCCESS_URL = "http://127.0.0.1:8000/api/subscriptions/success/"
 STRIPE_CANCEL_URL = "http://127.0.0.1:8000/api/subscriptions/cancel/"
@@ -282,7 +278,7 @@ LOGGING = {
 }
 
 
-CELERY_BROKER_URL = "redis://localhost:6379/0"  # or RabbitMQ if you're using it
+CELERY_BROKER_URL = "redis://localhost:6379/0"
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 
 

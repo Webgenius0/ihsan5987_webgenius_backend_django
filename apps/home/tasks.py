@@ -7,13 +7,12 @@ from .models import (
     Recommendation,
     Category,
     Subcategory,
-    Topic,
     UpdateMe,
     Trending,
     Search,
 )
 from scripts.recommendation import generate_recommendation
-from scripts.update_me import generate_update_me_element
+from scripts.update_me import generate_update_me_element, generate_update_me_news_set
 from scripts.trending import generate_trending_set
 
 
@@ -56,15 +55,19 @@ def recommandation_task():
             ).first()
             if not category:
                 category = Category.objects.create(category_name=category_name)
-
-            topic_name = item.get("topic", "Unknown")
-            topic = Topic.objects.filter(name__iexact=topic_name).first()
-            if not topic:
-                topic = Topic.objects.create(name=topic_name)
+            subcategory_name = item.get("subcategory", "")
+            subcategory = Subcategory.objects.filter(
+                subcategory_name__iexact=subcategory_name
+            ).first()
+            if not subcategory:
+                subcategory = Subcategory.objects.create(
+                    subcategory_name=subcategory_name
+                )
 
             Recommendation.objects.create(
                 category=category,
-                topic=topic,
+                subcategory=subcategory,
+                topic=item.get("topic", ""),
                 headline=item.get("headline", ""),
                 introduction=item.get("introduction", ""),
                 key_tips_and_takeaways=item.get("key_tips_and_takeaways", ""),
@@ -81,6 +84,41 @@ def recommandation_task():
 @shared_task
 def updateme_task():
     print("update me task started in time")
+    # generate 3 news 
+    top_three = generate_update_me_news_set()
+    # save top 3 news to database
+    for news in top_three:
+        try:
+            category = Category.objects.filter(
+                category_name__iexact=news["category"]
+            ).first()
+            if not category:
+                category = Category.objects.create(category_name=news["category"])
+
+            subcategory = Subcategory.objects.filter(
+                subcategory_name__iexact=news["subcategory"]
+            ).first()
+            if not subcategory:
+                subcategory = Subcategory.objects.create(
+                    subcategory_name=news["subcategory"]
+                )
+
+            UpdateMe.objects.create(
+                category=category,
+                subcategory=subcategory,
+                topic=news["topic"],
+                short_info=news["short_info"],
+                reference_url=news["reference_url"],
+                background_story=news["background_story"],
+                picture_url=news["picture_url"],
+                is_top3=True,
+            )
+            print("Top 3 UpdateMe news saved successfully")
+        except Exception as e:
+            print(f"Error saving Top 3 UpdateMe news: {e}")
+            continue
+
+    # generate update me for each topic
     update_me = []
     for subtopic in subcategories[:5]:
         print("subcategory: ", subtopic)
@@ -117,19 +155,15 @@ def updateme_task():
                     subcategory_name=subcategory_name
                 )
 
-            topic_name = item.get("topic", "Unknown")
-            topic = Topic.objects.filter(name__iexact=topic_name).first()
-            if not topic:
-                topic = Topic.objects.create(name=topic_name)
-
             UpdateMe.objects.create(
                 category=category,
                 subcategory=subcategory,
-                topic=topic,
+                topic=item.get("topic", ""),
                 short_info=item.get("short_info", ""),
                 reference_url=item.get("reference_url", ""),
                 background_story=item.get("background_story", ""),
                 picture_url=item.get("picture_url", ""),
+                is_archive=item.get("is_archive", False),
             )
             print("UpdateMe saved successfully")
         except Exception as e:
@@ -166,14 +200,18 @@ def trending_task():
                     subcategory_name=subcategory_name
                 )
 
+            print("get trend", trend.get("links_and_sources"))
+
             Trending.objects.create(
                 category=category,
                 subcategory=subcategory,
+                topic = trend.get("topic", ""),
                 description=trend.get("description", ""),
                 why_trending=trend.get("why_is_it_trending", []),
                 key_points=trend.get("key_points", []),
                 outlook=trend.get("overlook_what_might_happen_next", []),
-                picture_url=trend.get("picture_url", ""),
+                picture_url=trend.get("picture_url") or trend.get("image_url"),
+                links_and_sources=trend.get("links_and_sources"),
             )
             print("New trending news saved to database, successfully!")
         except Exception as e:
@@ -194,3 +232,21 @@ def delete_old_search_results():
         return
 
     print("Old search results deleted successfully.")
+
+
+# make a task that loop over updateme , recommendation and trending to false is_active after 24 hours
+# the time is set by the django celery beat, so when i set the time it it will run automatically
+@shared_task
+def deactivate_old_news():
+    print("deactivate old news started")
+    try:
+        from .models import UpdateMe, Recommendation, Trending
+
+        UpdateMe.objects.filter(is_active=True).update(is_active=False)
+        Recommendation.objects.filter(is_active=True).update(is_active=False)
+        Trending.objects.filter(is_active=True).update(is_active=False)
+    except Exception as e:
+        print(f"Error deactivating old news: {e}")
+        return
+
+    print("deactivate old news completed")
