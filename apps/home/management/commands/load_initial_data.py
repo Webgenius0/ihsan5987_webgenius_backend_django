@@ -4,10 +4,6 @@ from apps.home.models import Category, Subcategory
 import pandas as pd
 
 
-
-
-
-
 class Command(BaseCommand):
     help = "Initial data for the app"
 
