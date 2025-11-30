@@ -7,17 +7,10 @@ from unfold.contrib.import_export.forms import ExportForm, ImportForm
 from .models import (
     Category,
     Subcategory,
-    # TopicTag,
-    Topic,
-    SearchOption,
     SearchHistory,
     Search,
-    SearchTag,
     Recommendation,
-    # KeyWord,
     Trending,
-    # TrendingUser,
-    # RecommendationUser,
     Bookmark,
     Preference,
     UpdateMe
@@ -82,86 +75,36 @@ class ClockedScheduleAdmin(BaseClockedScheduleAdmin, ModelAdmin):
 # Category & Subcategory
 @admin.register(Category)
 class CategoryAdmin(ModelAdmin):
-    list_display = ("category_name", "created_at")
-    search_fields = ("category_name",)
-    ordering = ("created_at",)
-    list_per_page = 20
+    list_display = ("category_name", "is_active", "is_main")
+
 
 
 @admin.register(Subcategory)
 class SubcategoryAdmin(ModelAdmin):
-    list_display = ("subcategory_name", "created_at")
-    search_fields = ("subcategory_name",)
-    ordering = ("created_at",)
-    list_per_page = 20
-
-
-# TopicTag & Topic
-# @admin.register(TopicTag)
-# class TopicTagAdmin(ModelAdmin):
-#     list_display = ("tag_names", "created_at")
-#     search_fields = ("tag_names",)
-#     ordering = ("-created_at",)
-#     list_per_page = 20
-
-
-@admin.register(Topic)
-class TopicAdmin(ModelAdmin, ImportExportModelAdmin):
-    list_display = ("name", "created_at")
-    search_fields = ("name",)
-    ordering = ("-created_at",)
-    list_per_page = 20
+    list_display = ("subcategory_name", "category", "is_active")
+    list_filter = ("category",)
+    search_fields = ("subcategory_name", "category__category_name")
+    list_per_page = 50
     list_filter_sheet = False
-
-    # import_form_class = ImportForm
-    export_form_class = ExportForm
-
-    def has_import_permission(self, request):
-        return False
-
-
-# Option
-@admin.register(SearchOption)
-class SearchOptionAdmin(ModelAdmin, ImportExportModelAdmin):
-    list_display = ("keyword", "search_tag", "category", "subcategory", "created_at")
-    search_fields = ("search_tag__tag_name", "keyword", "category", "subcategory")
-    list_filter = ("category", "subcategory")
-    ordering = ("-created_at",)
-    list_per_page = 20
-
-    # import_form_class = ImportForm
-    export_form_class = ExportForm
-
-    def has_import_permission(self, request):
-        return False
 
 
 # Search
 @admin.register(Search)
 class SearchAdmin(ModelAdmin, ImportExportModelAdmin):
     list_display = ("topic", "category", "subcategory", "further_key_words", "created_at")
-    list_filter = ("category", "subcategory", "topic")
-    search_fields = ("category", "subcategory", "topic")
+    list_filter = ("category", "subcategory")
+    search_fields = ("category__category_name", "subcategory__subcategory_name")
     ordering = ("-created_at",)
-    list_per_page = 20
-
-    # import_form_class = ImportForm
+    list_per_page = 50
     export_form_class = ExportForm
 
     def has_import_permission(self, request):
         return False
-
-
-# SearchTag
-@admin.register(SearchTag)
-class SearchTagAdmin(ModelAdmin):
-    list_display = ("tag_name", "created_at")
-    search_fields = ("tag_name",)
-    ordering = ("-created_at",)
-    list_per_page = 20
-
-    # import_form_class = ImportForm
-    # export_form_class = ExportForm
+    
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        qs = qs.select_related("category", "subcategory")
+        return qs
 
 
 @admin.register(SearchHistory)
@@ -177,10 +120,10 @@ class SearchHistoryAdmin(ModelAdmin):
 @admin.register(Recommendation)
 class RecommendationAdmin(ModelAdmin, ImportExportModelAdmin):
     list_display = ("topic", "category", "headline", "created_at", "last_refresh")
-    list_filter = ('category', 'created_at')
-    search_fields = ('headline', 'description', 'content')
+    list_filter = ('category',)
+    search_fields = ('topic', 'headline')
     ordering = ('-created_at',)
-    list_per_page = 20
+    list_per_page = 50
 
     # import_form_class = ImportForm
     export_form_class = ExportForm
@@ -191,8 +134,8 @@ class RecommendationAdmin(ModelAdmin, ImportExportModelAdmin):
 
 @admin.register(UpdateMe)
 class UpdateMeAdmin(ModelAdmin, ImportExportModelAdmin):
-    list_display = ("topic", "category", "subcategory", "created_at", "interest")
-    list_filter = ("created_at", "interest", "category", "subcategory", "topic")
+    list_display = ("topic", "category", "subcategory", "is_top3", "created_at")
+    list_filter = ("created_at", "category", "subcategory")
     search_fields = ("short_info", "background_story", "reference_url")
     ordering = ("-created_at",)
     list_per_page = 20
@@ -203,28 +146,17 @@ class UpdateMeAdmin(ModelAdmin, ImportExportModelAdmin):
     # optimize queryset
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = qs.select_related("category", "subcategory", "topic")
+        qs = qs.select_related("category", "subcategory")
         return qs
-
-
-# @admin.register(KeyWord)
-# class KeyWordAdmin(ModelAdmin, ImportExportModelAdmin):
-#     list_display = ("id", "key_words")
-#     search_fields = ("key_words",)
-#     ordering = ("id",)
-#     list_per_page = 20
-
-#     import_form_class = ImportForm
-#     export_form_class = ExportForm
 
 
 # Trending
 @admin.register(Trending)
 class TrendingAdmin(ModelAdmin, ImportExportModelAdmin):
-    list_display = ("category", "subcategory", "picture_url", "created_at")
+    list_display = ("topic", "category", "subcategory", "description", "preview_image", "created_at")
     list_filter = ("created_at", "category", "subcategory")
     search_fields = ("description", "key_points")
-    list_display_links = ("category", "subcategory")
+    list_display_links = ("topic", "category", "subcategory")
     ordering = ("-created_at",)
     list_per_page = 20
     actions = ["duplicate_rows"]
@@ -240,64 +172,36 @@ class TrendingAdmin(ModelAdmin, ImportExportModelAdmin):
     def has_import_permission(self, request):
         return False
 
-    def picture_url(self, obj):
+    def preview_image(self, obj):
         if obj.picture_url:
-            return format_html('<a href="{0}" target="_blank">{0}</a>', obj.picture_url)
-        return "-"
-
-    @admin.action(description="Duplicate selected rows")
-    def duplicate_rows(self, request, queryset):
-        for obj in queryset:
-            obj.pk = None  # remove primary key to create a new record
-            obj.save()
-
-
-# TrendingUser
-# @admin.register(TrendingUser)
-# class TrendingUserAdmin(ModelAdmin, ImportExportModelAdmin):
-#     list_display = ("user", "trending", "clicked_at")
-#     list_filter = ("clicked_at", "user")
-#     search_fields = ("user__username",)
-#     ordering = ("-clicked_at",)
-#     list_per_page = 20
-
-#     import_form_class = ImportForm
-#     export_form_class = ExportForm
-
-
-# RecommendationUser
-# @admin.register(RecommendationUser)
-# class RecommendationUserAdmin(ModelAdmin, ImportExportModelAdmin):
-#     list_display = ("user", "recommendation", "clicked_at")
-#     list_filter = ("clicked_at", "user")
-#     search_fields = ("user__username",)
-#     ordering = ("-clicked_at",)
-#     list_per_page = 20
-
-#     import_form_class = ImportForm
-#     export_form_class = ExportForm
+            return format_html('<a href="{0}" target="_blank">Preview</a>', obj.picture_url)
+        return "No Image"
+    preview_image.short_description = "Picture URL"
+    preview_image.allow_tags = True
 
 
 # Bookmark
-@admin.register(Bookmark)
-class BookmarkAdmin(ModelAdmin, ImportExportModelAdmin):
-    list_display = ("user__email", "content_type", "object_id", "created_at")
-    list_filter = ("user__email", "content_type", "object_id")
-    search_fields = ("user__email", "content_type", "object_id")
-    ordering = ("-created_at",)
-    list_per_page = 20
+# @admin.register(Bookmark)
+# class BookmarkAdmin(ModelAdmin):
+#     list_display = ("user__email", "content_type", "object_id", "created_at")
+#     ordering = ("-created_at",)
+#     list_per_page = 50
 
-    import_form_class = ImportForm
-    export_form_class = ExportForm
 
 
 # Preference
 @admin.register(Preference)
-class PreferenceAdmin(ModelAdmin, ImportExportModelAdmin):
-    list_display = ("user__name", "created_at")
+class PreferenceAdmin(ModelAdmin):
+    list_display = ("user__name", "category_preferences", "subcategory_preferences", "created_at")
     search_fields = ("user__username",)
     ordering = ("-created_at",)
     list_per_page = 20
 
-    import_form_class = ImportForm
-    export_form_class = ExportForm
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related('category', 'subcategory')
+
+    def category_preferences(self, obj):
+        return ", ".join([cat.category_name for cat in obj.category.all()])
+
+    def subcategory_preferences(self, obj):
+        return ", ".join([subcat.subcategory_name for subcat in obj.subcategory.all()])

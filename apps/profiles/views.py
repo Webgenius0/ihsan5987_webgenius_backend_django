@@ -8,9 +8,18 @@ from rest_framework.response import Response
 from apps.community_hubs.models import Comment
 from rest_framework.permissions import IsAuthenticated
 from .models import Profile, FAQ, FAQCategory, ContactUs, NotificationSetting, AppInfo
-from .serializers import ProfileSerializer, MyPostSerializer, FAQSerializer, FAQCategorySerializer, ContactUsSerializer, NotificationSettingSerializer, AppInfoSerializer
+from .serializers import (
+    ProfileSerializer,
+    MyPostSerializer,
+    FAQSerializer,
+    FAQCategorySerializer,
+    ContactUsSerializer,
+    NotificationSettingSerializer,
+    AppInfoSerializer,
+)
 from apps.home.models import Preference
-from apps.home.serializers import PreferenceSerializer
+from apps.home.serializers import UserPreferenceSerializer
+
 
 # Profile View
 class ProfileView(APIView):
@@ -19,23 +28,24 @@ class ProfileView(APIView):
     def get(self, request):
         try:
             user = request.user
-            print(f"ProfileView - user: {user}")
             profile = Profile.objects.get(user=request.user)
-            print(f"ProfileView - profile: {profile}")
 
         except Profile.DoesNotExist:
-            return Response({
-                "status": status.HTTP_404_NOT_FOUND,
-                "success": False,
-                "message": "Profile not found",
-            }, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {
+                    "status": status.HTTP_404_NOT_FOUND,
+                    "success": False,
+                    "message": "Profile not found",
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
-        serializer = ProfileSerializer(profile, context={'request': request})
+        serializer = ProfileSerializer(profile, context={"request": request})
         response = {
             "status": status.HTTP_200_OK,
             "success": True,
             "message": "Profile retrieved successfully",
-            "data": serializer.data
+            "data": serializer.data,
         }
         return Response(response, status=status.HTTP_200_OK)
 
@@ -48,7 +58,7 @@ class ProfileView(APIView):
                 "status": 200,
                 "success": True,
                 "message": "Profile updated successfully.",
-                "data": serializer.data
+                "data": serializer.data,
             }
             return Response(response, status=status.HTTP_200_OK)
 
@@ -57,7 +67,7 @@ class ProfileView(APIView):
             "status": 400,
             "success": False,
             "message": "Failed to update profile.",
-            "data": serializer.errors
+            "data": serializer.errors,
         }
         return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
@@ -74,11 +84,14 @@ class ProfileView(APIView):
             }
             return Response(response, status=status.HTTP_200_OK)
         except Profile.DoesNotExist:
-            return Response({
-                "status": status.HTTP_404_NOT_FOUND,
-                "success": False,
-                "message": "Profile not found",
-            }, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {
+                    "status": status.HTTP_404_NOT_FOUND,
+                    "success": False,
+                    "message": "Profile not found",
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
 
 # My Post View
@@ -87,15 +100,23 @@ class MyPostList(APIView):
 
     def get(self, request):
         user = request.user
-        posts = Post.objects.filter(user=user).select_related('user__profile', 'category').prefetch_related(
-            'comments__user__profile'
-        ).order_by('-created_at')
+
+        posts = (
+            Post.objects.filter(user=user)
+            .select_related(
+                "user", "user__profile", "category"  # required before selecting profile
+            )
+            .prefetch_related("comments", "comments__user", "comments__user__profile")
+            .order_by("-created_at")
+        )
+
         serializer = MyPostSerializer(posts, many=True)
+
         response = {
             "status": status.HTTP_200_OK,
             "success": True,
             "message": "Posts retrieved successfully",
-            "data": serializer.data
+            "data": serializer.data,
         }
         return Response(response, status=status.HTTP_200_OK)
 
@@ -107,82 +128,103 @@ class MyPostDetail(APIView):
     def get_object(self, pk, user, optimized=False):
         qs = Post.objects.filter(pk=pk, user=user)
         if optimized:
-            qs = qs.select_related("user__profile", "category").prefetch_related(
-                Prefetch(
-                    "comments",
-                    queryset=Comment.objects.select_related("user__profile").prefetch_related("likes__user").filter(is_active=True)
-                ),
-                "comments__user__profile",
-                "comments__likes",
-                "comments__likes__user",
-            ).annotate(comment_count=Count("comments", filter=Q(comments__is_active=True)))
+            qs = (
+                qs.select_related("user__profile", "category")
+                .prefetch_related(
+                    Prefetch(
+                        "comments",
+                        queryset=Comment.objects.select_related("user__profile")
+                        .prefetch_related("likes__user")
+                        .filter(is_active=True),
+                    ),
+                    "comments__user__profile",
+                    "comments__likes",
+                    "comments__likes__user",
+                )
+                .annotate(
+                    comment_count=Count("comments", filter=Q(comments__is_active=True))
+                )
+            )
         return get_object_or_404(qs)
 
     def get(self, request, pk):
         post = self.get_object(pk, request.user, optimized=True)
         serializer = MyPostSerializer(post, context={"request": request})
-        return Response({
-            "status": status.HTTP_200_OK,
-            "success": True,
-            "message": "Post retrieved successfully",
-            "data": serializer.data,
-        }, status=status.HTTP_200_OK)
+        return Response(
+            {
+                "status": status.HTTP_200_OK,
+                "success": True,
+                "message": "Post retrieved successfully",
+                "data": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
 
     def put(self, request, pk):
         post = self.get_object(pk, request.user)  # Minimal fetch for update
-        serializer = MyPostSerializer(post, data=request.data, partial=True, context={"request": request})
+        serializer = MyPostSerializer(
+            post, data=request.data, partial=True, context={"request": request}
+        )
         if serializer.is_valid():
             serializer.save()
-            return Response({
-                "status": status.HTTP_200_OK,
-                "success": True,
-                "message": "Post updated successfully",
-                "data": serializer.data,
-            }, status=status.HTTP_200_OK)
-        return Response({
-            "status": status.HTTP_400_BAD_REQUEST,
-            "success": False,
-            "message": "Invalid data",
-            "errors": serializer.errors,
-        }, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {
+                    "status": status.HTTP_200_OK,
+                    "success": True,
+                    "message": "Post updated successfully",
+                    "data": serializer.data,
+                },
+                status=status.HTTP_200_OK,
+            )
+        return Response(
+            {
+                "status": status.HTTP_400_BAD_REQUEST,
+                "success": False,
+                "message": "Invalid data",
+                "errors": serializer.errors,
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
     def delete(self, request, pk):
         try:
-            post = Post.objects.filter(id=pk).select_related('user', 'category').first()
+            post = Post.objects.filter(id=pk).select_related("user", "category").first()
         except Post.DoesNotExist:
             return Response(
-                {
-                    "status": status.HTTP_404_NOT_FOUND,
-                    "message": "Post not found!"
-                },
-                status=status.HTTP_404_NOT_FOUND
+                {"status": status.HTTP_404_NOT_FOUND, "message": "Post not found!"},
+                status=status.HTTP_404_NOT_FOUND,
             )
         if post and post.user == request.user:
             post.delete()
-            return Response({
-                "status": status.HTTP_200_OK,
-                "success": True,
-                "message": "Post deleted successfully",
-            }, status=status.HTTP_200_OK)
+            return Response(
+                {
+                    "status": status.HTTP_200_OK,
+                    "success": True,
+                    "message": "Post deleted successfully",
+                },
+                status=status.HTTP_200_OK,
+            )
         return Response(
             {
                 "status": status.HTTP_403_FORBIDDEN,
-                "message": "You do not have permission to delete this post!"
+                "message": "You do not have permission to delete this post!",
             },
-            status=status.HTTP_403_FORBIDDEN
+            status=status.HTTP_403_FORBIDDEN,
         )
 
 
 # FAQ View
 class FAQList(APIView):
     def get(self, request):
-        category = request.query_params.get('category', None)
-        search = request.query_params.get('search', None)
+        category = request.query_params.get("category", None)
+        search = request.query_params.get("search", None)
 
         if category:
             faqs = FAQ.objects.filter(category__name=category)
         elif search:
-            faqs = FAQ.objects.filter(Q(question__icontains=search) | Q(answer__icontains=search))
+            faqs = FAQ.objects.filter(
+                Q(question__icontains=search) | Q(answer__icontains=search)
+            )
         else:
             faqs = FAQ.objects.all()
         serializer = FAQSerializer(faqs, many=True)
@@ -190,7 +232,7 @@ class FAQList(APIView):
             "status": status.HTTP_200_OK,
             "success": True,
             "message": "FAQs retrieved successfully",
-            "data": serializer.data
+            "data": serializer.data,
         }
         return Response(response, status=status.HTTP_200_OK)
 
@@ -204,7 +246,7 @@ class FAQCategoryList(APIView):
             "status": status.HTTP_200_OK,
             "success": True,
             "message": "FAQ categories retrieved successfully",
-            "data": serializer.data
+            "data": serializer.data,
         }
         return Response(response, status=status.HTTP_200_OK)
 
@@ -218,7 +260,7 @@ class ContactUsList(APIView):
             "status": status.HTTP_200_OK,
             "success": True,
             "message": "Contact Us links retrieved successfully",
-            "data": serializer.data
+            "data": serializer.data,
         }
         return Response(response, status=status.HTTP_200_OK)
 
@@ -234,68 +276,97 @@ class NotificationSettingView(APIView):
             "status": status.HTTP_200_OK,
             "success": True,
             "message": "Notification setting retrieved successfully",
-            "data": serializer.data
+            "data": serializer.data,
         }
         return Response(response, status=status.HTTP_200_OK)
 
     def put(self, request):
         settings, created = NotificationSetting.objects.get_or_create(user=request.user)
-        serializer = NotificationSettingSerializer(settings, data=request.data, partial=True)
+        serializer = NotificationSettingSerializer(
+            settings, data=request.data, partial=True
+        )
         if serializer.is_valid():
             serializer.save()
             response = {
                 "status": status.HTTP_200_OK,
                 "success": True,
                 "message": "Notification setting updated successfully",
-                "data": serializer.data
+                "data": serializer.data,
             }
             return Response(response, status=status.HTTP_200_OK)
-        return Response({
-            "status": status.HTTP_400_BAD_REQUEST,
-            "success": False,
-            "message": "Invalid data",
-            "errors": serializer.errors
-        }, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {
+                "status": status.HTTP_400_BAD_REQUEST,
+                "success": False,
+                "message": "Invalid data",
+                "errors": serializer.errors,
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
 
 # App Information View
 class AppInformationView(APIView):
     def get(self, request):
         try:
-            app_info = AppInfo.objects.first()  # Assuming only one AppInfo instance exists
+            app_info = (
+                AppInfo.objects.first()
+            )  # Assuming only one AppInfo instance exists
             if not app_info:
-                return Response({
-                    "status": status.HTTP_404_NOT_FOUND,
-                    "success": False,
-                    "message": "App information not found"
-                }, status=status.HTTP_404_NOT_FOUND)
+                return Response(
+                    {
+                        "status": status.HTTP_404_NOT_FOUND,
+                        "success": False,
+                        "message": "App information not found",
+                    },
+                    status=status.HTTP_404_NOT_FOUND,
+                )
 
             serializer = AppInfoSerializer(app_info)
             response = {
                 "status": status.HTTP_200_OK,
                 "success": True,
                 "message": "App information retrieved successfully",
-                "data": serializer.data
+                "data": serializer.data,
             }
             return Response(response, status=status.HTTP_200_OK)
         except Exception as e:
-            return Response({
-                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
-                "success": False,
-                "message": str(e)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {
+                    "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "success": False,
+                    "message": str(e),
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
 
 class UserPreferencesView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request):
         user = request.user
-        preferences = Preference.objects.filter(user=user)
-        serializers = PreferenceSerializer(preferences, many=True)
+        preferences = user.preferences
+
+        result = []
+        for category in preferences.category.all():
+            data = {
+                "category_id": category.id,
+                "category_name": category.category_name,
+                "subcategories": [
+                    {
+                        "subcategory_id": subcategory.id,
+                        "subcategory_name": subcategory.subcategory_name,
+                    }
+                    for subcategory in preferences.subcategory.filter(category=category)
+                ],
+            }
+            result.append(data)
+
         response = {
             "status": status.HTTP_200_OK,
             "success": True,
             "message": "User preferences retrieved successfully",
-            "data": serializers.data
+            "data": result,
         }
         return Response(response, status=status.HTTP_200_OK)

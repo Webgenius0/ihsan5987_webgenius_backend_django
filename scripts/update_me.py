@@ -62,7 +62,8 @@ def generate_update_me_element(keywords, link = None, news_text = None, image_ur
         valid, parsed_json = verify_and_fix_json(raw_response['choices'][0]['message']['content'])
         #valid = True
         #parsed_json = raw_response
-        parsed_json['picture_url'] = get_image(parsed_json['topic'].replace(" ", "-"))
+        # parsed_json['picture_url'] = get_image(parsed_json['topic'].replace(" ", "-"))
+        parsed_json['picture_url'] = get_image_url(parsed_json['topic'])
         
         #news[0]['image'] 
         #parsed_json['links_and_sources'] = links
@@ -85,7 +86,7 @@ def generate_update_me_element(keywords, link = None, news_text = None, image_ur
 
         valid, parsed_json = verify_and_fix_json(raw_response)
 
-        parsed_json['picture_url'] = get_image(parsed_json['topic'].replace(" ", "-"))
+        parsed_json['picture_url'] = get_image_url(parsed_json['topic'].replace(" ", "-"))
         
 
     if prompt_type == 'update_me_general':
@@ -103,7 +104,7 @@ def generate_update_me_element(keywords, link = None, news_text = None, image_ur
         return None
 
 
-def get_random_subtopics_for_update_me(n, categories_file = 'Categories.xlsx'):
+def get_random_subtopics_for_update_me(n, categories_file = file_path):
     """
     Returns a list of n random subcategories from the specified categories file.
     
@@ -126,7 +127,7 @@ def get_random_subtopics_for_update_me(n, categories_file = 'Categories.xlsx'):
     return random.sample(subtopics, min(n, len(subtopics)))
 
 
-def generate_update_me_news_set(use_tfidf=True, sort_by_date=False, categories_file = 'Categories.xlsx', prompt_version='v01', **model_params):
+def generate_update_me_news_set(use_tfidf=True, sort_by_date=False, categories_file = file_path, prompt_version='v01', **model_params):
     """
     Generates a set of update elements for various subtopics.
     
@@ -139,7 +140,7 @@ def generate_update_me_news_set(use_tfidf=True, sort_by_date=False, categories_f
     update_me = []
 
     for news in top_news:
-        print(news)
+        # print(news)
         update_me.append(generate_update_me_element(keywords = news['title'], 
                                                     link = news['link'], 
                                                     news_text = news['full_text'], 

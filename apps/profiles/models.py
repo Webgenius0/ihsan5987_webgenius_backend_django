@@ -16,15 +16,11 @@ class Profile(models.Model):
     @property
     def image_url(self):
         if self.image:
-            return self.image.url  # Cloudinary provides full URL
+            return self.image.url
         return None
 
     def __str__(self):
         return f"{self.user.name} - {self.user.email}"
-
-
-# Register model for audit logging
-auditlog.register(Profile)
 
 
 class FAQCategory(models.Model):
@@ -81,11 +77,6 @@ class NotificationSetting(models.Model):
     def __str__(self):
         return f"{self.user.name}'s notification setting"
 
-
-# Register model for audit logging
-auditlog.register(NotificationSetting)
-
-
 # Feedback for about smailtalk page
 class Feedback(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -93,11 +84,6 @@ class Feedback(models.Model):
     created_at = models.DateField(auto_now_add=True)
 
 
-# Register model for audit logging
-auditlog.register(Feedback)
-
-
-# About scripts
 # models.py
 class AppInfo(models.Model):
     # job_vacancy_url = models.URLField(blank=True, null=True)
@@ -114,9 +100,16 @@ class AppInfo(models.Model):
     def __str__(self):
         return "App Information"
 
+AI_NAME = (
+    ("NEWS_API_KEY", "News API Key"),
+    ("GNEWS_API_KEY", "G News API Key"),
+    ("PERPLEXITY_API_KEY", "Perplexity API Key"),
+    ("OPENAI_API_KEY", "OpenAI API Key"),
+    ("SERPER_API_KEY", "Serper API Key")
+)
 
 class APIKey(models.Model):
-    ai_name = models.CharField(max_length=255)
+    ai_name = models.CharField(max_length=50, choices=AI_NAME, unique=True)
     key = models.CharField(max_length=255, unique=True)
     description = models.TextField(blank=True, null=True)
     is_active = models.BooleanField(default=True)

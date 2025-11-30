@@ -26,7 +26,8 @@ def generate_recommendation(keywords, prompt_version="v02",  categories_file = f
               Return the full, detailed JSON object with the following structure:
 
              {{
-              "topic": "{{ Short, high-level title for the topic (e.g., 'Remote Work', 'Electric Vehicles') }}",
+              "subcategory": "{{ Specific subcategory}}",
+              "topic": "{{ Short title for the topic containing 3 words (e.g., 'Remote Work', 'Electric Vehicles'). It must help ti find the suitable picture }}",
               "headline": "{{ Catchy, informative headline summarizing the main point or takeaway }}",
               "category": "{{ Broad category such as Career, Global News, Health, Technology }}",
 
@@ -95,7 +96,10 @@ def generate_recommendation(keywords, prompt_version="v02",  categories_file = f
     #response = get_llm_response(prompt)
     raw_response = generate_perplexity_output(system_prompt, user_input)
     valid, parsed_json = verify_and_fix_json(raw_response['choices'][0]['message']['content'])
-    parsed_json['image_url'] = get_image(parsed_json['topic'].replace(" ", "-"))
+    parsed_json['image_url'] = get_image_url(parsed_json['headline'])
+
+
+    parsed_json['subcategory'] = keywords
 
     category = df[df['Subcategory'] == parsed_json.get('subcategory', '')]['Category'].values[0] if not df[df['Subcategory'] == parsed_json.get('subcategory', '')].empty else 'General'
     parsed_json['category'] = category

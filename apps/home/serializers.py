@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from .models import (
-    Topic,
     Category,
     Subcategory,
     UpdateMe,
@@ -11,24 +10,18 @@ from .models import (
 from apps.profiles.models import Feedback
 from apps.users.models import User
 
-
-class CategorySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Category
-        fields = ["id", "category_name"]
-
-
 class SubcategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Subcategory
-        fields = ["id", "subcategory_name"]
+        fields = ['id', 'subcategory_name']
 
 
-class TopicSerializer(serializers.ModelSerializer):
+class CategorySerializer(serializers.ModelSerializer):
+    # show subcategories through relationship
+    subcategories = SubcategorySerializer(many=True, read_only=True)
     class Meta:
-        model = Topic
-        # fields = ['id', 'name', 'topic_tags', 'created_at']
-        fields = "__all__"
+        model = Category
+        fields = ['id', 'category_name', 'subcategories']
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -71,28 +64,24 @@ class TrendingNewsSerializer(serializers.ModelSerializer):
 class RecommendationSerializer(serializers.ModelSerializer):
     category = serializers.StringRelatedField()
     subcategory = serializers.StringRelatedField()
-    topic = serializers.StringRelatedField()
     class Meta:
         model = Recommendation
         fields = "__all__"
 
 
-class PreferenceSerializer(serializers.ModelSerializer):
+class UserPreferenceSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField()
+    category = serializers.SerializerMethodField()
+    subcategory = serializers.SerializerMethodField()
     class Meta:
         model = Preference
-        fields = "__all__"
-        read_only_fields = ["created_at", "updated_at", "user"]
+        # fields = ['id', 'user', 'category', 'subcategory']
+        exclude = ['created_at', 'updated_at']
+        
+    def get_category(self, obj):
+        categories = obj.category.all()
+        return [{'id': category.id, 'name': category.category_name} for category in categories]
 
-    def create(self, validated_data):
-        user = self.context["request"].user
-        category = validated_data.pop("category")
-        subcategory = validated_data.pop("subcategory")
-
-        # get or create user preferences
-        preference, created = Preference.objects.get_or_create(user=user)
-        if category:
-            preference.category.set(category)
-        if subcategory:
-            preference.subcategory.set(subcategory)
-        preference.save()
-        return preference
+    def get_subcategory(self, obj):
+        subcategories = obj.subcategory.all()
+        return [{'id': subcategory.id, 'name': subcategory.subcategory_name} for subcategory in subcategories]
