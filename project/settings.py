@@ -217,7 +217,7 @@ cloudinary.config(
 
 # Simple JWT setup
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(day=30),
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=30),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=365),
     # Refresh Token Rotation
     "ROTATE_REFRESH_TOKENS": True,
