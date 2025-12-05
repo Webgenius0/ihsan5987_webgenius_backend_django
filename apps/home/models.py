@@ -75,8 +75,8 @@ class Recommendation(models.Model):
     fun_facts = models.JSONField(blank=True, null=True)
     conclusion = models.TextField(blank=True, null=True)
     picture_url = models.URLField(blank=True, null=True)
-    created_at = models.DateField(auto_now_add=True)
-    last_refresh = models.DateField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_refresh = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
@@ -99,7 +99,7 @@ class UpdateMe(models.Model):
     reference_url = models.JSONField(blank=True, null=True)
     background_story = models.JSONField(blank=True, null=True)
     picture_url = models.URLField(blank=True, null=True)
-    created_at = models.DateField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     is_archive = models.BooleanField(default=False)
     is_top3 = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
@@ -128,7 +128,7 @@ class Trending(models.Model):
     picture_url = models.URLField(blank=True, null=True)
     links_and_sources = models.JSONField(blank=True, null=True)
     picture_last_refresh = models.DateField(auto_now=True)
-    created_at = models.DateField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
 
     def __str__(self):

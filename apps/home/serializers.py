@@ -1,3 +1,5 @@
+from django.utils.timesince import timesince
+from django.utils import timezone
 from rest_framework import serializers
 from .models import (
     Category,
@@ -67,6 +69,11 @@ class RecommendationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recommendation
         fields = "__all__"
+    
+    def to_representation(self, intance):
+        data = super().to_representation(intance)
+        data['timesince'] = timesince(intance.created_at, now=timezone.now())
+        return data
 
 
 class UserPreferenceSerializer(serializers.ModelSerializer):

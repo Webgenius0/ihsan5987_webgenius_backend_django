@@ -84,6 +84,7 @@ def generate_trending_element(keywords, prompt_version="v02", categories_file = 
         print("Could not parse/fix the JSON response.")
         return None
 
+
 def generate_trending_set(keywords = None , num_elements=5, prompt_version="v02", categories_file = file_path, **model_params):
  
     if not keywords:
@@ -97,7 +98,6 @@ def generate_trending_set(keywords = None , num_elements=5, prompt_version="v02"
         trend_json = generate_trending_element(trend, prompt_version=prompt_version, categories_file=categories_file, **model_params)
         if trend_json:
             trending.append(trend_json)
-
 
 
     return trending

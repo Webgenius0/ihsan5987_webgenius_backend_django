@@ -1,4 +1,5 @@
 import traceback
+from django.utils.timesince import timesince
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.validators import ValidationError
@@ -111,6 +112,7 @@ class TrendingNowAPI(APIView):
                     "outlook": trending_now.outlook,
                     "picture_url": trending_now.picture_url,
                     "created_at": trending_now.created_at,
+                    "timesince": timesince(trendig.created_at),
                 }
                 response = {"code": status.HTTP_200_OK, "success": True, "data": obj}
                 return Response(response, status=status.HTTP_200_OK)
@@ -143,6 +145,7 @@ class TrendingNowAPI(APIView):
                 "outlook": trendig.outlook,
                 "picture_url": trendig.picture_url,
                 "created_at": trendig.created_at,
+                "timesince": timesince(trendig.created_at),
             }
             data.append(obj)
 
@@ -167,6 +170,7 @@ class UpdatemeAPI(APIView):
                 "background_story": update_me.background_story,
                 "picture_url": update_me.picture_url,
                 "created_at": update_me.created_at,
+                "timesince": timesince(update_me.created_at),
             }
             response = {
                 "code": status.HTTP_200_OK,
@@ -222,6 +226,7 @@ class UpdatemeAPI(APIView):
                 "background_story": update.background_story,
                 "picture_url": update.picture_url,
                 "created_at": update.created_at,
+                "timesince": timesince(update.created_at),
             }
             data.append(obj)
 
@@ -615,7 +620,6 @@ class SearchAPIView(APIView):
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-
 
 
 class SearchHistoryAPIView(APIView):

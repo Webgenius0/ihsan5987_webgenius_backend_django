@@ -61,6 +61,7 @@ def recommandation_task():
             ).first()
             if not subcategory:
                 subcategory = Subcategory.objects.create(
+                    category=category,
                     subcategory_name=subcategory_name
                 )
 
@@ -100,6 +101,7 @@ def updateme_task():
             ).first()
             if not subcategory:
                 subcategory = Subcategory.objects.create(
+                    category=category,
                     subcategory_name=news["subcategory"]
                 )
 
@@ -152,6 +154,7 @@ def updateme_task():
             ).first()
             if not subcategory:
                 subcategory = Subcategory.objects.create(
+                    category=category,
                     subcategory_name=subcategory_name
                 )
 
@@ -197,6 +200,7 @@ def trending_task():
             ).first()
             if not subcategory:
                 subcategory = Subcategory.objects.create(
+                    category=category,
                     subcategory_name=subcategory_name
                 )
 
