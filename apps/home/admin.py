@@ -78,7 +78,6 @@ class CategoryAdmin(ModelAdmin):
     list_display = ("category_name", "is_active", "is_main")
 
 
-
 @admin.register(Subcategory)
 class SubcategoryAdmin(ModelAdmin):
     list_display = ("subcategory_name", "category", "is_active")
@@ -153,31 +152,62 @@ class UpdateMeAdmin(ModelAdmin, ImportExportModelAdmin):
 # Trending
 @admin.register(Trending)
 class TrendingAdmin(ModelAdmin, ImportExportModelAdmin):
-    list_display = ("topic", "category", "subcategory", "description", "preview_image", "created_at")
+    list_display = (
+        "topic",
+        "category",
+        "subcategory",
+        "description",
+        "preview_image",
+        "created_at",
+    )
     list_filter = ("created_at", "category", "subcategory")
     search_fields = ("description", "key_points")
     list_display_links = ("topic", "category", "subcategory")
     ordering = ("-created_at",)
     list_per_page = 20
     actions = ["duplicate_rows"]
-
-    # import_form_class = ImportForm
     export_form_class = ExportForm
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = qs.select_related("category", "subcategory")
-        return qs
+        return qs.select_related("category", "subcategory")
 
     def has_import_permission(self, request):
         return False
 
     def preview_image(self, obj):
         if obj.picture_url:
-            return format_html('<a href="{0}" target="_blank">Preview</a>', obj.picture_url)
+            return format_html(
+                '<a href="{0}" target="_blank">Preview</a>', obj.picture_url
+            )
         return "No Image"
+
     preview_image.short_description = "Picture URL"
-    preview_image.allow_tags = True
+
+    # -------------------------------
+    # IMPORTANT PART: SUBCATEGORY FILTER
+    # -------------------------------
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "subcategory":
+            # Extract selected category from URL when editing
+            category_id = None
+
+            # When adding a new record
+            if "category" in request.GET:
+                category_id = request.GET.get("category")
+
+            # When editing an existing record
+            obj_id = request.resolver_match.kwargs.get("object_id")
+            if obj_id:
+                trending_obj = Trending.objects.filter(pk=obj_id).first()
+                if trending_obj:
+                    category_id = trending_obj.category_id
+
+            # Apply filter
+            if category_id:
+                kwargs["queryset"] = Subcategory.objects.filter(category_id=category_id)
+
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 # Bookmark
@@ -186,7 +216,6 @@ class TrendingAdmin(ModelAdmin, ImportExportModelAdmin):
 #     list_display = ("user__email", "content_type", "object_id", "created_at")
 #     ordering = ("-created_at",)
 #     list_per_page = 50
-
 
 
 # Preference

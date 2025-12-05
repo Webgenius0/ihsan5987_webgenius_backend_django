@@ -112,7 +112,7 @@ class TrendingNowAPI(APIView):
                     "outlook": trending_now.outlook,
                     "picture_url": trending_now.picture_url,
                     "created_at": trending_now.created_at,
-                    "timesince": timesince(trendig.created_at),
+                    "timesince": timesince(trending_now.created_at),
                 }
                 response = {"code": status.HTTP_200_OK, "success": True, "data": obj}
                 return Response(response, status=status.HTTP_200_OK)
