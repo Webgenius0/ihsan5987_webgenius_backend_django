@@ -428,6 +428,7 @@ class BookmarkAPIView(APIView):
                         "subcategory": obj.subcategory.subcategory_name,
                         "picture_url": obj.picture_url,
                         "created_at": obj.created_at,
+                        "timesince": timesince(obj.created_at),
                         "details_url": f"{base_url}api/home/trending-now/{obj.id}/",
                     }
                 )
@@ -437,10 +438,13 @@ class BookmarkAPIView(APIView):
                 community_post.append(
                     {
                         "id": obj.id,
-                        "category": obj.category.category_name if obj.category else None,
+                        "category": (
+                            obj.category.category_name if obj.category else None
+                        ),
                         "title": obj.title,
                         "image_url": obj.image.url if obj.image else None,
                         "created_at": obj.created_at,
+                        "timesince": timesince(obj.created_at),
                     }
                 )
 
@@ -454,6 +458,7 @@ class BookmarkAPIView(APIView):
                         "headline": obj.headline,
                         "picture_url": obj.picture_url,
                         "created_at": obj.created_at,
+                        "timesince": timesince(obj.created_at),
                     }
                 )
 
@@ -467,6 +472,7 @@ class BookmarkAPIView(APIView):
                         "topic": obj.topic,
                         "picture_url": obj.picture_url,
                         "created_at": obj.created_at,
+                        "timesince": timesince(obj.created_at),
                     }
                 )
             elif model == "search" and obj_id in search_objs:
@@ -485,6 +491,7 @@ class BookmarkAPIView(APIView):
                         "further_key_words": obj.further_key_words,
                         "search_term": obj.search_term,
                         "created_at": obj.created_at,
+                        "timesince": timesince(obj.created_at),
                     }
                 )
 
