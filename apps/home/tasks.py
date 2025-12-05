@@ -55,15 +55,20 @@ def recommandation_task():
             ).first()
             if not category:
                 category = Category.objects.create(category_name=category_name)
-            subcategory_name = item.get("subcategory", "")
-            subcategory = Subcategory.objects.filter(
-                subcategory_name__iexact=subcategory_name
-            ).first()
-            if not subcategory:
+                subcategory_name = item.get("subcategory", "")
                 subcategory = Subcategory.objects.create(
                     category=category,
                     subcategory_name=subcategory_name
                 )
+            else:
+                subcategory = category.subcategories.filter(
+                    subcategory_name__iexact=item.get("subcategory", "")
+                    ).first() or Subcategory.objects.create(
+                        category=category,
+                        subcategory_name=item.get("subcategory", "")
+                    )
+            
+
 
             Recommendation.objects.create(
                 category=category,
@@ -85,34 +90,40 @@ def recommandation_task():
 @shared_task
 def updateme_task():
     print("update me task started in time")
-    # generate 3 news 
+
+    # ----- 1️⃣ Save top 3 news -----
     top_three = generate_update_me_news_set()
-    # save top 3 news to database
     for news in top_three:
         try:
+            # --- CATEGORY ---
+            category_name = (news.get("category") or "Others").strip()
             category = Category.objects.filter(
-                category_name__iexact=news["category"]
+                category_name__iexact=category_name
             ).first()
             if not category:
-                category = Category.objects.create(category_name=news["category"])
+                category = Category.objects.create(category_name=category_name)
 
-            subcategory = Subcategory.objects.filter(
-                subcategory_name__iexact=news["subcategory"]
-            ).first()
-            if not subcategory:
-                subcategory = Subcategory.objects.create(
-                    category=category,
-                    subcategory_name=news["subcategory"]
-                )
+            # --- SUBCATEGORY ---
+            subcategory_name = (news.get("subcategory") or "").strip()
+            subcategory = None
+            if subcategory_name:
+                subcategory = Subcategory.objects.filter(
+                    category=category, subcategory_name__iexact=subcategory_name
+                ).first()
+                if not subcategory:
+                    subcategory = Subcategory.objects.create(
+                        category=category, subcategory_name=subcategory_name
+                    )
 
+            # --- SAVE UPDATE ME ---
             UpdateMe.objects.create(
                 category=category,
                 subcategory=subcategory,
-                topic=news["topic"],
-                short_info=news["short_info"],
-                reference_url=news["reference_url"],
-                background_story=news["background_story"],
-                picture_url=news["picture_url"],
+                topic=news.get("topic", ""),
+                short_info=news.get("short_info", ""),
+                reference_url=news.get("reference_url", ""),
+                background_story=news.get("background_story", ""),
+                picture_url=news.get("picture_url", ""),
                 is_top3=True,
             )
             print("Top 3 UpdateMe news saved successfully")
@@ -120,7 +131,7 @@ def updateme_task():
             print(f"Error saving Top 3 UpdateMe news: {e}")
             continue
 
-    # generate update me for each topic
+    # ----- 2️⃣ Generate update me for each subtopic -----
     update_me = []
     for subtopic in subcategories[:5]:
         print("subcategory: ", subtopic)
@@ -138,26 +149,30 @@ def updateme_task():
             print(f"Error generating update me element: {e}")
             continue
 
-    # save the update me to the database
+    # ----- 3️⃣ Save generated update me -----
     for item in update_me:
         try:
-            category_name = item.get("category", "Others")
+            # --- CATEGORY ---
+            category_name = (item.get("category") or "Others").strip()
             category = Category.objects.filter(
                 category_name__iexact=category_name
             ).first()
             if not category:
                 category = Category.objects.create(category_name=category_name)
 
-            subcategory_name = item.get("subcategory", "")
-            subcategory = Subcategory.objects.filter(
-                subcategory_name__iexact=subcategory_name
-            ).first()
-            if not subcategory:
-                subcategory = Subcategory.objects.create(
-                    category=category,
-                    subcategory_name=subcategory_name
-                )
+            # --- SUBCATEGORY ---
+            subcategory_name = (item.get("subcategory") or "").strip()
+            subcategory = None
+            if subcategory_name:
+                subcategory = Subcategory.objects.filter(
+                    category=category, subcategory_name__iexact=subcategory_name
+                ).first()
+                if not subcategory:
+                    subcategory = Subcategory.objects.create(
+                        category=category, subcategory_name=subcategory_name
+                    )
 
+            # --- SAVE UPDATE ME ---
             UpdateMe.objects.create(
                 category=category,
                 subcategory=subcategory,
@@ -173,8 +188,6 @@ def updateme_task():
             print(f"Error saving UpdateMe: {e}")
             continue
 
-        # generate update me user
-
 
 @shared_task
 def trending_task():
@@ -187,29 +200,38 @@ def trending_task():
 
     for trend in trending_topics:
         try:
-            category_name = trend.get("category", "Others")
+            # ----- CATEGORY -----
+            category_name = trend.get("category", "Others").strip() or "Others"
+
             category = Category.objects.filter(
                 category_name__iexact=category_name
             ).first()
+
             if not category:
                 category = Category.objects.create(category_name=category_name)
 
+            # ----- SUBCATEGORY -----
             subcategory_name = trend.get("subcategory", "")
-            subcategory = Subcategory.objects.filter(
-                subcategory_name__iexact=subcategory_name
-            ).first()
-            if not subcategory:
-                subcategory = Subcategory.objects.create(
+            subcategory_name = (subcategory_name or "").strip()
+
+            subcategory = None
+
+            if subcategory_name:  # only create when name exists
+                subcategory = Subcategory.objects.filter(
                     category=category,
-                    subcategory_name=subcategory_name
-                )
+                    subcategory_name__iexact=subcategory_name,
+                ).first()
 
-            print("get trend", trend.get("links_and_sources"))
+                if not subcategory:
+                    subcategory = Subcategory.objects.create(
+                        category=category, subcategory_name=subcategory_name
+                    )
 
+            # ----- SAVE TREND -----
             Trending.objects.create(
                 category=category,
-                subcategory=subcategory,
-                topic = trend.get("topic", ""),
+                subcategory=subcategory,  # None is allowed
+                topic=trend.get("topic", ""),
                 description=trend.get("description", ""),
                 why_trending=trend.get("why_is_it_trending", []),
                 key_points=trend.get("key_points", []),
@@ -217,7 +239,9 @@ def trending_task():
                 picture_url=trend.get("picture_url") or trend.get("image_url"),
                 links_and_sources=trend.get("links_and_sources"),
             )
+
             print("New trending news saved to database, successfully!")
+
         except Exception as e:
             print(f"Error saving trending news data: {e}")
             continue

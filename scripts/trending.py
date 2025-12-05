@@ -30,17 +30,17 @@ def generate_trending_element(keywords, prompt_version="v02", categories_file = 
       "category": "<Placeholder>",
       "subcategory": "<Subcategory, e.g., NFL, Politics, Tech>",
       "description": "<Description of the trending topic, 2-3 sentances>",
-      "why_is_it_trending": {{"Subheader 1":  "<Explanation of why it's trending>",
-                              "Subheader 2":  "<Explanation of why it's trending>",
-                              "Subheader 3":  "<Explanation of why it's trending>" 
+      "why_is_it_trending": {{"<Subheader 1>":  "<Explanation of why it's trending>",
+                              "<Subheader 2>":  "<Explanation of why it's trending>",
+                              "<Subheader 3>":  "<Explanation of why it's trending>" 
      }},
-      "key_points": {{"Subheader 1":  "<Key detail",
-                      "Subheader 2":  "<Key detail>",
-                      "Subheader 3":  "<Key detail>" 
+      "key_points": {{"<Subheader 1>":  "<Key detail",
+                      "<Subheader 2>":  "<Key detail>",
+                      "<Subheader 3>":  "<Key detail>" 
      }},
-      "overlook_what_might_happen_next": {{"Subheader 1":  "<Outlook or prediction>",
-                                          "Subheader 2":  "<Outlook or prediction>",
-                                           "Subheader 3":  "<Outlook or prediction>" 
+      "overlook_what_might_happen_next": {{"<Subheader 1>":  "<Outlook or prediction>",
+                                          "<Subheader 2>":  "<Outlook or prediction>",
+                                           "<Subheader 3>":  "<Outlook or prediction>" 
      }},
         "picture_url": "placeholder"
     }}

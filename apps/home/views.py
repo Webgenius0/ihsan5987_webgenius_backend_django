@@ -590,6 +590,7 @@ class SearchAPIView(APIView):
                 category_name=category_name
             )
             subcategory, _ = Subcategory.objects.get_or_create(
+                category=category,
                 subcategory_name=subcategory_name
             )
 

@@ -81,7 +81,7 @@ class CategoryAdmin(ModelAdmin):
 @admin.register(Subcategory)
 class SubcategoryAdmin(ModelAdmin):
     list_display = ("subcategory_name", "category", "is_active")
-    list_filter = ("category",)
+    list_filter = ("category", "category__is_main")
     search_fields = ("subcategory_name", "category__category_name")
     list_per_page = 50
     list_filter_sheet = False
@@ -138,6 +138,7 @@ class UpdateMeAdmin(ModelAdmin, ImportExportModelAdmin):
     search_fields = ("short_info", "background_story", "reference_url")
     ordering = ("-created_at",)
     list_per_page = 20
+    
 
     import_form_class = ImportForm
     export_form_class = ExportForm
@@ -152,6 +153,9 @@ class UpdateMeAdmin(ModelAdmin, ImportExportModelAdmin):
 # Trending
 @admin.register(Trending)
 class TrendingAdmin(ModelAdmin, ImportExportModelAdmin):
+
+    refresh_on_change = ["category"]  # 🔥 Required by Django Unfold
+
     list_display = (
         "topic",
         "category",
@@ -159,6 +163,7 @@ class TrendingAdmin(ModelAdmin, ImportExportModelAdmin):
         "description",
         "preview_image",
         "created_at",
+        "is_active"
     )
     list_filter = ("created_at", "category", "subcategory")
     search_fields = ("description", "key_points")
@@ -167,10 +172,10 @@ class TrendingAdmin(ModelAdmin, ImportExportModelAdmin):
     list_per_page = 20
     actions = ["duplicate_rows"]
     export_form_class = ExportForm
+    refresh_on_change = ["category"]
 
     def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        return qs.select_related("category", "subcategory")
+        return super().get_queryset(request).select_related("category", "subcategory")
 
     def has_import_permission(self, request):
         return False
@@ -184,30 +189,55 @@ class TrendingAdmin(ModelAdmin, ImportExportModelAdmin):
 
     preview_image.short_description = "Picture URL"
 
-    # -------------------------------
-    # IMPORTANT PART: SUBCATEGORY FILTER
-    # -------------------------------
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "subcategory":
-            # Extract selected category from URL when editing
+
             category_id = None
 
-            # When adding a new record
-            if "category" in request.GET:
-                category_id = request.GET.get("category")
+            # 1️⃣ Unfold sends dynamic keys → find any POST key that contains category
+            for key, value in request.POST.items():
+                if "category" in key:   # <-- this is the TRICK
+                    category_id = value
+                    break
 
-            # When editing an existing record
-            obj_id = request.resolver_match.kwargs.get("object_id")
-            if obj_id:
-                trending_obj = Trending.objects.filter(pk=obj_id).first()
-                if trending_obj:
-                    category_id = trending_obj.category_id
+            # 2️⃣ Editing existing object (GET request)
+            if not category_id:
+                obj_id = request.resolver_match.kwargs.get("object_id")
+                if obj_id:
+                    obj = Trending.objects.filter(pk=obj_id).first()
+                    if obj:
+                        category_id = obj.category_id
 
-            # Apply filter
+            # 3️⃣ Apply filter
             if category_id:
                 kwargs["queryset"] = Subcategory.objects.filter(category_id=category_id)
+            else:
+                kwargs["queryset"] = Subcategory.objects.none()
 
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+
+    # def get_form(self, request, obj=None, **kwargs):
+    #     form = super().get_form(request, obj, **kwargs)
+
+    #     # If editing existing
+    #     if obj and obj.category_id:
+    #         form.base_fields["subcategory"].queryset = Subcategory.objects.filter(
+    #             category=obj.category
+    #         )
+    #         return form
+
+    #     # If adding new and category selected (Unfold auto refreshes on change)
+    #     category_id = request.POST.get("category") or request.GET.get("category")
+    #     if category_id:
+    #         form.base_fields["subcategory"].queryset = Subcategory.objects.filter(
+    #             category_id=category_id
+    #         )
+    #         return form
+
+    #     # Default
+    #     form.base_fields["subcategory"].queryset = Subcategory.objects.none()
+    #     return form
 
 
 # Bookmark
