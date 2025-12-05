@@ -289,7 +289,7 @@ class PreferenceAPI(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        categories = Category.objects.prefetch_related("subcategories").filter(is_active=True, is_main=True)
+        categories = Category.objects.prefetch_related("subcategories").filter(is_active=True)
         serializer = CategorySerializer(categories, many=True)
         response_data = {
             "code": status.HTTP_200_OK,
