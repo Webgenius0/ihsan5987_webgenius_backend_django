@@ -95,6 +95,7 @@ WSGI_APPLICATION = "project.wsgi.application"
 
 
 # DATABASE
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
@@ -108,6 +109,7 @@ DATABASES = {
         },
     }
 }
+
 
 # djdngo default sqlite database for development
 # DATABASES = {
