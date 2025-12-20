@@ -1,11 +1,11 @@
 import traceback
-from django.utils.timesince import timesince
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.validators import ValidationError
 from rest_framework.throttling import UserRateThrottle
 from rest_framework import status
 from django.db import transaction
+
 # from apps.home.models import SearchTag
 from scripts.search_bar import search_bar
 from django.shortcuts import get_object_or_404
@@ -13,7 +13,7 @@ from django.forms.models import model_to_dict
 from django.contrib.contenttypes.models import ContentType
 from collections import defaultdict
 
-from .utils import SearchGenThrottle
+from .utils import SearchGenThrottle, timesince_short
 
 
 from .models import (
@@ -67,6 +67,7 @@ class SubcategoryListAPIView(APIView):
         serializer = SubcategorySerializer(subcategories, many=True)
         return Response(serializer.data)
 
+
 class UserDetailAPIView(APIView):
     def get(self, request, pk):
         user = get_object_or_404(User, pk=pk)
@@ -98,7 +99,11 @@ class TrendingNowAPI(APIView):
 
     def get(self, request, pk=None):
         if pk:
-            trending_now = Trending.objects.filter(id=pk, is_active=True).select_related("category", "subcategory").first()
+            trending_now = (
+                Trending.objects.filter(id=pk, is_active=True)
+                .select_related("category", "subcategory")
+                .first()
+            )
 
             if trending_now:
                 obj = {
@@ -112,7 +117,7 @@ class TrendingNowAPI(APIView):
                     "outlook": trending_now.outlook,
                     "picture_url": trending_now.picture_url,
                     "created_at": trending_now.created_at,
-                    "timesince": timesince(trending_now.created_at),
+                    "timesince": timesince_short(trending_now.created_at),
                 }
                 response = {"code": status.HTTP_200_OK, "success": True, "data": obj}
                 return Response(response, status=status.HTTP_200_OK)
@@ -127,11 +132,17 @@ class TrendingNowAPI(APIView):
             # check query params for all
             # check if queryparams all is to true
             if request.query_params.get("all") == "true":
-                trending_now = Trending.objects.filter(is_active=True).select_related("category", "subcategory").order_by("-created_at")
+                trending_now = (
+                    Trending.objects.filter(is_active=True)
+                    .select_related("category", "subcategory")
+                    .order_by("-created_at")
+                )
             else:
-                trending_now = Trending.objects.filter(is_active=True).select_related(
-                    "category", "subcategory"
-                ).order_by("-created_at")[:8]
+                trending_now = (
+                    Trending.objects.filter(is_active=True)
+                    .select_related("category", "subcategory")
+                    .order_by("-created_at")[:8]
+                )
         data = []
         for trendig in trending_now:
             obj = {
@@ -145,7 +156,7 @@ class TrendingNowAPI(APIView):
                 "outlook": trendig.outlook,
                 "picture_url": trendig.picture_url,
                 "created_at": trendig.created_at,
-                "timesince": timesince(trendig.created_at),
+                "timesince": timesince_short(trendig.created_at),
             }
             data.append(obj)
 
@@ -170,7 +181,7 @@ class UpdatemeAPI(APIView):
                 "background_story": update_me.background_story,
                 "picture_url": update_me.picture_url,
                 "created_at": update_me.created_at,
-                "timesince": timesince(update_me.created_at),
+                "timesince": timesince_short(update_me.created_at),
             }
             response = {
                 "code": status.HTTP_200_OK,
@@ -187,14 +198,15 @@ class UpdatemeAPI(APIView):
                     "status": status.HTTP_401_UNAUTHORIZED,
                     "success": False,
                     "messages": "User not found or account is not activate",
-                    
                 }
             )
         sub_ctg = user.preferences.category.all()
 
         # Get top 3 static news (most recent)
         update_me_static3 = list(
-            UpdateMe.objects.filter(is_archive=False, is_top3=True, is_active=True).order_by("-created_at")[:3]
+            UpdateMe.objects.filter(
+                is_archive=False, is_top3=True, is_active=True
+            ).order_by("-created_at")[:3]
         )
 
         # Prepare list of top3 IDs to exclude in next query
@@ -202,7 +214,9 @@ class UpdatemeAPI(APIView):
 
         # Get 2 random changable items matching user preference, excluding the top 3
         update_for_me = list(
-            UpdateMe.objects.filter(category__in=sub_ctg, is_archive=False, is_active=True)
+            UpdateMe.objects.filter(
+                category__in=sub_ctg, is_archive=False, is_active=True
+            )
             .exclude(id__in=top3_ids)
             .select_related("category", "subcategory")
             .order_by("?")[:2]
@@ -226,7 +240,7 @@ class UpdatemeAPI(APIView):
                 "background_story": update.background_story,
                 "picture_url": update.picture_url,
                 "created_at": update.created_at,
-                "timesince": timesince(update.created_at),
+                "timesince": timesince_short(update.created_at),
             }
             data.append(obj)
 
@@ -282,21 +296,23 @@ class RecommendationAPI(APIView):
 
 
 class PreferenceAPI(APIView):
-    '''
+    """
     GET: FETCH ALL PREFERENCES ITEM FROM CATEGORY AND SUBCATEGORY
     POST: SET USER PREFERENCES
-    '''
+    """
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        categories = Category.objects.prefetch_related("subcategories").filter(is_active=True)
+        categories = Category.objects.prefetch_related("subcategories").filter(
+            is_active=True
+        )
         serializer = CategorySerializer(categories, many=True)
         response_data = {
             "code": status.HTTP_200_OK,
             "success": True,
             "message": "Preferences fetched successfully",
-            "data": serializer.data
-            
+            "data": serializer.data,
         }
         return Response(response_data, status=status.HTTP_200_OK)
 
@@ -315,8 +331,8 @@ class PreferenceAPI(APIView):
         for sub in data["subcategories"]:
             subcategory = Subcategory.objects.get(id=sub)
             subcategory_list.append(subcategory)
-        
-        # set category of the subcategory 
+
+        # set category of the subcategory
         category_list = []
         for sub in subcategory_list:
             category = Category.objects.get(id=sub.category_id)
@@ -324,7 +340,6 @@ class PreferenceAPI(APIView):
         preference.subcategory.set(subcategory_list)
         preference.category.set(category_list)
         preference.save()
-
 
         return Response(
             {
@@ -385,32 +400,43 @@ class BookmarkAPIView(APIView):
         # Bulk fetch all objects grouped by type
         trendings = {
             obj.id: obj
-            for obj in Trending.objects.filter(id__in=ids_by_model.get("trending", []))
-            .select_related("category", "subcategory")
+            for obj in Trending.objects.filter(
+                id__in=ids_by_model.get("trending", [])
+            ).select_related("category", "subcategory")
         }
         posts = {
             obj.id: obj
-            for obj in Post.objects.filter(id__in=ids_by_model.get("post", []))
-            .select_related("category")
+            for obj in Post.objects.filter(
+                id__in=ids_by_model.get("post", [])
+            ).select_related("category")
         }
         recommendations = {
             obj.id: obj
-            for obj in Recommendation.objects.filter(id__in=ids_by_model.get("recommendation", []))
-            .select_related("category")
+            for obj in Recommendation.objects.filter(
+                id__in=ids_by_model.get("recommendation", [])
+            ).select_related("category")
         }
         updateme_objs = {
             obj.id: obj
-            for obj in UpdateMe.objects.filter(id__in=ids_by_model.get("updateme", []))
-            .select_related("category", "subcategory")
+            for obj in UpdateMe.objects.filter(
+                id__in=ids_by_model.get("updateme", [])
+            ).select_related("category", "subcategory")
         }
         search_objs = {
             obj.id: obj
-            for obj in Search.objects.filter(id__in=ids_by_model.get("search", []))
-            .select_related("category", "subcategory")
+            for obj in Search.objects.filter(
+                id__in=ids_by_model.get("search", [])
+            ).select_related("category", "subcategory")
         }
 
         # Initialize response lists
-        trending_data, community_post, recommendation_data, updateme_data, search_bar = [], [], [], [], []
+        (
+            trending_data,
+            community_post,
+            recommendation_data,
+            updateme_data,
+            search_bar,
+        ) = ([], [], [], [], [])
 
         base_url = request.build_absolute_uri("/")
 
@@ -428,7 +454,7 @@ class BookmarkAPIView(APIView):
                         "subcategory": obj.subcategory.subcategory_name,
                         "picture_url": obj.picture_url,
                         "created_at": obj.created_at,
-                        "timesince": timesince(obj.created_at),
+                        "timesince": timesince_short(obj.created_at),
                         "details_url": f"{base_url}api/home/trending-now/{obj.id}/",
                     }
                 )
@@ -444,7 +470,7 @@ class BookmarkAPIView(APIView):
                         "title": obj.title,
                         "image_url": obj.image.url if obj.image else None,
                         "created_at": obj.created_at,
-                        "timesince": timesince(obj.created_at),
+                        "timesince": timesince_short(obj.created_at),
                     }
                 )
 
@@ -458,7 +484,7 @@ class BookmarkAPIView(APIView):
                         "headline": obj.headline,
                         "picture_url": obj.picture_url,
                         "created_at": obj.created_at,
-                        "timesince": timesince(obj.created_at),
+                        "timesince": timesince_short(obj.created_at),
                     }
                 )
 
@@ -472,7 +498,7 @@ class BookmarkAPIView(APIView):
                         "topic": obj.topic,
                         "picture_url": obj.picture_url,
                         "created_at": obj.created_at,
-                        "timesince": timesince(obj.created_at),
+                        "timesince": timesince_short(obj.created_at),
                     }
                 )
             elif model == "search" and obj_id in search_objs:
@@ -491,7 +517,7 @@ class BookmarkAPIView(APIView):
                         "further_key_words": obj.further_key_words,
                         "search_term": obj.search_term,
                         "created_at": obj.created_at,
-                        "timesince": timesince(obj.created_at),
+                        "timesince": timesince_short(obj.created_at),
                     }
                 )
 
@@ -536,9 +562,11 @@ class SearchAPIView(APIView):
                 print(f"Error saving search history: {e}")
                 pass
 
-        previous_search = Search.objects.filter(
-            search_term__iexact=search_term
-        ).values("search_term", "id").first()
+        previous_search = (
+            Search.objects.filter(search_term__iexact=search_term)
+            .values("search_term", "id")
+            .first()
+        )
         if previous_search:
             search_item = Search.objects.get(id=previous_search["id"])
             print("get from previous search")
@@ -586,12 +614,9 @@ class SearchAPIView(APIView):
             if not category_name or not subcategory_name or not topic_name:
                 raise ValueError("Missing category/subcategory/topic names")
 
-            category, _ = Category.objects.get_or_create(
-                category_name=category_name
-            )
+            category, _ = Category.objects.get_or_create(category_name=category_name)
             subcategory, _ = Subcategory.objects.get_or_create(
-                category=category,
-                subcategory_name=subcategory_name
+                category=category, subcategory_name=subcategory_name
             )
 
             # Create Search (News) object
@@ -688,7 +713,7 @@ class SearchHistoryAPIView(APIView):
             )
 
         try:
-            search_history = SearchHistory.objects.get(user=user, pk=pk) 
+            search_history = SearchHistory.objects.get(user=user, pk=pk)
             search_history.delete()
             return Response(
                 {
