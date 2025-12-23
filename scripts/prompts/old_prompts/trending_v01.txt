@@ -27,17 +27,17 @@ You are the assistant that will help quickly get exhaustive information on a cer
       "category": "<Placeholder>",
       "subcategory": "<Subcategory, e.g., NFL, Politics, Tech>",
       "description": "<A brief description of the trending topic>",
-      "why_is_it_trending": {{"Subheader 1":  "<Explanation of why it's trending>",
-                              "Subheader 2":  "<Explanation of why it's trending>",
-                              "Subheader 3":  "<Explanation of why it's trending>" 
+      "why_is_it_trending": {{"<Subheader 1>":  "<Explanation of why it's trending>",
+                              "<Subheader 2>":  "<Explanation of why it's trending>",
+                              "<Subheader 3>":  "<Explanation of why it's trending>" 
      }},
-      "key_points": {{"Subheader 1":  "<Key detail",
-                      "Subheader 2":  "<Key detail>",
-                      "Subheader 3":  "<Key detail>" 
+      "key_points": {{"<Subheader 1>":  "<Key detail",
+                      "<Subheader 2>":  "<Key detail>",
+                      "<Subheader 3>":  "<Key detail>" 
      }},
-      "overlook_what_might_happen_next": {{"Subheader 1":  "<Outlook or prediction>",
-                                          "Subheader 2":  "<Outlook or prediction>",
-                                           "Subheader 3":  "<Outlook or prediction>" 
+      "overlook_what_might_happen_next": {{"<Subheader 1>":  "<Outlook or prediction>",
+                                          "<Subheader 2>":  "<Outlook or prediction>",
+                                           "<Subheader 3>":  "<Outlook or prediction>" 
      }},
         "picture_url": "placeholder"
     }}

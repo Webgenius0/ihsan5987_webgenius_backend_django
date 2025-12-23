@@ -46,9 +46,9 @@ You are the assistant that will help quickly get information on a certain topic 
           
         "general_facts": {{
                         "general_definition": introductory sentence about the topic,
-                        "general_points":  {{"Subheader 1":  "<general key points about the topic that the user must know>",
-                              "Subheader 2":  "<general key points about the topic that the user must know>",
-                              "Subheader 3":  "<general key points about the topic that the user must know>" 
+                        "general_points":  {{"<Subheader 1>":  "<general key points about the topic that the user must know>",
+                              "<Subheader 2>":  "<general key points about the topic that the user must know>",
+                              "<Subheader 3>":  "<general key points about the topic that the user must know>" 
                                 }},
                         "general_fun_fact": one general fun fact about the topic,
                         "key_facts_text": 3 key facts about the topic, they must be written as separate sentances,
