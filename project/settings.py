@@ -301,8 +301,8 @@ CELERY_BROKER_URL = config("REDIS_URL")
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 
 
-cred = credentials.Certificate("firebase-adminsdk.json")
+# cred = credentials.Certificate("firebase-adminsdk.json")
 
-# Prevent re-initialization if it's already initialized
-if not firebase_admin._apps:
-    firebase_admin.initialize_app(cred)
+# # Prevent re-initialization if it's already initialized
+# if not firebase_admin._apps:
+#     firebase_admin.initialize_app(cred)
