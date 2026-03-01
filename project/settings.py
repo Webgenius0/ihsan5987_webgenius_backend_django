@@ -96,19 +96,30 @@ WSGI_APPLICATION = "project.wsgi.application"
 
 # DATABASE
 
+import dj_database_url
+from decouple import config
+
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": config('DB_NAME'),
-        "USER": config('DB_USER'),
-        "PASSWORD": config('DB_PASS'),
-        "HOST": config('DB_HOST'),
-        "PORT": "5432",
-        "OPTIONS": {
-            "sslmode": "require",
-        },
-    }
+    "default": dj_database_url.parse(
+        config("DATABASE_URL"),
+        conn_max_age=600,
+        ssl_require=True,
+    )
 }
+
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.postgresql",
+#         "NAME": config('DB_NAME'),
+#         "USER": config('DB_USER'),
+#         "PASSWORD": config('DB_PASS'),
+#         "HOST": config('DB_HOST'),
+#         "PORT": "5432",
+#         "OPTIONS": {
+#             "sslmode": "require",
+#         },
+#     }
+# }
 
 
 # djdngo default sqlite database for development
