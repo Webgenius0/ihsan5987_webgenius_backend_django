@@ -17,6 +17,10 @@ SECRET_KEY = "django-insecure-@unv(phjz=6caf$!bew*e01cj9xz*eg-#11x7n=(^sc3aca7k!
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://smalltalk.up.railway.app",
+]
+
 AUTH_USER_MODEL = "users.User"
 
 ALLOWED_HOSTS = ["*"]
@@ -59,6 +63,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -291,7 +296,8 @@ LOGGING = {
 }
 
 
-CELERY_BROKER_URL = "redis://localhost:6379/0"
+# CELERY_BROKER_URL = "redis://localhost:6379/0"
+CELERY_BROKER_URL = config("REDIS_URL")
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 
 
