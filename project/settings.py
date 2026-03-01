@@ -17,10 +17,6 @@ SECRET_KEY = "django-insecure-@unv(phjz=6caf$!bew*e01cj9xz*eg-#11x7n=(^sc3aca7k!
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-CSRF_TRUSTED_ORIGINS = [
-    "https://smalltalk.up.railway.app",
-]
-
 AUTH_USER_MODEL = "users.User"
 
 ALLOWED_HOSTS = ["*"]
@@ -221,6 +217,7 @@ CORS_ALLOWED_ORIGINS = [
 
 # csrf setup
 CSRF_TRUSTED_ORIGINS = [
+    "https://smalltalk.up.railway.app",
     "http://localhost:8000",
     "http://127.0.0.1:8000",
 ]
