@@ -200,7 +200,8 @@ class UpdatemeAPI(APIView):
                     "messages": "User not found or account is not activate",
                 }
             )
-        sub_ctg = user.preferences.category.all()
+        preferences = Preference.objects.filter(user=user).first()
+        sub_ctg = preferences.category.all() if preferences else Category.objects.none()
 
         # Get top 3 static news (most recent)
         update_me_static3 = list(
@@ -259,7 +260,12 @@ class RecommendationAPI(APIView):
 
     def get(self, request, pk=None):
         user = request.user
-        category = user.preferences.category.all().values_list("id", flat=True)
+        preferences = Preference.objects.filter(user=user).first()
+        category = (
+            preferences.category.all().values_list("id", flat=True)
+            if preferences
+            else Category.objects.none().values_list("id", flat=True)
+        )
         if pk:
             recommendation = get_object_or_404(Recommendation, pk=pk)
             serializer = RecommendationSerializer(recommendation)

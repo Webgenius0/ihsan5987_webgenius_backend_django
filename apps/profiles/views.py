@@ -346,7 +346,15 @@ class UserPreferencesView(APIView):
 
     def get(self, request):
         user = request.user
-        preferences = user.preferences
+        preferences = Preference.objects.filter(user=user).first()
+        if not preferences:
+            response = {
+                "status": status.HTTP_200_OK,
+                "success": True,
+                "message": "User preferences retrieved successfully",
+                "data": [],
+            }
+            return Response(response, status=status.HTTP_200_OK)
 
         result = []
         for category in preferences.category.all():
