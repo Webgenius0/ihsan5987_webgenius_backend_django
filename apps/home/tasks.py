@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+from collections import defaultdict
 from django.utils import timezone
 from datetime import timedelta
 from celery import shared_task
@@ -19,6 +20,7 @@ from scripts.trending import generate_trending_set
 # Always use absolute path for categories file
 categories_file = "Categories.xlsx"
 categories_path = os.path.join(os.path.dirname(__file__), categories_file)
+RECOMMENDATION_BATCH_SIZE = 5
 
 # Read Excel file
 try:
@@ -26,14 +28,63 @@ try:
     subcategories = df["Subcategory"].dropna().tolist()
 except Exception as e:
     print(f"Error reading Categories.xlsx: {e}")
+    df = pd.DataFrame()
     subcategories = []
+
+
+def get_balanced_subcategories(limit=RECOMMENDATION_BATCH_SIZE):
+    """
+    Pick subcategories in round-robin order across categories
+    so one category cannot dominate a batch.
+    """
+    if limit <= 0:
+        return []
+
+    if "Category" not in df.columns or "Subcategory" not in df.columns:
+        return subcategories[:limit]
+
+    rows = (
+        df[["Category", "Subcategory"]]
+        .dropna(subset=["Category", "Subcategory"])
+        .astype(str)
+        .apply(lambda col: col.str.strip())
+    )
+
+    grouped = defaultdict(list)
+    category_order = []
+    for _, row in rows.iterrows():
+        category_name = row["Category"]
+        subcategory_name = row["Subcategory"]
+        if not category_name or not subcategory_name:
+            continue
+        if category_name not in grouped:
+            category_order.append(category_name)
+        grouped[category_name].append(subcategory_name)
+
+    selected = []
+    idx = 0
+    while len(selected) < limit:
+        made_progress = False
+        for category_name in category_order:
+            items = grouped[category_name]
+            if idx < len(items):
+                selected.append(items[idx])
+                made_progress = True
+                if len(selected) >= limit:
+                    break
+        if not made_progress:
+            break
+        idx += 1
+
+    return selected
 
 
 @shared_task
 def recommandation_task():
     print("get recommandation task started")
+    selected_subcategories = get_balanced_subcategories()
     recommendations = []
-    for subcat in subcategories[:5]:
+    for subcat in selected_subcategories:
         try:
             recommendations.append(
                 generate_recommendation(

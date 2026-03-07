@@ -80,7 +80,7 @@ class Recommendation(models.Model):
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
-        return self.topic
+        return self.topic or f"Recommendation #{self.pk or 'new'}"
 
     class Meta:
         verbose_name_plural = "Recommendations"
@@ -106,7 +106,7 @@ class UpdateMe(models.Model):
     # interest = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.topic
+        return self.topic or f"UpdateMe #{self.pk or 'new'}"
 
     class Meta:
         verbose_name_plural = "Update Me"
@@ -132,7 +132,10 @@ class Trending(models.Model):
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
-        return f"Trending - {self.description[:20]}"
+        snippet = (self.description or self.topic or "").strip()
+        if snippet:
+            return f"Trending - {snippet[:20]}"
+        return f"Trending #{self.pk or 'new'}"
 
     class Meta:
         indexes = [
@@ -148,7 +151,8 @@ class Bookmark(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Bookmark - {self.user.name}"
+        user_label = getattr(self.user, "name", None) or getattr(self.user, "username", None) or str(self.user_id)
+        return f"Bookmark - {user_label}"
 
 
 # Preferences
@@ -161,7 +165,7 @@ class Preference(models.Model):
     updated_at = models.DateField(auto_now=True)
 
     def __str__(self):
-        return self.user.name
+        return getattr(self.user, "name", None) or getattr(self.user, "username", None) or f"User #{self.user_id}"
 
 
 # Register model for audit logging
