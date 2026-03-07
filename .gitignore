@@ -30,3 +30,9 @@ db.sqlite3
 data.json
 
 staticfiles/
+backup_to_postgres.json
+# migrate_to_postgres.py
+scripts/prompts/migrate_to_postgres.py
+scripts/prompts/migrate_to_postgres.py
+scripts/migrate_to_postgres.py
+apps/home/management/commands/migrate_to_postgres.py
