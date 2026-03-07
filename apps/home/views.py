@@ -47,6 +47,20 @@ class StandardResultsSetPagination(PageNumberPagination):
     max_page_size = 100
 
 
+def _is_truthy_param(value):
+    if value is None:
+        return False
+    return str(value).strip().lower() in {"1", "true", "yes", "y", "on"}
+
+
+def _get_limit_param(value, default_limit):
+    try:
+        parsed = int(value)
+        return parsed if parsed > 0 else default_limit
+    except (TypeError, ValueError):
+        return default_limit
+
+
 # Generic pattern for List + Detail APIViews:
 class CategoryListAPIView(APIView):
     def get(self, request):
@@ -129,20 +143,15 @@ class TrendingNowAPI(APIView):
                 }
                 return Response(response, status=status.HTTP_404_NOT_FOUND)
         else:
-            # check query params for all
-            # check if queryparams all is to true
-            if request.query_params.get("all") == "true":
-                trending_now = (
-                    Trending.objects.filter(is_active=True)
-                    .select_related("category", "subcategory")
-                    .order_by("-created_at")
-                )
-            else:
-                trending_now = (
-                    Trending.objects.filter(is_active=True)
-                    .select_related("category", "subcategory")
-                    .order_by("-created_at")[:8]
-                )
+            all_items = _is_truthy_param(request.query_params.get("all"))
+            limit = _get_limit_param(request.query_params.get("limit"), default_limit=8)
+            trending_now = (
+                Trending.objects.filter(is_active=True)
+                .select_related("category", "subcategory")
+                .order_by("-created_at")
+            )
+            if not all_items:
+                trending_now = trending_now[:limit]
         data = []
         for trendig in trending_now:
             obj = {
@@ -284,10 +293,12 @@ class RecommendationAPI(APIView):
             base_qs = base_qs.filter(category__id__in=category_ids)
         base_qs = base_qs.select_related("category", "subcategory").order_by("-created_at")
 
-        if request.query_params.get("all") == "true":
+        all_items = _is_truthy_param(request.query_params.get("all"))
+        limit = _get_limit_param(request.query_params.get("limit"), default_limit=4)
+        if all_items:
             recommendations = base_qs
         else:
-            recommendations = base_qs[:4]
+            recommendations = base_qs[:limit]
         serializer = RecommendationSerializer(recommendations, many=True)
         response = {
             "code": status.HTTP_200_OK,
