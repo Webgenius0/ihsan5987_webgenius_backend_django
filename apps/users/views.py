@@ -14,6 +14,9 @@ from .serializers import SignupSerializer, LoginSerializer
 
 # Signup View
 class SignupView(APIView):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
     def post(self, request, *args, **kwargs):
         serializer = SignupSerializer(data=request.data)
         if serializer.is_valid():
@@ -197,6 +200,9 @@ class VerifyResetPasswordOTPView(APIView):
 
 # Resend Verify OTP View
 class ResendVerifyOTPView(APIView):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
     def post(self, request):
         email = request.data.get('email')
 
@@ -273,6 +279,9 @@ class ResendVerifyOTPView(APIView):
 
 # Resend Reset Password OTP View
 class ResendResetOTPView(APIView):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
     def post(self, request):
         email = request.data.get('email')
 
@@ -342,6 +351,7 @@ class ResendResetOTPView(APIView):
 
 # Forgot Password View
 class ForgotPasswordView(APIView):
+    authentication_classes = []
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -389,6 +399,7 @@ class ForgotPasswordView(APIView):
 
 # Reset Password View
 class ResetPasswordView(APIView):
+    authentication_classes = []
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -442,6 +453,9 @@ class ResetPasswordView(APIView):
 
 # Login View
 class LoginView(APIView):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
