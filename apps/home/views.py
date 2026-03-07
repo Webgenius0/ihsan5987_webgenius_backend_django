@@ -261,10 +261,11 @@ class RecommendationAPI(APIView):
     def get(self, request, pk=None):
         user = request.user
         preferences = Preference.objects.filter(user=user).first()
-        category = (
-            preferences.category.all().values_list("id", flat=True)
-            if preferences
-            else Category.objects.none().values_list("id", flat=True)
+        has_preferences = preferences and preferences.category.exists()
+        category_ids = (
+            preferences.category.values_list("id", flat=True)
+            if has_preferences
+            else None
         )
         if pk:
             recommendation = get_object_or_404(Recommendation, pk=pk)
@@ -278,19 +279,15 @@ class RecommendationAPI(APIView):
             return Response(response, status=status.HTTP_200_OK)
 
         # check query params
+        base_qs = Recommendation.objects.filter(is_active=True)
+        if category_ids is not None:
+            base_qs = base_qs.filter(category__id__in=category_ids)
+        base_qs = base_qs.select_related("category", "subcategory").order_by("-created_at")
+
         if request.query_params.get("all") == "true":
-            recommendations = (
-                Recommendation.objects.filter(category__in=category, is_active=True)
-                .select_related("category", "subcategory")
-                .order_by("-created_at")
-            )
+            recommendations = base_qs
         else:
-            recommendations = (
-                Recommendation.objects.filter(category__id__in=category, is_active=True)
-                .select_related("category", "subcategory")
-                .order_by("-created_at")[:4]
-            )
-            print("recommendations:", recommendations)
+            recommendations = base_qs[:4]
         serializer = RecommendationSerializer(recommendations, many=True)
         response = {
             "code": status.HTTP_200_OK,
