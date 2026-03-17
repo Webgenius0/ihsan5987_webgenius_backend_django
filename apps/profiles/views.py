@@ -341,6 +341,38 @@ class AppInformationView(APIView):
             )
 
 
+# App Delete View - Delete app by name
+class AppDeleteView(APIView):
+    def delete(self, request, app_name):
+        try:
+            app_info = AppInfo.objects.get(app_name=app_name)
+            app_info.delete()
+            response = {
+                "status": status.HTTP_200_OK,
+                "success": True,
+                "message": f"App '{app_name}' has been deleted successfully",
+            }
+            return Response(response, status=status.HTTP_200_OK)
+        except AppInfo.DoesNotExist:
+            return Response(
+                {
+                    "status": status.HTTP_404_NOT_FOUND,
+                    "success": False,
+                    "message": f"App '{app_name}' not found",
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        except Exception as e:
+            return Response(
+                {
+                    "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "success": False,
+                    "message": str(e),
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
 class UserPreferencesView(APIView):
     permission_classes = [IsAuthenticated]
 

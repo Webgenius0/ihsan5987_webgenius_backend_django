@@ -8,6 +8,7 @@ from .views import (
     ContactUsList,
     NotificationSettingView,
     AppInformationView,
+    AppDeleteView,
     UserPreferencesView,
 )
 
@@ -24,5 +25,6 @@ urlpatterns = [
         name="notification-settings",
     ),
     path("app-info/", AppInformationView.as_view(), name="app-info"),
+    path("app-delete/<str:app_name>/", AppDeleteView.as_view(), name="app-delete"),
     path("user-preferences/", UserPreferencesView.as_view(), name="user-preferences"),
 ]

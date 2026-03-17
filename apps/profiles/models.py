@@ -86,6 +86,7 @@ class Feedback(models.Model):
 
 # models.py
 class AppInfo(models.Model):
+    app_name = models.CharField(max_length=255, unique=True, default="main_app")
     # job_vacancy_url = models.URLField(blank=True, null=True)
     developer_url = models.URLField(blank=True, null=True)
     partner_url = models.URLField(blank=True, null=True)
@@ -98,7 +99,7 @@ class AppInfo(models.Model):
     social_media_url = models.URLField(blank=True, null=True)
 
     def __str__(self):
-        return "App Information"
+        return f"{self.app_name} - App Information"
 
 AI_NAME = (
     ("NEWS_API_KEY", "News API Key"),

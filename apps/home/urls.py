@@ -38,5 +38,8 @@ urlpatterns = [
     path("search-bar/", views.SearchAPIView.as_view(), name="search-bar"),
     path("search-history/", views.SearchHistoryAPIView.as_view(), name="search-history"),
     path("search-history/<int:pk>/", views.SearchHistoryAPIView.as_view(), name="search-history"),
+    
+    # App Management - Delete entire app
+    path("delete-app/<str:app_name>/", views.DeleteAppAPIView.as_view(), name="delete-app"),
 
 ]

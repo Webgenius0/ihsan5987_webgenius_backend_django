@@ -26,6 +26,7 @@ from .models import (
     Trending,
     Recommendation,
     SearchHistory,
+    App,
 )
 from apps.community_hubs.models import Post
 from apps.users.models import User
@@ -144,7 +145,7 @@ class TrendingNowAPI(APIView):
                 return Response(response, status=status.HTTP_404_NOT_FOUND)
         else:
             all_items = _is_truthy_param(request.query_params.get("all"))
-            limit = _get_limit_param(request.query_params.get("limit"), default_limit=8)
+            limit = _get_limit_param(request.query_params.get("limit"), default_limit=25)
             trending_now = (
                 Trending.objects.filter(is_active=True)
                 .select_related("category", "subcategory")
@@ -261,7 +262,7 @@ class UpdatemeAPI(APIView):
 class RecommendationAPI(APIView):
     """
     RESPONSE CONTAINS RECOMMENDATIONS BASED ON USER PREFERENCES (CATEGORY)
-    DEFAULT LIMIT IS 4 RECOMMENDATIONS
+    DEFAULT LIMIT IS 15 RECOMMENDATIONS
     IF ALL IS TRUE IN QUERY PARAMS, THEN ALL RECOMMENDATIONS ARE RETURNED
     """
 
@@ -294,7 +295,7 @@ class RecommendationAPI(APIView):
         base_qs = base_qs.select_related("category", "subcategory").order_by("-created_at")
 
         all_items = _is_truthy_param(request.query_params.get("all"))
-        limit = _get_limit_param(request.query_params.get("limit"), default_limit=4)
+        limit = _get_limit_param(request.query_params.get("limit"), default_limit=15)
         if all_items:
             recommendations = base_qs
         else:
@@ -745,4 +746,91 @@ class SearchHistoryAPIView(APIView):
                     "message": "Search history record not found",
                 },
                 status=status.HTTP_404_NOT_FOUND,
+            )
+
+
+class DeleteAppAPIView(APIView):
+    """Delete an entire app with all its data"""
+    
+    def delete(self, request, app_name):
+        """
+        Delete an app and all its related data
+        
+        URL: DELETE /api/home/delete-app/{app_name}/
+        Example: DELETE /api/home/delete-app/home/
+        """
+        try:
+            # Get the app
+            app = App.objects.get(app_name=app_name)
+            
+            # Delete based on app name
+            if app_name == 'home':
+                # Delete home app related data
+                Category.objects.all().delete()
+                Subcategory.objects.all().delete()
+                Search.objects.all().delete()
+                SearchHistory.objects.all().delete()
+                Recommendation.objects.all().delete()
+                UpdateMe.objects.all().delete()
+                Trending.objects.all().delete()
+                Preference.objects.all().delete()
+                Bookmark.objects.all().delete()
+                
+            elif app_name == 'notifications':
+                from apps.notifications.models import Notification
+                Notification.objects.all().delete()
+                
+            elif app_name == 'profiles':
+                from apps.profiles.models import Profile, FAQ, FAQCategory, ContactUs, Feedback
+                Profile.objects.all().delete()
+                FAQ.objects.all().delete()
+                FAQCategory.objects.all().delete()
+                ContactUs.objects.all().delete()
+                Feedback.objects.all().delete()
+                
+            elif app_name == 'subscription':
+                from apps.subscription.models import Subscription, Plan
+                Subscription.objects.all().delete()
+                Plan.objects.all().delete()
+                
+            elif app_name == 'community_hubs':
+                from apps.community_hubs.models import Post, Comment
+                Post.objects.all().delete()
+                Comment.objects.all().delete()
+                
+            elif app_name == 'users':
+                from apps.users.models import User
+                User.objects.filter(is_superuser=False).delete()
+            
+            # Finally delete the App model entry
+            app.delete()
+            
+            return Response(
+                {
+                    "code": status.HTTP_200_OK,
+                    "success": True,
+                    "message": f"App '{app_name}' and all its data deleted successfully",
+                    "deleted_app": app_name,
+                },
+                status=status.HTTP_200_OK,
+            )
+            
+        except App.DoesNotExist:
+            return Response(
+                {
+                    "code": status.HTTP_404_NOT_FOUND,
+                    "success": False,
+                    "message": f"App '{app_name}' not found",
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        except Exception as e:
+            return Response(
+                {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "success": False,
+                    "message": f"Error deleting app: {str(e)}",
+                    "error": str(e),
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )

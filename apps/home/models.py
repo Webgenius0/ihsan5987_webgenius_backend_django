@@ -170,3 +170,36 @@ class Preference(models.Model):
 
 # Register model for audit logging
 auditlog.register(Preference)
+
+
+# App Management
+class App(models.Model):
+    """Model to manage different Django apps in the system"""
+    APPS_CHOICES = [
+        ('home', 'Home'),
+        ('notifications', 'Notifications'),
+        ('profiles', 'Profiles'),
+        ('subscription', 'Subscription'),
+        ('community_hubs', 'Community Hubs'),
+        ('users', 'Users'),
+    ]
+    
+    app_name = models.CharField(
+        max_length=50, 
+        choices=APPS_CHOICES, 
+        unique=True,
+        help_text="Name of the Django app"
+    )
+    display_name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "App"
+        verbose_name_plural = "Apps"
+        ordering = ['app_name']
+
+    def __str__(self):
+        return f"{self.display_name} ({self.app_name})"
