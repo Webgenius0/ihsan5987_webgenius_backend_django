@@ -399,7 +399,7 @@ class BookmarkAPIView(APIView):
                 "success": True,
                 "message": "Bookmark Removed Successfully",
             }
-            return Response(response_data, status=status.HTTP_400_BAD_REQUEST)
+            return Response(response_data, status=status.HTTP_200_OK)
 
     def get(self, request):
         user = request.user
