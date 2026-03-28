@@ -3,7 +3,8 @@ Focus on the trending topic {keywords}.
     Find  recent news about the topic.  
     Provide a comprehensive overview of a certain topic, explain the most important details, and clarify why this topic is trending now.
     Identify the most suitable subcategory from the list {subcategories}.
-    Use the most recent news, include them to your response. Include the links of the news to the sources. 
+    Use the most recent news and include them in your response.
+    Do not add inline citation markers like [1], [2], [1][3], or similar bracketed references.
     Assume the reader needs a concise briefing that can be used in small talk or for quick updates.
 
     You must return the response in the JSON format exactly as specified.

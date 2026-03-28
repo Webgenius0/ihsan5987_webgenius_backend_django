@@ -12,6 +12,7 @@ from django.shortcuts import get_object_or_404
 from django.forms.models import model_to_dict
 from django.contrib.contenttypes.models import ContentType
 from collections import defaultdict
+from scripts.api_utils import ensure_safe_image_url
 
 from .utils import SearchGenThrottle, timesince_short
 
@@ -497,7 +498,7 @@ class BookmarkAPIView(APIView):
                         "category": obj.category.category_name,
                         "topic": obj.topic,
                         "headline": obj.headline,
-                        "picture_url": obj.picture_url,
+                        "picture_url": ensure_safe_image_url(obj.picture_url),
                         "created_at": obj.created_at,
                         "timesince": timesince_short(obj.created_at),
                     }

@@ -25,6 +25,7 @@ from .llm_utils import *
 import json
 import urllib.request
 import urllib.parse
+from urllib.parse import urlparse
 from .config import GNEWS_API_KEY, PERPLEXITY_API_KEY, SERPER_API_KEY
 from datetime import datetime, timedelta
 import requests
@@ -573,6 +574,58 @@ def get_trending_topics(country_codes= ['IN', 'ID', 'US', 'BR', 'MX', 'NG', 'JP'
 class SerperError(RuntimeError):
     pass
 
+
+DEFAULT_FALLBACK_IMAGE_URL = "https://placehold.co/1200x800/png?text=No+Image"
+
+
+BLOCKED_IMAGE_HOST_KEYWORDS = {
+    "facebook.com",
+    "fbcdn.net",
+    "instagram.com",
+    "tiktok.com",
+    "x.com",
+    "twitter.com",
+    "pinterest.com",
+}
+
+
+def _is_blocked_image_host(url: str) -> bool:
+    try:
+        netloc = (urlparse(url).netloc or "").lower()
+    except Exception:
+        return True
+    return any(keyword in netloc for keyword in BLOCKED_IMAGE_HOST_KEYWORDS)
+
+
+def ensure_safe_image_url(url: str | None, fallback_url: str = DEFAULT_FALLBACK_IMAGE_URL) -> str:
+    """Return fallback when URL is missing or from blocked/login-heavy hosts."""
+    if not url or not isinstance(url, str):
+        return fallback_url
+    if _is_blocked_image_host(url):
+        return fallback_url
+    return url
+
+
+def _is_public_image_url(url: str, timeout: int = 8) -> bool:
+    """Best-effort check that URL is publicly fetchable and serves an image MIME type."""
+    if not url or not isinstance(url, str):
+        return False
+    if _is_blocked_image_host(url):
+        return False
+
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+    }
+
+    # GET with stream is more reliable than HEAD for many CDNs.
+    try:
+        response = requests.get(url, headers=headers, stream=True, allow_redirects=True, timeout=timeout)
+        content_type = (response.headers.get("Content-Type") or "").lower()
+        status_ok = 200 <= response.status_code < 300
+        return status_ok and content_type.startswith("image/")
+    except requests.RequestException:
+        return False
+
 	
 def get_images_serper(
     query: str,
@@ -648,6 +701,7 @@ def get_image_url(
     gl: str | None = None,
     hl: str | None = None,
     page: int = 1,
+    num_candidates: int = 10,
     raise_if_none: bool = False
 ) -> str | None:
     """
@@ -655,8 +709,17 @@ def get_image_url(
     - If found, returns a string (the image URL).
     - If not found, returns None (or raises SerperError if raise_if_none=True).
     """
-    results = get_images_serper(query, num=1, page=page, gl=gl, hl=hl)
-    url = (results[0].get("image_url") if results else None)
+    results = get_images_serper(query, num=num_candidates, page=page, gl=gl, hl=hl)
+
+    url = None
+    for item in results:
+        for candidate in (item.get("image_url"), item.get("thumbnail_url")):
+            if _is_public_image_url(candidate):
+                url = candidate
+                break
+        if url:
+            break
+
     if not url and raise_if_none:
         raise SerperError(f"No image URL found for query: {query!r}")
     return url

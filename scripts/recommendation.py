@@ -96,7 +96,12 @@ def generate_recommendation(keywords, prompt_version="v02",  categories_file = f
     #response = get_llm_response(prompt)
     raw_response = generate_perplexity_output(system_prompt, user_input)
     valid, parsed_json = verify_and_fix_json(raw_response['choices'][0]['message']['content'])
-    parsed_json['image_url'] = get_image_url(parsed_json['headline'])
+    image_url = (
+      get_image_url(parsed_json.get('headline', ''))
+      or get_image_url(parsed_json.get('topic', ''))
+      or get_image_url(keywords)
+    )
+    parsed_json['image_url'] = ensure_safe_image_url(image_url)
 
 
     parsed_json['subcategory'] = keywords

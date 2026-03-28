@@ -1,5 +1,6 @@
 # trending.py
 import os
+import re
 from .api_utils import *
 from .llm_utils import *
 from datetime import datetime, timedelta
@@ -8,6 +9,19 @@ from datetime import datetime, timedelta
 file_name = "Categories.xlsx"
 file_path = os.path.join(os.path.dirname(__file__), file_name)
 template_dir = os.path.join(os.path.dirname(__file__), "prompts")
+
+
+def _strip_inline_citations(value):
+    """Remove bracketed numeric citations like [1] or [2][5] from strings recursively."""
+    if isinstance(value, str):
+        cleaned = re.sub(r"\[(?:\d+)\]", "", value)
+        cleaned = re.sub(r"\s{2,}", " ", cleaned)
+        return cleaned.strip()
+    if isinstance(value, list):
+        return [_strip_inline_citations(item) for item in value]
+    if isinstance(value, dict):
+        return {k: _strip_inline_citations(v) for k, v in value.items()}
+    return value
 
 
 def generate_trending_element(keywords, prompt_version="v02", categories_file = file_path, **model_params):
@@ -49,6 +63,7 @@ def generate_trending_element(keywords, prompt_version="v02", categories_file = 
             Critical Requirements:
             - Always respond in valid JSON only (no extra commentary, no markdown).
             - Do not include any additional text or explanation outside the JSON.
+            - Do not include citation markers like [1], [2], or [1][3] in any field.
 
             Be precise and coincise, Dont use Wikipedia or Wikimedia
             The latest news can be from the {date}.
@@ -69,6 +84,7 @@ def generate_trending_element(keywords, prompt_version="v02", categories_file = 
     raw_response = generate_perplexity_output(system_prompt, user_input)
     #return raw_response
     valid, parsed_json = verify_and_fix_json(raw_response['choices'][0]['message']['content'])
+    parsed_json = _strip_inline_citations(parsed_json)
     parsed_json['picture_url'] = get_image_url(parsed_json['topic'])
     #valid = True
     #parsed_json = raw_response

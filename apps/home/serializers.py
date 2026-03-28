@@ -11,6 +11,7 @@ from .models import (
 )
 from apps.profiles.models import Feedback
 from apps.users.models import User
+from scripts.api_utils import ensure_safe_image_url
 
 class SubcategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -72,6 +73,7 @@ class RecommendationSerializer(serializers.ModelSerializer):
     
     def to_representation(self, intance):
         data = super().to_representation(intance)
+        data['picture_url'] = ensure_safe_image_url(data.get('picture_url'))
         data['timesince'] = timesince(intance.created_at, now=timezone.now())
         return data
 
