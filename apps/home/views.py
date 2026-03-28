@@ -418,31 +418,31 @@ class BookmarkAPIView(APIView):
             obj.id: obj
             for obj in Trending.objects.filter(
                 id__in=ids_by_model.get("trending", [])
-            ).select_related("category", "subcategory")
+            ).select_related("category", "subcategory").order_by("-created_at") 
         }
         posts = {
             obj.id: obj
             for obj in Post.objects.filter(
                 id__in=ids_by_model.get("post", [])
-            ).select_related("category")
+            ).select_related("category").order_by("-created_at")
         }
         recommendations = {
             obj.id: obj
             for obj in Recommendation.objects.filter(
                 id__in=ids_by_model.get("recommendation", [])
-            ).select_related("category")
+            ).select_related("category").order_by("-created_at")
         }
         updateme_objs = {
             obj.id: obj
             for obj in UpdateMe.objects.filter(
                 id__in=ids_by_model.get("updateme", [])
-            ).select_related("category", "subcategory")
+            ).select_related("category", "subcategory").order_by("-created_at")
         }
         search_objs = {
             obj.id: obj
             for obj in Search.objects.filter(
                 id__in=ids_by_model.get("search", [])
-            ).select_related("category", "subcategory")
+            ).select_related("category", "subcategory").order_by("-created_at")
         }
 
         # Initialize response lists
@@ -537,16 +537,19 @@ class BookmarkAPIView(APIView):
                     }
                 )
 
+        def _sort_newest_first(items):
+            return sorted(items, key=lambda item: item.get("created_at"), reverse=True)
+
         response_data = {
             "code": status.HTTP_200_OK,
             "success": True,
             "message": "Bookmarks fetched successfully",
             "data": {
-                "trending": trending_data,
-                "community_post": community_post,
-                "recommendation": recommendation_data,
-                "updateme": updateme_data,
-                "search_bar": search_bar,
+                "trending": _sort_newest_first(trending_data),
+                "community_post": _sort_newest_first(community_post),
+                "recommendation": _sort_newest_first(recommendation_data),
+                "updateme": _sort_newest_first(updateme_data),
+                "search_bar": _sort_newest_first(search_bar),
             },
         }
         return Response(response_data, status=status.HTTP_200_OK)
