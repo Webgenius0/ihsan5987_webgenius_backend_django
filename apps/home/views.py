@@ -146,7 +146,7 @@ class TrendingNowAPI(APIView):
                 return Response(response, status=status.HTTP_404_NOT_FOUND)
         else:
             all_items = _is_truthy_param(request.query_params.get("all"))
-            limit = _get_limit_param(request.query_params.get("limit"), default_limit=25)
+            limit = _get_limit_param(request.query_params.get("limit"), default_limit=40)
             trending_now = (
                 Trending.objects.filter(is_active=True)
                 .select_related("category", "subcategory")
@@ -296,7 +296,7 @@ class RecommendationAPI(APIView):
         base_qs = base_qs.select_related("category", "subcategory").order_by("-created_at")
 
         all_items = _is_truthy_param(request.query_params.get("all"))
-        limit = _get_limit_param(request.query_params.get("limit"), default_limit=15)
+        limit = _get_limit_param(request.query_params.get("limit"), default_limit=25)
         if all_items:
             recommendations = base_qs
         else:
