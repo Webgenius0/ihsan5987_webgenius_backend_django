@@ -15,10 +15,8 @@ env/
 # *.sqlite3
 
 # Environment variables
-.env
 
 # VSCode or other IDEs
-.vscode/
 .idea/
 
 # System
@@ -36,3 +34,5 @@ scripts/prompts/migrate_to_postgres.py
 scripts/prompts/migrate_to_postgres.py
 scripts/migrate_to_postgres.py
 apps/home/management/commands/migrate_to_postgres.py
+config.bat
+node_modules

@@ -40,26 +40,26 @@
 
 # #geberate set of 3 update me news 
 
-# from .update_me import *
-# set = generate_update_me_news_set() # news set, 3 news, list of dictionaries
+from .update_me import *
+set = generate_update_me_news_set() # news set, 3 news, list of dictionaries
 
-# print('set result', set)
+print('set result', set)
 
-# #generate output for each topic 
+#generate output for each topic 
 
-# categories_file = 'Categories.xlsx'
-# df = pd.read_excel(categories_file)
-# subcategories = df['Subcategory'].dropna().tolist()
+categories_file = 'Categories.xlsx'
+df = pd.read_excel(categories_file)
+subcategories = df['Subcategory'].dropna().tolist()
 
-# update_me = []
+update_me = []
 
-# update_me = []
+update_me = []
 
-# for subtopic in subcategories[:2]:  #remove the index 2 if need to generate the update_me elemts for all topics 
-#         update_me.append(generate_update_me_element(keywords = subtopic, 
-#                                                     prompt_type = 'update_me_general', 
-#                                                     categories_file = categories_file,  
-#                                                     prompt_version='v01'))     
+for subtopic in subcategories[:2]:  #remove the index 2 if need to generate the update_me elemts for all topics 
+        update_me.append(generate_update_me_element(keywords = subtopic, 
+                                                    prompt_type = 'update_me_general', 
+                                                    categories_file = categories_file,  
+                                                    prompt_version='v01'))     
 
 
 

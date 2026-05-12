@@ -329,3 +329,20 @@ def deactivate_old_news():
         return
 
     print("deactivate old news completed")
+
+
+@shared_task
+def delete_3_days_old_news():
+    print("delete old news task started")
+    cutoff_date = timezone.now() - timedelta(days=3)
+    try:
+        from .models import UpdateMe, Recommendation, Trending
+
+        UpdateMe.objects.filter(created_at__lt=cutoff_date).delete()
+        Recommendation.objects.filter(created_at__lt=cutoff_date).delete()
+        Trending.objects.filter(created_at__lt=cutoff_date).delete()
+    except Exception as e:
+        print(f"Error deleting old news: {e}")
+        return
+
+    print("delete old news task completed")
